@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Festivales</title>
+</head>
+<body>
+
+<h1>Listado de festivales</h1>
+
+<p th:if="${#lists.isEmpty(festivales)}">
+  No hay festivales cargados.
+</p>
+
+<table th:if="${not #lists.isEmpty(festivales)}">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Temporada</th>
+    <th>Fecha de inicio</th>
+    <th>Fecha de fin</th>
+    <th>Activo</th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <tr th:each="festival : ${festivales}">
+    <td th:text="${festival.idFestival}"></td>
+    <td th:text="${festival.nombre}"></td>
+    <td th:text="${festival.temporada}"></td>
+    <td th:text="${festival.fechaInicio}"></td>
+    <td th:text="${festival.fechaFin}"></td>
+    <td th:text="${festival.activo ? 'Sí' : 'No'}"></td>
+  </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

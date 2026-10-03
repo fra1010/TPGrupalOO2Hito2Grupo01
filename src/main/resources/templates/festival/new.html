@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo festival</title>
+</head>
+<body>
+
+<h1>Nuevo festival</h1>
+
+<form th:action="@{/festival/create}"
+      th:object="${festival}"
+      method="post">
+
+    <div>
+        <label for="nombre">Nombre:</label>
+        <input id="nombre"
+               type="text"
+               th:field="*{nombre}">
+    </div>
+
+    <div>
+        <label for="temporada">Temporada:</label>
+        <input id="temporada"
+               type="text"
+               th:field="*{temporada}">
+    </div>
+
+    <div>
+        <label for="fechaInicio">Fecha de inicio:</label>
+        <input id="fechaInicio"
+               type="date"
+               th:field="*{fechaInicio}">
+    </div>
+
+    <div>
+        <label for="fechaFin">Fecha de fin:</label>
+        <input id="fechaFin"
+               type="date"
+               th:field="*{fechaFin}">
+    </div>
+
+    <h2>Costos</h2>
+
+    <div>
+        <label for="costoSuperficies">Costo de superficies:</label>
+        <input id="costoSuperficies"
+               type="number"
+               step="0.01"
+               min="0"
+               th:field="*{costoSuperficies}">
+    </div>
+
+    <div>
+        <label for="costoMontaje">Costo de montaje:</label>
+        <input id="costoMontaje"
+               type="number"
+               step="0.01"
+               min="0"
+               th:field="*{costoMontaje}">
+    </div>
+
+    <div>
+        <label for="plusElectricidad">Plus de electricidad:</label>
+        <input id="plusElectricidad"
+               type="number"
+               step="0.01"
+               min="0"
+               th:field="*{plusElectricidad}">
+    </div>
+
+    <div>
+        <label for="sueldoBase">Sueldo base:</label>
+        <input id="sueldoBase"
+               type="number"
+               step="0.01"
+               min="0"
+               th:field="*{sueldoBase}">
+    </div>
+
+    <!-- El boton no hace nada todavia. -->
+    <button type="submit">Guardar festival</button>
+
+    <a th:href="@{/festival}">Cancelar</a>
+</form>
+
+</body>
+</html>

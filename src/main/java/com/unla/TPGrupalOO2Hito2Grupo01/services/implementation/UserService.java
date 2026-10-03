@@ -27,7 +27,11 @@ public class UserService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		com.unla.TPGrupalOO2Hito2Grupo01.entities.User user = userRepository.findByUsernameAndFetchUserRolesEagerly(username);
+		com.unla.TPGrupalOO2Hito2Grupo01.entities.User user =
+				userRepository.findByUsernameAndFetchUserRolesEagerly(username);
+		if (user == null) { //para evitar nullpointerexception si la consulta JOIN FETCH devuelve null
+			throw new UsernameNotFoundException("Usuario no encontrado o sin rol: " + username);
+		}
 		return buildUser(user, buildGrantedAuthorities(user.getUserRoles()));
 	}
 
@@ -39,8 +43,8 @@ public class UserService implements UserDetailsService {
 
 	private List<GrantedAuthority> buildGrantedAuthorities(Set<UserRole> userRoles) {
 		Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
-		for(UserRole userRole: userRoles) {
-			grantedAuthorities.add(new SimpleGrantedAuthority(userRole.getRole()));
+		for (UserRole userRole : userRoles) {
+			grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getRole().name()));
 		}
 		return new ArrayList<>(grantedAuthorities);
 	}

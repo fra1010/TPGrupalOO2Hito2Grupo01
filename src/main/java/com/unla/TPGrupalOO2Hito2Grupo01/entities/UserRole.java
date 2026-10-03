@@ -2,38 +2,31 @@ package com.unla.TPGrupalOO2Hito2Grupo01.entities;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-@Table(name="user_role", uniqueConstraints=@UniqueConstraint(columnNames= {"role", "user_id"}))
+@Table(name = "user_role",
+		uniqueConstraints = @UniqueConstraint(columnNames = {"user_id"})) // la unica restriccion es user_id, impide que un usuario tenga mas de un rol
 public class UserRole {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY) //sigue con many to one para seguir siendo compatible con User
 	@JoinColumn(name="user_id", nullable=false)
 	private User user;
 
-	@Column(name="role", nullable=false, length=100)
-	private String role;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role", nullable = false, length = 20)
+	private Role role;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;
@@ -41,8 +34,7 @@ public class UserRole {
 	@UpdateTimestamp
 	private LocalDateTime updatedAt;
 
-	public UserRole(int id, User user, String role) {
-		this.id = id;
+	public UserRole(User user, Role role) { // se saco id porque la genera la db
 		this.user = user;
 		this.role = role;
 	}

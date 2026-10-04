@@ -4,11 +4,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.unla.TPGrupalOO2Hito2Grupo01.services.IFestivalService;
-
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IFestivalService;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Costo;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
@@ -39,25 +40,36 @@ public class FestivalController {
 
     @PostMapping("/create")
     public String create(
-            @ModelAttribute("festival") FestivalDTO festivalDTO) {
+            @Valid @ModelAttribute("festival") FestivalDTO festivalDTO,
+            BindingResult bindingResult) {
 
-        Costo costo = new Costo(
-                festivalDTO.getCostoSuperficies(),
-                festivalDTO.getCostoMontaje(),
-                festivalDTO.getPlusElectricidad(),
-                festivalDTO.getSueldoBase()
-        );
+        if (bindingResult.hasErrors()) {
+            return "festival/new";
+        }
 
-        Festival festival = new Festival(
-                festivalDTO.getNombre(),
-                festivalDTO.getTemporada(),
-                festivalDTO.getFechaInicio(),
-                festivalDTO.getFechaFin(),
-                costo
-        );
+        try {
+            Costo costo = new Costo(
+                    festivalDTO.getCostoSuperficies(),
+                    festivalDTO.getCostoMontaje(),
+                    festivalDTO.getPlusElectricidad(),
+                    festivalDTO.getSueldoBase()
+            );
 
-        festivalService.insertOrUpdate(festival);
+            Festival festival = new Festival(
+                    festivalDTO.getNombre(),
+                    festivalDTO.getTemporada(),
+                    festivalDTO.getFechaInicio(),
+                    festivalDTO.getFechaFin(),
+                    costo
+            );
 
-        return "redirect:/festival";
+            festivalService.insertOrUpdate(festival);
+
+            return "redirect:/festival";
+
+        } catch (IllegalArgumentException exception) {
+            bindingResult.reject("festival", exception.getMessage());
+            return "festival/new";
+        }
     }
 }

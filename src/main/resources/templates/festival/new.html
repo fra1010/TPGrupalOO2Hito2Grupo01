@@ -12,11 +12,21 @@
       th:object="${festival}"
       method="post">
 
+    <!-- Para errores generales -->
+    <div th:if="${#fields.hasGlobalErrors()}">
+        <p th:each="error : ${#fields.globalErrors()}"
+           th:text="${error}">
+        </p>
+    </div>
+
     <div>
         <label for="nombre">Nombre:</label>
         <input id="nombre"
                type="text"
                th:field="*{nombre}">
+        <small th:if="${#fields.hasErrors('nombre')}"
+               th:errors="*{nombre}">
+        </small>
     </div>
 
     <div>
@@ -24,6 +34,9 @@
         <input id="temporada"
                type="text"
                th:field="*{temporada}">
+        <small th:if="${#fields.hasErrors('temporada')}"
+               th:errors="*{temporada}">
+        </small>
     </div>
 
     <div>
@@ -31,6 +44,9 @@
         <input id="fechaInicio"
                type="date"
                th:field="*{fechaInicio}">
+        <small th:if="${#fields.hasErrors('fechaInicio')}"
+               th:errors="*{fechaInicio}">
+        </small>
     </div>
 
     <div>
@@ -38,6 +54,9 @@
         <input id="fechaFin"
                type="date"
                th:field="*{fechaFin}">
+        <small th:if="${#fields.hasErrors('fechaFin')}"
+               th:errors="*{fechaFin}">
+        </small>
     </div>
 
     <h2>Costos</h2>
@@ -49,6 +68,9 @@
                step="0.01"
                min="0"
                th:field="*{costoSuperficies}">
+        <small th:if="${#fields.hasErrors('costoSuperficies')}"
+               th:errors="*{costoSuperficies}">
+        </small>
     </div>
 
     <div>
@@ -58,6 +80,9 @@
                step="0.01"
                min="0"
                th:field="*{costoMontaje}">
+        <small th:if="${#fields.hasErrors('costoMontaje')}"
+               th:errors="*{costoMontaje}">
+        </small>
     </div>
 
     <div>
@@ -67,6 +92,9 @@
                step="0.01"
                min="0"
                th:field="*{plusElectricidad}">
+        <small th:if="${#fields.hasErrors('plusElectricidad')}"
+               th:errors="*{plusElectricidad}">
+        </small>
     </div>
 
     <div>
@@ -76,9 +104,11 @@
                step="0.01"
                min="0"
                th:field="*{sueldoBase}">
+        <small th:if="${#fields.hasErrors('sueldoBase')}"
+               th:errors="*{sueldoBase}">
+        </small>
     </div>
 
-    <!-- El boton no hace nada todavia. -->
     <button type="submit">Guardar festival</button>
 
     <a th:href="@{/festival}">Cancelar</a>

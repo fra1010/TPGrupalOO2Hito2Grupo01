@@ -9,6 +9,8 @@ public interface IFestivalService {
 
     List<Festival> getAll();
 
+    List<Festival> getAllActive();
+
     Optional<Festival> findById(Integer idFestival);
 
     Festival insertOrUpdate(Festival festival);

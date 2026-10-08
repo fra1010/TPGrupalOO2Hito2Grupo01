@@ -24,6 +24,11 @@ public class FestivalService implements IFestivalService {
     }
 
     @Override
+    public List<Festival> getAllActive() {
+        return festivalRepository.findByActivoTrue();
+    }
+
+    @Override
     public Optional<Festival> findById(Integer idFestival) {
         return festivalRepository.findById(idFestival);
     }

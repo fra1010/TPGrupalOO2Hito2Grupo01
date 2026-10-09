@@ -1,11 +1,11 @@
 spring:
+  profiles:
+    active: local
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/epicentro_gourmet
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
-  thymeleaf:
-    cache: false

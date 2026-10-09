@@ -11,4 +11,6 @@ target/
 .DS_Store
 Thumbs.db
 
+# ... otras ignoradas ...
 .vscode/
+src/main/resources/application-local.yml

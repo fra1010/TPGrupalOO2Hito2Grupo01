@@ -1,8 +1,10 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.dtos;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -33,16 +35,28 @@ public class FestivalDTO {
     private LocalDate fechaFin;
 
     @PositiveOrZero(message = "El costo no puede ser negativo")
-    private double costoSuperficies;
+    private BigDecimal costoSuperficies;
 
     @PositiveOrZero(message = "El costo no puede ser negativo")
-    private double costoMontaje;
+    private BigDecimal costoMontaje;
 
-    @PositiveOrZero(message = "El costo no puede ser negativo")
-    private double plusElectricidad;
+    @PositiveOrZero(message = "El plus no puede ser negativo")
+    private BigDecimal plusElectricidad;
 
     @PositiveOrZero(message = "El sueldo base no puede ser negativo")
-    private double sueldoBase;
+    private BigDecimal sueldoBase;
+
+    @PositiveOrZero(message = "El plus no puede ser negativo")
+    private BigDecimal plusAntiguedad;
+
+    @PositiveOrZero(message = "El plus no puede ser negativo")
+    private BigDecimal plusCocinero;
+
+    @PositiveOrZero(message = "El plus no puede ser negativo")
+    private BigDecimal plusAyudante;
+
+    @PositiveOrZero(message = "El plus no puede ser negativo")
+    private BigDecimal plusLavaplatos;
 
     public FestivalDTO(
             Integer idFestival,
@@ -50,10 +64,14 @@ public class FestivalDTO {
             String temporada,
             LocalDate fechaInicio,
             LocalDate fechaFin,
-            double costoSuperficies,
-            double costoMontaje,
-            double plusElectricidad,
-            double sueldoBase) {
+            BigDecimal costoSuperficies,
+            BigDecimal costoMontaje,
+            BigDecimal plusElectricidad,
+            BigDecimal sueldoBase,
+            BigDecimal plusAntiguedad,
+            BigDecimal plusCocinero,
+            BigDecimal plusAyudante,
+            BigDecimal plusLavaplatos) {
 
         this.idFestival = idFestival;
         this.nombre = nombre;
@@ -64,5 +82,9 @@ public class FestivalDTO {
         this.costoMontaje = costoMontaje;
         this.plusElectricidad = plusElectricidad;
         this.sueldoBase = sueldoBase;
+        this.plusAntiguedad = plusAntiguedad;
+        this.plusCocinero = plusCocinero;
+        this.plusAyudante = plusAyudante;
+        this.plusLavaplatos = plusLavaplatos;
     }
 }

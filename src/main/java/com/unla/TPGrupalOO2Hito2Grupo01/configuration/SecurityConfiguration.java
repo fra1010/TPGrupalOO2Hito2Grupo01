@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+// VERIFICA QUE ESTA LÍNEA ESTÉ TAL CUAL:
 import com.unla.TPGrupalOO2Hito2Grupo01.services.implementation.UserService;
 
 @Configuration
@@ -33,18 +34,10 @@ public class SecurityConfiguration {
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(AbstractHttpConfigurer::disable)
 				.authorizeHttpRequests(auth -> {
-					auth.requestMatchers("/css/*", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
-							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**").permitAll();
-					auth.anyRequest().authenticated();
+					// Permite el acceso total a cualquier rincón de la app
+					auth.anyRequest().permitAll();
 				})
-				.formLogin(login -> {
-					login.loginPage("/login");
-					login.loginProcessingUrl("/loginprocess");
-					login.usernameParameter("username");
-					login.passwordParameter("password");
-					login.defaultSuccessUrl("/loginsuccess");
-					login.permitAll();
-				})
+				.formLogin(AbstractHttpConfigurer::disable) // Desactiva por completo la redirección al login
 				.logout(logout -> {
 					logout.logoutUrl("/logout");
 					logout.logoutSuccessUrl("/login");
@@ -71,4 +64,3 @@ public class SecurityConfiguration {
 		return new BCryptPasswordEncoder();
 	}
 }
-

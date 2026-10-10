@@ -10,7 +10,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-update 
+      ddl-auto: create-drop
 
   thymeleaf:
     cache: false

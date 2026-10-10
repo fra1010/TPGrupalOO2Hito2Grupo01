@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"></head>
+<body>
+    <nav th:replace="~{layout :: navbar}"></nav>
+
+    <main class="container py-4">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h2>Empleados</h2>
+            <a th:href="@{/empleado/new}" class="btn btn-success">+ Nuevo Empleado</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Apellido</th>
+                                <th>DNI</th>
+                                <th>Fecha Ingreso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Recorremos la lista que envía el EmpleadoController -->
+                            <tr th:each="emp : ${empleados}">
+                                <td th:text="${emp.idEmpleado}"></td>
+                                <td th:text="${emp.nombre}"></td>
+                                <td th:text="${emp.apellido}"></td>
+                                <td th:text="${emp.dni}"></td>
+                                <td th:text="${emp.ingreso}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Mensaje por si la lista viene vacía -->
+                <div th:if="${empleados == null or empleados.isEmpty()}" class="text-center text-muted py-4">
+                    No hay empleados registrados.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{layout :: footer}"></footer>
+    <div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

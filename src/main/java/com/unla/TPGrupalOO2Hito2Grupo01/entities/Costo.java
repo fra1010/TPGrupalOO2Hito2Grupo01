@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -20,33 +22,50 @@ public class Costo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idCosto;
 
-    @Column(nullable = false)
-    private double costoSuperficies;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal costoSuperficies;
 
-    @Column(nullable = false)
-    private double costoMontaje;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal costoMontaje;
 
-    @Column(nullable = false)
-    private double plusElectricidad;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal plusElectricidad;
 
-    @Column(nullable = false)
-    private double sueldoBase;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal sueldoBase;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal plusAntiguedad;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal plusCocinero;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal plusAyudante;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal plusLavaplatos;
 
     @OneToOne(mappedBy = "costo")
     private Festival festival;
 
     public Costo(
-            double costoSuperficies,
-            double costoMontaje,
-            double plusElectricidad,
-            double sueldoBase) {
+            BigDecimal costoSuperficies,
+            BigDecimal costoMontaje,
+            BigDecimal plusElectricidad,
+            BigDecimal sueldoBase,
+            BigDecimal plusAntiguedad,
+            BigDecimal plusCocinero,
+            BigDecimal plusAyudante,
+            BigDecimal plusLavaplatos) {
 
         this.costoSuperficies = costoSuperficies;
         this.costoMontaje = costoMontaje;
         this.plusElectricidad = plusElectricidad;
         this.sueldoBase = sueldoBase;
+        this.plusAntiguedad = plusAntiguedad;
+        this.plusCocinero = plusCocinero;
+        this.plusAyudante = plusAyudante;
+        this.plusLavaplatos = plusLavaplatos;
     }
 }

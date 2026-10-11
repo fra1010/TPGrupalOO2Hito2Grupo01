@@ -10,30 +10,50 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Empleado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idEmpleado;
+    protected Integer idEmpleado;
 
     @Column(nullable = false, length = 50)
-    private String nombre;
+    protected String nombre;
 
     @Column(nullable = false, length = 50)
-    private String apellido;
+    protected String apellido;
 
     @Column(nullable = false)
-    private long dni;
+    protected long dni;
 
     @Column(nullable = false)
-    private LocalDate fechaNacimiento;
+    protected LocalDate fechaNacimiento;
 
     @Column(nullable = false)
-    private LocalDate ingreso;
+    protected LocalDate ingreso;
 
     @Column(nullable = false)
-    private boolean activo;
+    protected boolean activo;
 
+    /* ----- relaciones comentadas -----
+
+    // Relación 1 a 1 con User
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_user")
+    protected User user;
+
+    // Relación N a 1 con UnidadVenta (Varios empleados en una unidad)
+    @ManyToOne(fetch = FetchType.LAZY)
+
+    @JoinColumn(name = "id_unidad_venta")
+    protected UnidadVenta unidadVenta;
+
+    // Relación 1 a N con Liquidacion
+    @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    protected Set<Liquidacion> liquidaciones;
+
+*/
     public Empleado(String nombre, String apellido, long dni,
                     LocalDate fechaNacimiento, LocalDate ingreso,
                     boolean activo) {

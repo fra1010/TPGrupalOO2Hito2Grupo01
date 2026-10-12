@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
 
@@ -34,30 +38,58 @@ public class EmpleadoController {
     @GetMapping("/new")
     public String newEmpleado(Model model) {
         model.addAttribute("empleado", new EmpleadoDTO());
+        // Enviamos las opciones de los enums para renderizar los selects en la vista
+        model.addAttribute("turnos", Turno.values());
+        model.addAttribute("categorias", CategoriaCocina.values());
         return ViewRouteHelper.EMPLEADO_NEW;
     }
 
     @PostMapping("/create")
     public String create(
             @Valid @ModelAttribute("empleado") EmpleadoDTO empleadoDTO,
-            BindingResult bindingResult) {
+            BindingResult bindingResult, Model model) {
 
         if (bindingResult.hasErrors()) {
+            // Si hay errores, volvemos a cargar los enums antes de retornar a la vista
+            model.addAttribute("turnos", Turno.values());
+            model.addAttribute("categorias", CategoriaCocina.values());
             return ViewRouteHelper.EMPLEADO_NEW;
         }
 
-        // Creamos la entidad mapeando los tipos de datos exactos de Empleado.java
-        Empleado empleado = new Empleado(
-                empleadoDTO.getNombre(),
-                empleadoDTO.getApellido(),
-                (long) empleadoDTO.getDni(), // Casteo seguro a long para la entidad de base de datos
-                empleadoDTO.getFechaNacimiento(),
-                empleadoDTO.getIngreso(),
-                empleadoDTO.isActivo()
-        );
+        Empleado empleado;
+
+        // Evaluamos el tipo de empleado seleccionado en el formulario para construir la entidad correspondiente
+        if ("CAJERO".equalsIgnoreCase(empleadoDTO.getTipoEmpleado())) {
+            empleado = new Cajero(
+                    empleadoDTO.getNombre(),
+                    empleadoDTO.getApellido(),
+                    empleadoDTO.getDni(),
+                    empleadoDTO.getFechaNacimiento(),
+                    empleadoDTO.getIngreso(),
+                    empleadoDTO.isActivo(),
+                    empleadoDTO.getTurno()
+            );
+        } else {
+            empleado = new Cocinero(
+                    empleadoDTO.getNombre(),
+                    empleadoDTO.getApellido(),
+                    empleadoDTO.getDni(),
+                    empleadoDTO.getFechaNacimiento(),
+                    empleadoDTO.getIngreso(),
+                    empleadoDTO.isActivo(),
+                    empleadoDTO.getCategoria(),
+                    empleadoDTO.getTareaEspecial()
+            );
+        }
+
+        // Mantenemos el ID si estamos procesando una edición
+        if (empleadoDTO.getIdEmpleado() != null) {
+            empleado.setIdEmpleado(empleadoDTO.getIdEmpleado());
+        }
 
         empleadoService.insertOrUpdate(empleado);
 
-        return ViewRouteHelper.EMPLEADO_ROOT;
+        // Cambiado a redirect para actualizar la URL limpiamente en el navegador
+        return "redirect:/empleado";
     }
 }

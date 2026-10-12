@@ -13,5 +13,8 @@ public interface IDegreeService {
 	void insertOrUpdate(DegreeDTO degreeDTO);
 
 	boolean remove(int id);
+
+    interface IEmpleadoService {
+    }
 }
 

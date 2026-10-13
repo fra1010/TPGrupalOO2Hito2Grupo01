@@ -2,6 +2,7 @@ package com.unla.TPGrupalOO2Hito2Grupo01.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment; // Importacion necesaria
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import java.util.Arrays;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.services.implementation.UserService;
 
@@ -22,9 +24,11 @@ import com.unla.TPGrupalOO2Hito2Grupo01.services.implementation.UserService;
 public class SecurityConfiguration {
 
 	private final UserService userService;
+	private final Environment environment; // Atributo para leer el perfil activo
 
-	public SecurityConfiguration(UserService userService) {
+	public SecurityConfiguration(UserService userService, Environment environment) {
 		this.userService = userService;
+		this.environment = environment;
 	}
 
 	@Bean
@@ -35,6 +39,12 @@ public class SecurityConfiguration {
 				.authorizeHttpRequests(auth -> {
 					auth.requestMatchers("/css/*", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
 							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**").permitAll();
+
+					// SI EL PERFIL LOCAL ESTA ACTIVO LIBERA LA URL AUTOMATICAMENTE
+					if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {
+						auth.requestMatchers("/empleado/**").permitAll();
+					}
+
 					auth.anyRequest().authenticated();
 				})
 				.formLogin(login -> {
@@ -71,4 +81,3 @@ public class SecurityConfiguration {
 		return new BCryptPasswordEncoder();
 	}
 }
-

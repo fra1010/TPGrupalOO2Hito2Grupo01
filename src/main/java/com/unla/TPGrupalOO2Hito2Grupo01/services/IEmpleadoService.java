@@ -12,4 +12,11 @@ public interface IEmpleadoService {
 	Empleado findById(Integer idEmpleado);
 
 	Empleado insertOrUpdate(Empleado empleado);
+
+	// reactivar un empleado eliminado logicamente
+
+	public Empleado reactivarEmpleadoEliminado(Empleado existente, Empleado datosNuevos);
+
+	public boolean deleteLogico(int idEmpleado);
+
 }

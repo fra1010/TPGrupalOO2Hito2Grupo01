@@ -4,93 +4,89 @@
 <body>
 <nav th:replace="~{layout :: navbar}"></nav>
 
-<main class="container py-4">
-    <div class="page-header">
+<main class="container py-4" style="max-width: 700px;">
+    <div class="page-header mb-3">
         <h2 th:text="${empleado.idEmpleado != null} ? 'Editar Empleado' : 'Nuevo Empleado'">Nuevo Empleado</h2>
     </div>
 
-    <div class="card form-card">
+    <!-- Alerta para capturar excepciones de DNI repetido activo -->
+    <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="card form-card shadow-sm">
         <div class="card-body">
             <form th:action="@{/empleado/create}" th:object="${empleado}" method="post">
 
-                <!-- ID oculto por si es edicion -->
+                <!-- Campo oculto indispensable para procesar actualizaciones (Edicion) -->
                 <input type="hidden" th:field="*{idEmpleado}" />
 
-                <!-- SECTOR COMÚN -->
                 <div class="mb-3">
-                    <label for="nombre" class="col-form-label">Nombre</label>
+                    <label for="nombre" class="form-label">Nombre</label>
                     <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required placeholder="Ingrese el nombre"/>
-                    <div class="text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="apellido" class="col-form-label">Apellido</label>
+                    <label for="apellido" class="form-label">Apellido</label>
                     <input type="text" class="form-control" id="apellido" th:field="*{apellido}" required placeholder="Ingrese el apellido"/>
-                    <div class="text-danger" th:if="${#fields.hasErrors('apellido')}" th:errors="*{apellido}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="dni" class="col-form-label">DNI</label>
+                    <label for="dni" class="form-label">DNI</label>
                     <input type="number" class="form-control" id="dni" th:field="*{dni}" required placeholder="Ingrese el DNI"/>
-                    <div class="text-danger" th:if="${#fields.hasErrors('dni')}" th:errors="*{dni}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="fechaNacimiento" class="col-form-label">Fecha de Nacimiento</label>
+                    <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
                     <input type="date" class="form-control" id="fechaNacimiento" th:field="*{fechaNacimiento}" required/>
-                    <div class="text-danger" th:if="${#fields.hasErrors('fechaNacimiento')}" th:errors="*{fechaNacimiento}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="ingreso" class="col-form-label">Fecha de Ingreso</label>
+                    <label for="ingreso" class="form-label">Fecha de Ingreso</label>
                     <input type="date" class="form-control" id="ingreso" th:field="*{ingreso}" required/>
-                    <div class="text-danger" th:if="${#fields.hasErrors('ingreso')}" th:errors="*{ingreso}"></div>
                 </div>
 
+                <!-- Input de control interno para el estado del registro -->
                 <div class="mb-3 form-check">
                     <input type="checkbox" class="form-check-input" id="activo" th:field="*{activo}"/>
-                    <label class="form-check-label" for="activo">¿Está Activo?</label>
+                    <label class="form-check-label" for="activo">¿Esta Activo?</label>
                 </div>
 
-                <!-- SELECTOR DE ROL / HERENCIA -->
+                <!-- Selector de Tipo para Herencia -->
                 <div class="mb-3 border-top pt-3">
-                    <label for="tipoEmpleado" class="col-form-label fw-bold">Tipo de Empleado</label>
+                    <label for="tipoEmpleado" class="form-label fw-bold">Tipo de Empleado</label>
                     <select class="form-select form-control" id="tipoEmpleado" th:field="*{tipoEmpleado}" required onchange="toggleCamposEspecificos()">
                         <option value="">-- Seleccione un tipo --</option>
                         <option value="CAJERO">Cajero</option>
                         <option value="COCINERO">Cocinero</option>
                     </select>
-                    <div class="text-danger" th:if="${#fields.hasErrors('tipoEmpleado')}" th:errors="*{tipoEmpleado}"></div>
                 </div>
 
-                <!-- SECCION EXCLUSIVA DE CAJERO -->
+                <!-- Seccion Dinamica: Cajero -->
                 <div id="seccionCajero" style="display: none;" class="mb-3 p-3 bg-light rounded">
-                    <label for="turno" class="col-form-label">Turno Asignado</label>
+                    <label for="turno" class="form-label">Turno Asignado</label>
                     <select class="form-select form-control" id="turno" th:field="*{turno}">
                         <option value="">-- Seleccione Turno --</option>
                         <option th:each="t : ${turnos}" th:value="${t}" th:text="${t}"></option>
                     </select>
                 </div>
 
-                <!-- SECCION EXCLUSIVA DE COCINERO -->
-                <div id="seccionCocinero" style="display: none;" class="p-3 bg-light rounded">
+                <!-- Seccion Dinamica: Cocinero -->
+                <div id="seccionCocinero" style="display: none;" class="p-3 bg-light rounded mb-3">
                     <div class="mb-3">
-                        <label for="categoria" class="col-form-label">Categoría de Cocina</label>
+                        <label for="categoria" class="form-label">Categoria de Cocina</label>
                         <select class="form-select form-control" id="categoria" th:field="*{categoria}">
-                            <option value="">-- Seleccione Categoría --</option>
+                            <option value="">-- Seleccione Categoria --</option>
                             <option th:each="c : ${categorias}" th:value="${c}" th:text="${c}"></option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="tareaEspecial" class="col-form-label">Tarea Especial</label>
-                        <input type="text" class="form-control" id="tareaEspecial" th:field="*{tareaEspecial}" placeholder="Ej: Especialista en Pastas, Parrilla, etc."/>
+                        <label for="tareaEspecial" class="form-label">Tarea Especial</label>
+                        <input type="text" class="form-control" id="tareaEspecial" th:field="*{tareaEspecial}" placeholder="Ej: Especialista en minutas"/>
                     </div>
                 </div>
 
-                <!-- BOTONES DE ACCIÓN -->
-                <div class="d-flex mt-4">
-                    <button type="submit" class="btn btn-success mr-2" th:text="${empleado.idEmpleado != null} ? 'Guardar Cambios' : 'Crear'"></button>
-                    <a th:href="@{/empleado}" class="btn btn-outline-secondary">Cancelar</a>
+                <div class="pt-2">
+                    <button type="submit" class="btn btn-primary">Guardar Empleado</button>
+                    <a th:href="@{/empleado}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
@@ -100,29 +96,27 @@
 <footer th:replace="~{layout :: footer}"></footer>
 <div th:replace="~{layout :: scripts}"></div>
 
-<!-- SCRIPT DE ANIMACIÓN DINAMICA -->
 <script>
     function toggleCamposEspecificos() {
         var tipo = document.getElementById("tipoEmpleado").value;
-        var divCajero = document.getElementById("seccionCajero");
-        var divCocinero = document.getElementById("seccionCocinero");
+        var cajero = document.getElementById("seccionCajero");
+        var cocinero = document.getElementById("seccionCocinero");
 
         if (tipo === "CAJERO") {
-            divCajero.style.display = "block";
-            divCocinero.style.display = "none";
+            cajero.style.display = "block";
+            cocinero.style.display = "none";
         } else if (tipo === "COCINERO") {
-            divCajero.style.display = "none";
-            divCocinero.style.display = "block";
+            cajero.style.display = "none";
+            cocinero.style.display = "block";
         } else {
-            divCajero.style.display = "none";
-            divCocinero.style.display = "none";
+            cajero.style.display = "none";
+            cocinero.style.display = "none";
         }
     }
 
-    // Ejecutar al cargar la página por si viene de una validación fallida
-    document.addEventListener("DOMContentLoaded", function() {
+    window.onload = function() {
         toggleCamposEspecificos();
-    });
+    };
 </script>
 </body>
 </html>

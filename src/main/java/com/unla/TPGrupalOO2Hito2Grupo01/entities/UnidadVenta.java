@@ -47,9 +47,9 @@ public abstract class UnidadVenta {
     @JoinColumn(name = "id",unique = true, nullable = false)
     protected User responsable;
 
-//    @OneToMany(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "idEmpleado")
-//    protected Set<Empleado> empleados=new HashSet<>();
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_unidad_venta")
+    protected Set<Empleado> empleados=new HashSet<>();
 
 //    @OneToMany(fetch = FetchType.LAZY, mappedBy ="unidadVenta")
 //    protected Set<Pedido> pedidos=new HashSet<>();

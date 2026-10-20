@@ -2,11 +2,7 @@ package com.unla.TPGrupalOO2Hito2Grupo01.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment; // Importacion necesaria
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,24 +19,22 @@ import com.unla.TPGrupalOO2Hito2Grupo01.services.implementation.UserService;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-	private final UserService userService;
-	private final Environment environment; // Atributo para leer el perfil activo
+	private final Environment environment;
 
-	public SecurityConfiguration(UserService userService, Environment environment) {
-		this.userService = userService;
+	public SecurityConfiguration(Environment environment) {
 		this.environment = environment;
 	}
 
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
-				.csrf(AbstractHttpConfigurer::disable)
-				.cors(AbstractHttpConfigurer::disable)
+				.csrf(csrf -> csrf.disable())
+				.cors(cors -> cors.disable())
 				.authorizeHttpRequests(auth -> {
-					auth.requestMatchers("/css/*", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
-							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**").permitAll();
+					auth.requestMatchers("/css/**", "/imgs/**", "/js/**", "/vendor/bootstrap/css/**",
+							"/vendor/jquery/**", "/vendor/bootstrap/js/**", "/api/v1/**").permitAll();
 
-					// SI EL PERFIL LOCAL ESTA ACTIVO LIBERA LA URL AUTOMATICAMENTE
+					// Si el perfil local está activo, libera la URL de pruebas automáticamente
 					if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {
 						auth.requestMatchers("/empleado/**").permitAll();
 					}
@@ -52,7 +46,7 @@ public class SecurityConfiguration {
 					login.loginProcessingUrl("/loginprocess");
 					login.usernameParameter("username");
 					login.passwordParameter("password");
-					login.defaultSuccessUrl("/loginsuccess");
+					login.defaultSuccessUrl("/loginsuccess", true); // Fuerza la redirección al UserController
 					login.permitAll();
 				})
 				.logout(logout -> {
@@ -64,20 +58,7 @@ public class SecurityConfiguration {
 	}
 
 	@Bean
-	AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
-
-	@Bean
-	AuthenticationProvider authenticationProvider(){
-		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-		provider.setPasswordEncoder(passwordEncoder());
-		provider.setUserDetailsService(userService);
-		return provider;
-	}
-
-	@Bean
-	PasswordEncoder passwordEncoder(){
+	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 }

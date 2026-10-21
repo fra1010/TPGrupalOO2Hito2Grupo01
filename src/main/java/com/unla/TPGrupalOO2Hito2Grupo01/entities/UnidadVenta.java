@@ -51,11 +51,11 @@ public abstract class UnidadVenta {
     @JoinColumn(name = "id_unidad_venta")
     protected Set<Empleado> empleados=new HashSet<>();
 
-//    @OneToMany(fetch = FetchType.LAZY, mappedBy ="unidadVenta")
-//    protected Set<Pedido> pedidos=new HashSet<>();
+    @OneToMany(fetch = FetchType.LAZY, mappedBy ="unidadVenta")
+    protected Set<Pedido> pedidos=new HashSet<>();
 
-//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "unidadVenta")
-//    protected Set<Plato> platos=new HashSet<>();
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "unidadVenta")
+    protected Set<Plato> platos=new HashSet<>();
 
     @CreationTimestamp
     protected LocalDate fechaCreacion;

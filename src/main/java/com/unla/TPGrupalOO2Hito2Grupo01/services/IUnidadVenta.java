@@ -9,4 +9,6 @@ public interface IUnidadVenta {
     public List<UnidadVentaDTO> traerUnidadesVenta();
     public void agregarOActualizarUnidadVenta(UnidadVentaDTO unidadVenta);
     public BigDecimal calcularCanon(String username);
+    public UnidadVentaDTO traerUnidadVentaConEmpleados(String username);
+    public UnidadVentaDTO traerUnidadVentaPorIdUnidad(int idUnidadVenta);
 }

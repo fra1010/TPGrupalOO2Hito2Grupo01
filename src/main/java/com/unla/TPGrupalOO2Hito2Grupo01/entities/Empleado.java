@@ -36,22 +36,24 @@ public class Empleado {
     @Column(nullable = false)
     protected boolean activo;
 
-    /* ----- relaciones comentadas -----
+
 
     // Relación 1 a 1 con User
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user")
     protected User user;
 
-    // Relación N a 1 con UnidadVenta (Varios empleados en una unidad)
-    @ManyToOne(fetch = FetchType.LAZY)
+    /* ----- relaciones comentadas -----
 
-    @JoinColumn(name = "id_unidad_venta")
-    protected UnidadVenta unidadVenta;
+   // Relación N a 1 con UnidadVenta (Varios empleados en una unidad)
+   @ManyToOne(fetch = FetchType.LAZY)
 
-    // Relación 1 a N con Liquidacion
-    @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    protected Set<Liquidacion> liquidaciones;
+   @JoinColumn(name = "id_unidad_venta")
+   protected UnidadVenta unidadVenta;
+
+   // Relación 1 a N con Liquidacion
+   @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+   protected Set<Liquidacion> liquidaciones;
 
 */
     public Empleado(String nombre, String apellido, long dni,

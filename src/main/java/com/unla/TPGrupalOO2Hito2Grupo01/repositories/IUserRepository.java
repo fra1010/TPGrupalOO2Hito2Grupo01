@@ -10,7 +10,9 @@ import com.unla.TPGrupalOO2Hito2Grupo01.entities.User;
 @Repository("userRepository")
 public interface IUserRepository extends JpaRepository<User, Integer> {
 
-	@Query("SELECT u FROM User u JOIN FETCH u.userRoles WHERE u.username = (:username)")
+	// CAMBIO AQUI: Cambiamos JOIN FETCH por LEFT JOIN FETCH
+	@Query("SELECT u FROM User u LEFT JOIN FETCH u.userRoles WHERE u.username = :username")
 	User findByUsernameAndFetchUserRolesEagerly(@Param("username") String username);
+
 	boolean existsByUsername(String username);
 }

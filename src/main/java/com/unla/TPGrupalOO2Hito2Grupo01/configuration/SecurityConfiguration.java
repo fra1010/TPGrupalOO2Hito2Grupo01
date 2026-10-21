@@ -1,98 +1,74 @@
-
 package com.unla.TPGrupalOO2Hito2Grupo01.configuration;
-
-import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import com.unla.TPGrupalOO2Hito2Grupo01.services.implementation.UserService;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@SuppressWarnings("deprecation")
 public class SecurityConfiguration {
 
-	private final Environment environment;
+	private final UserService userService;
 
-	public SecurityConfiguration(Environment environment) {
-		this.environment = environment;
+	public SecurityConfiguration(UserService userService) {
+		this.userService = userService;
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http)
-			throws Exception {
-
-		boolean perfilLocal = Arrays.asList(
-				environment.getActiveProfiles()
-		).contains("local");
-
-		http
-				.csrf(csrf -> csrf.disable())
-				.cors(cors -> cors.disable())
-
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+		return http
+				.csrf(AbstractHttpConfigurer::disable)
+				.cors(AbstractHttpConfigurer::disable)
 				.authorizeHttpRequests(auth -> {
-					auth.requestMatchers(
-							"/login",
-							"/loginprocess",
-							"/css/**",
-							"/imgs/**",
-							"/js/**",
-							"/vendor/**",
-							"/api/v1/**"
-					).permitAll();
-
-					auth.requestMatchers(
-							"/empleado/new",
-							"/empleado/create",
-							"/empleado/edit/**",
-							"/empleado/delete/**"
-					).hasAnyRole("ADMIN", "RESPONSABLE");
-
-					auth.requestMatchers("/empleado/**")
-							.hasAnyRole(
-									"ADMIN",
-									"RESPONSABLE",
-									"EMPLEADO"
-							);
-
-					if (perfilLocal) {
-						auth.requestMatchers("/empleado/**")
-								.permitAll();
-					}
-
+					auth.requestMatchers("/", "/css/*","/index", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
+							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**").permitAll();
 					auth.anyRequest().authenticated();
 				})
-
-				.formLogin(login -> login
-						.loginPage("/login")
-						.loginProcessingUrl("/loginprocess")
-						.usernameParameter("username")
-						.passwordParameter("password")
-						.defaultSuccessUrl("/loginsuccess", true)
-						.failureUrl("/login?error=true")
-						.permitAll()
-				)
-
-				.logout(logout -> logout
-						.logoutUrl("/logout")
-						.logoutSuccessUrl("/login?logout=true")
-						.permitAll()
-				);
-
-		return http.build();
+				.formLogin(login -> {
+					login.loginPage("/login");
+					login.loginProcessingUrl("/loginprocess");
+					login.usernameParameter("username");
+					login.passwordParameter("password");
+					login.defaultSuccessUrl("/loginsuccess");
+					login.permitAll();
+				})
+				.logout(logout -> {
+					logout.logoutUrl("/logout");
+					logout.logoutSuccessUrl("/login");
+					logout.permitAll();
+				})
+				.build();
 	}
 
 	@Bean
-	public PasswordEncoder passwordEncoder() {
-		// Temporalmente para desarrollo local.
-		// La contraseña debe coincidir con el texto almacenado.
-		return NoOpPasswordEncoder.getInstance();
+	AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+		return authenticationConfiguration.getAuthenticationManager();
+	}
+
+	@Bean
+	AuthenticationProvider authenticationProvider(){
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setPasswordEncoder(passwordEncoder());
+		provider.setUserDetailsService(userService);
+		return provider;
+	}
+
+	@Bean
+	PasswordEncoder passwordEncoder(){
+		return new BCryptPasswordEncoder();
 	}
 }
+

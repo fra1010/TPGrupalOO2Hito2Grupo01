@@ -45,17 +45,12 @@ public class UserController {
 		}
 
 		Set<String> roles =
-				AuthorityUtils.authorityListToSet(
-						auth.getAuthorities()
-				);
+				AuthorityUtils.authorityListToSet(auth.getAuthorities());
 
 		if (roles.contains("ROLE_ADMIN")
-				|| roles.contains("ROLE_RESPONSABLE")) {
-			return ViewRouteHelper.EMPLEADO_ROOT;
-		}
-
-		if (roles.contains("ROLE_EMPLEADO")) {
-			return "redirect:" + ViewRouteHelper.ROUTE;
+				|| roles.contains("ROLE_RESPONSABLE")
+				|| roles.contains("ROLE_EMPLEADO")) {
+			return "redirect:/index";
 		}
 
 		return "redirect:/login?error=true";

@@ -35,7 +35,7 @@ public class TPGrupalOO2Hito2Grupo01Application {
 				System.out.println(" CONTRASEÑA ACTUALIZADA A 'admin' DESDE JAVA.");
 				System.out.println("CANTIDAD DE ROLES ASOCIADOS: " + empleado.getUserRoles().size());
 			} else {
-				System.out.println("❌ ERROR: El método de búsqueda devolvió NULL para 'empleado'.");
+				System.out.println(" ERROR: El método de búsqueda devolvio NULL para 'empleado'.");
 			}
 
 			System.out.println("=========================================");

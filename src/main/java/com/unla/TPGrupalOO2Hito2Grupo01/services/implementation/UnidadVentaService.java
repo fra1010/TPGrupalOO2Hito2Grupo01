@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 @Service
 public class UnidadVentaService implements IUnidadVenta {
@@ -27,7 +28,16 @@ public class UnidadVentaService implements IUnidadVenta {
     }
     @Override
     public List<UnidadVentaDTO> traerUnidadesVenta() {
-        return List.of();
+        List<UnidadVentaDTO> unidades = new ArrayList<>();
+        for (UnidadVenta unidadVenta : unidadVentaRepository.findAll()) {
+            if (unidadVenta instanceof FoodTruck) {
+                unidades.add(modelMapper.map((FoodTruck) unidadVenta, FoodTruckDTO.class));
+            } else {
+                unidades.add(modelMapper.map((PuestoDesarmable) unidadVenta, PuestoDesarmableDTO.class));
+            }
+
+        }
+        return unidades;
     }
 
     @Override

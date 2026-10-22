@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4">
+
+    <div class="page-header">
+        <h2>Puesto Desarmable</h2>
+    </div>
+
+    <div class="card form-card">
+        <div class="card-body">
+
+            <form th:action="@{/unidadVenta/nuevapuestodesarmable}"
+                  th:object="${puestoDesarmableDTO}"
+                  method="post">
+
+                <!-- RESUMEN DE ERRORES -->
+                <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
+                    <p class="mb-2"><strong>Corregí los siguientes errores:</strong></p>
+                    <ul class="mb-0">
+                        <li th:each="err : ${#fields.allErrors()}" th:text="${err}">mensaje de error</li>
+                    </ul>
+                </div>
+
+                <!-- CAMPOS COMUNES (UnidadVentaDTO) -->
+                <input type="hidden" th:field="*{idUnidadVenta}">
+
+                <div class="mb-3">
+                    <label for="nombre" class="col-form-label">Nombre: *</label>
+                    <input type="text" class="form-control" id="nombre" th:field="*{nombre}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="superficie" class="col-form-label">Superficie (m²): *</label>
+                    <input type="number" step="0.01" min="0.01" class="form-control"
+                           id="superficie" th:field="*{superficie}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('superficie')}" th:errors="*{superficie}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="codigo" class="col-form-label">Código: *</label>
+                    <input type="text" class="form-control" id="codigo" maxlength="45" th:field="*{codigo}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('codigo')}" th:errors="*{codigo}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="idFestival" class="col-form-label">ID Festival:</label>
+                    <input type="number" class="form-control" id="idFestival" th:field="*{idFestival}">
+                </div>
+
+                <!-- RESPONSABLE -->
+                <h5 class="mt-4 mb-3">Responsable</h5>
+
+                <div class="mb-3">
+                    <label for="responsable.username" class="col-form-label">Usuario: *</label>
+                    <input type="text" class="form-control" id="responsable.username"
+                           maxlength="45" th:field="*{responsable.username}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('responsable.username')}" th:errors="*{responsable.username}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="responsable.password" class="col-form-label">Clave: *</label>
+                    <input type="password" class="form-control" id="responsable.password"
+                           minlength="6" maxlength="72" th:field="*{responsable.password}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('responsable.password')}" th:errors="*{responsable.password}"></div>
+                </div>
+
+                <!-- CAMPOS ESPECÍFICOS DE PuestoDesarmableDTO -->
+                <h5 class="mt-4 mb-3">Datos del puesto desarmable</h5>
+
+                <div class="mb-3">
+                    <label for="cantidadCarpas" class="col-form-label">Cantidad de carpas: *</label>
+                    <input type="number" class="form-control" id="cantidadCarpas"
+                           th:field="*{cantidadCarpas}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('cantidadCarpas')}" th:errors="*{cantidadCarpas}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tiempo" class="col-form-label">Tiempo de armado (min): *</label>
+                    <input type="number" class="form-control" id="tiempo"
+                           th:field="*{tiempo}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('tiempo')}" th:errors="*{tiempo}"></div>
+                </div>
+
+                <div class="d-flex">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

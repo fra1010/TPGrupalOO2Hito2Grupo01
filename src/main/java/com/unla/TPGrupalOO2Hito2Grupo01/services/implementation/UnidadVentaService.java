@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.FoodTruckDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PuestoDesarmableDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 @Service
 public class UnidadVentaService implements IUnidadVenta {
@@ -27,7 +29,16 @@ public class UnidadVentaService implements IUnidadVenta {
     }
     @Override
     public List<UnidadVentaDTO> traerUnidadesVenta() {
-        return List.of();
+        List<UnidadVentaDTO> unidades = new ArrayList<>();
+        for (UnidadVenta unidadVenta : unidadVentaRepository.findAll()) {
+            if (unidadVenta instanceof FoodTruck) {
+                unidades.add(modelMapper.map((FoodTruck) unidadVenta, FoodTruckDTO.class));
+            } else {
+                unidades.add(modelMapper.map((PuestoDesarmable) unidadVenta, PuestoDesarmableDTO.class));
+            }
+
+        }
+        return unidades;
     }
 
     @Override
@@ -93,4 +104,42 @@ public class UnidadVentaService implements IUnidadVenta {
         UnidadVenta unidadVenta = unidadVentaRepository.traerUnidadVentaResponsable(username);
         return unidadVentaRepository.calcularCanonUnidad(unidadVenta);
     }
+
+    @Override
+    public UnidadVentaDTO traerUnidadVentaConEmpleados(String username) {
+        UnidadVenta unidad = unidadVentaRepository.traerUnidadVentaResponsable(username);
+        UnidadVentaDTO unidadVentaDTO = modelMapper.map(unidad, UnidadVentaDTO.class);
+        List<EmpleadoDTO> empleadoDTOS = new ArrayList<>();
+        for (Empleado empleado : unidad.getEmpleados()) {
+            EmpleadoDTO dto = modelMapper.map(empleado, EmpleadoDTO.class);
+
+            if (empleado instanceof Cajero) {
+                Cajero cajero = (Cajero) empleado;
+                dto.setTipoEmpleado("CAJERO");
+                dto.setTurno(cajero.getTurno());
+            } else if (empleado instanceof Cocinero) {
+                Cocinero cocinero = (Cocinero) empleado;
+                dto.setTipoEmpleado("COCINERO");
+                dto.setCategoria(cocinero.getCategoria());
+                dto.setTareaEspecial(cocinero.getTareaEspecial());
+            }
+
+            empleadoDTOS.add(dto);
+        }
+        unidadVentaDTO.setEmpleados(empleadoDTOS);
+        return unidadVentaDTO;
+    }
+
+    @Override
+    public UnidadVentaDTO traerUnidadVentaPorIdUnidad(int idUnidadVenta) {
+        UnidadVenta unidadVenta = unidadVentaRepository.findByIdUnidadVenta(idUnidadVenta);
+        UnidadVentaDTO dto=null;
+        if (unidadVenta instanceof FoodTruck) {
+           dto = modelMapper.map((FoodTruck) unidadVenta, FoodTruckDTO.class);
+        } else {
+            dto = modelMapper.map((PuestoDesarmable) unidadVenta, PuestoDesarmableDTO.class);
+        }
+        return dto;
+    }
+
 }

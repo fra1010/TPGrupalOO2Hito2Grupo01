@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pedidos</title>
+</head>
+<body>
+
+<h1>Listado de pedidos</h1>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Unidad de venta</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="pedido : ${pedidos}">
+        <td th:text="${pedido.idPedido}"></td>
+        <td th:text="${pedido.fecha}"></td>
+        <td th:text="${pedido.unidadVenta.idUnidadVenta}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<p th:if="${#lists.isEmpty(pedidos)}">
+    Todavía no hay pedidos registrados.
+</p>
+
+</body>
+</html>

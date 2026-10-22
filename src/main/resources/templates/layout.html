@@ -40,20 +40,27 @@
                         Inicio
                     </a>
                 </li>
+
+                <li class="nav-item"
+                    sec:authorize="hasAnyRole('ADMIN', 'RESPONSABLE', 'EMPLEADO')">
+                    <a class="nav-link" th:href="@{/empleado}">
+                        Empleados
+                    </a>
+                </li>
             </ul>
 
             <ul class="navbar-nav align-items-lg-center">
 
                 <!-- Visitante sin sesión -->
                 <li class="nav-item"
-                    th:if="${username == null or username == 'anonymous'}">
-                        <span class="navbar-text mr-lg-3">
-                            Anónimo
-                        </span>
+                    sec:authorize="isAnonymous()">
+                    <span class="navbar-text mr-lg-3">
+                        Anónimo
+                    </span>
                 </li>
 
                 <li class="nav-item"
-                    th:if="${username == null or username == 'anonymous'}">
+                    sec:authorize="isAnonymous()">
                     <a class="btn btn-primary"
                        th:href="@{/login}">
                         Iniciar sesión
@@ -62,7 +69,7 @@
 
                 <!-- Usuario con sesión -->
                 <li class="nav-item dropdown"
-                    th:if="${username != null and username != 'anonymous'}">
+                    sec:authorize="isAuthenticated()">
 
                     <a class="nav-link dropdown-toggle"
                        href="#"
@@ -72,7 +79,9 @@
                        aria-haspopup="true"
                        aria-expanded="false">
 
-                        <span th:text="${username}">Usuario</span>
+                        <span sec:authentication="name">
+                            Usuario
+                        </span>
                     </a>
 
                     <div class="dropdown-menu dropdown-menu-right"

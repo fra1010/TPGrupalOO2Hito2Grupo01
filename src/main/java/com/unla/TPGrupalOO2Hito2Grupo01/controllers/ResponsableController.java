@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,6 +31,15 @@ public class ResponsableController {
 
         mV.setViewName("unidadventa/canon");
         mV.addObject("canon", canon);
+        return mV;
+    }
+    @GetMapping("/empleados")
+    public ModelAndView empleadosUnidad(@AuthenticationPrincipal User user){
+        ModelAndView mV = new ModelAndView();
+        UnidadVentaDTO unidad= unidadVentaService.traerUnidadVentaConEmpleados(user.getUsername());
+        mV.addObject("unidad",unidad);
+        mV.setViewName("unidadventa/unidad-venta-empleados");
+
         return mV;
     }
 }

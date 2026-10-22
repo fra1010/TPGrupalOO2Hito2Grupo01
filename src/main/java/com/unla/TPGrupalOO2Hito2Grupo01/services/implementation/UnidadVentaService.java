@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.FoodTruckDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PuestoDesarmableDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
@@ -102,5 +103,30 @@ public class UnidadVentaService implements IUnidadVenta {
 
         UnidadVenta unidadVenta = unidadVentaRepository.traerUnidadVentaResponsable(username);
         return unidadVentaRepository.calcularCanonUnidad(unidadVenta);
+    }
+
+    @Override
+    public UnidadVentaDTO traerUnidadVentaConEmpleados(String username) {
+        UnidadVenta unidad = unidadVentaRepository.traerUnidadVentaResponsable(username);
+        UnidadVentaDTO unidadVentaDTO = modelMapper.map(unidad, UnidadVentaDTO.class);
+        List<EmpleadoDTO> empleadoDTOS = new ArrayList<>();
+        for (Empleado empleado : unidad.getEmpleados()) {
+            EmpleadoDTO dto = modelMapper.map(empleado, EmpleadoDTO.class);
+
+            if (empleado instanceof Cajero) {
+                Cajero cajero = (Cajero) empleado;
+                dto.setTipoEmpleado("CAJERO");
+                dto.setTurno(cajero.getTurno());
+            } else if (empleado instanceof Cocinero) {
+                Cocinero cocinero = (Cocinero) empleado;
+                dto.setTipoEmpleado("COCINERO");
+                dto.setCategoria(cocinero.getCategoria());
+                dto.setTareaEspecial(cocinero.getTareaEspecial());
+            }
+
+            empleadoDTOS.add(dto);
+        }
+        unidadVentaDTO.setEmpleados(empleadoDTOS);
+        return unidadVentaDTO;
     }
 }

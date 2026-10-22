@@ -41,6 +41,11 @@ public class PlatoService implements IPlatoService {
         return platoRepository.save(plato);
     }
 
+    @Override
+    public List<Plato> getActivosByUnidad(Integer idUnidadVenta) {
+        return platoRepository.findByUnidadVenta_IdUnidadVentaAndActivoTrue(idUnidadVenta);
+}
+
     private void validarPlato(Plato plato) {
 
         if (plato == null) {

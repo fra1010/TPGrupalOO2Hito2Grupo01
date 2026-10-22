@@ -15,4 +15,6 @@ public interface IPlatoService {
     Optional<Plato> findById(Integer idPlato);
 
     Plato insertOrUpdate(Plato plato);
+
+    List<Plato> getActivosByUnidad(Integer idUnidadVenta);
 }

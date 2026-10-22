@@ -29,6 +29,30 @@
                     <input type="text" class="form-control" id="apellido" th:field="*{apellido}" required placeholder="Ingrese el apellido"/>
                 </div>
 
+                <!-- Email y usuario de acceso -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">
+                        Email / Usuario de acceso
+                    </label>
+
+                    <input type="email"
+                           class="form-control"
+                           id="email"
+                           th:field="*{email}"
+                           maxlength="45"
+                           required
+                           th:readonly="${empleado.idEmpleado != null}"
+                           placeholder="empleado@ejemplo.com"/>
+
+                    <small class="form-text text-muted">
+                         En esta dirección se enviará su usuario y una contraseña generada automáticamente.
+                    </small>
+
+                    <div class="text-danger"
+                         th:if="${#fields.hasErrors('email')}"
+                         th:errors="*{email}">
+                    </div>
+                </div>
                 <div class="mb-3">
                     <label for="dni" class="form-label">DNI</label>
                     <input type="number" class="form-control" id="dni" th:field="*{dni}" required placeholder="Ingrese el DNI"/>

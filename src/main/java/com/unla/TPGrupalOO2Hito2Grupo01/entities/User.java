@@ -14,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,9 +41,12 @@ public class User {
 	@UpdateTimestamp
 	private LocalDateTime updatedAt;
 
-	@OneToMany(fetch=FetchType.LAZY, mappedBy="user")
+	@OneToMany(
+			fetch = FetchType.LAZY,
+			mappedBy = "user",
+			cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+	)
 	private Set<UserRole> userRoles = new HashSet<>();
-
 	public User(String username, String password, boolean enabled) {
 		this.username = username;
 		this.password = password;

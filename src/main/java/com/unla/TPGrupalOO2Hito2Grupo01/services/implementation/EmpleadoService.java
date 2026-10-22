@@ -3,24 +3,30 @@ package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Role;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.User;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UserRole;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Role;
-import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IEmpleadoRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.ICajeroRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.ICocineroRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IEmpleadoRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUserRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
+
 import jakarta.transaction.Transactional;
 
 @Service("empleadoService")
@@ -66,81 +72,199 @@ public class EmpleadoService implements IEmpleadoService {
     @Override
     @Transactional
     public Empleado insertOrUpdate(Empleado empleado) {
-        String passwordGenerada = null;
-        boolean esNuevo = (empleado.getIdEmpleado() == null);
-
-        // Si ya tiene ID es una modificacion ordinaria (edición)
-        if (!esNuevo) {
+        // Para una edición ordinaria, conservamos el User ya asociado
+        if (empleado.getIdEmpleado() != null) {
             Empleado empleadoExistente = findById(empleado.getIdEmpleado());
+
             if (empleadoExistente != null && empleadoExistente.getUser() != null) {
                 empleado.setUser(empleadoExistente.getUser());
             }
+
             return guardarPorTipo(empleado);
         }
 
-        // Si es un alta nueva se verifica si el DNI ya existia
-        Optional<Empleado> empleadoExistente = empleadoRepository.findByDni(empleado.getDni());
+        // Un alta nueva debe usar obligatoriamente darDeAltaConUsuario()
+        throw new IllegalArgumentException(
+                "Para dar de alta un empleado, utilice darDeAltaConUsuario() e indique el email."
+        );
+    }
+
+    @Override
+    @Transactional
+    public Empleado darDeAltaConUsuario(Empleado empleado, String email) {
+
+        if (empleado.getIdEmpleado() != null) {
+            throw new IllegalArgumentException(
+                    "El alta debe realizarse con un empleado sin ID."
+            );
+        }
+
+        String emailNormalizado = normalizarEmail(email);
+
+        Optional<Empleado> empleadoExistente =
+                empleadoRepository.findByDni(empleado.getDni());
 
         if (empleadoExistente.isPresent()) {
             Empleado existente = empleadoExistente.get();
 
-            if (!existente.isActivo()) {
-                return reactivarEmpleadoEliminado(existente, empleado);
-            } else {
-                throw new IllegalArgumentException("Ya existe un empleado activo con el DNI: " + empleado.getDni());
+            if (existente.isActivo()) {
+                throw new IllegalArgumentException(
+                        "Ya existe un empleado activo con el DNI: "
+                                + empleado.getDni()
+                );
             }
+
+            return reactivarEmpleadoEliminado(
+                    existente,
+                    empleado,
+                    emailNormalizado
+            );
         }
 
-        // --- NUEVA LÓGICA DE ALTA: Crear User, contraseña aleatoria y rol ---
-        passwordGenerada = generarContraseniaAleatoria(8);
+        if (userRepository.existsByUsername(emailNormalizado)) {
+            throw new IllegalArgumentException(
+                    "Ya existe un usuario registrado con el email: "
+                            + emailNormalizado
+            );
+        }
+
+        String passwordGenerada = generarContraseniaAleatoria(12);
 
         User user = new User();
-        user.setUsername(String.valueOf(empleado.getDni()));
+        user.setUsername(emailNormalizado);
         user.setPassword(passwordEncoder.encode(passwordGenerada));
         user.setEnabled(true);
 
-        // Asignar rol EMPLEADO
         UserRole role = new UserRole(user, Role.EMPLEADO);
         user.getUserRoles().add(role);
 
-        // Guardar el usuario primero para que tenga ID asignado
-        userRepository.save(user);
+        user = userRepository.save(user);
 
         empleado.setUser(user);
         empleado.setActivo(true);
 
         Empleado empleadoGuardado = guardarPorTipo(empleado);
 
-        // --- ENVIAR CORREO CON CREDENCIALES ---
-        if (passwordGenerada != null) {
-            enviarMailCredenciales(String.valueOf(empleado.getDni()), passwordGenerada);
-        }
+        programarEnvioCredenciales(emailNormalizado, passwordGenerada);
 
         return empleadoGuardado;
     }
 
+
     @Override
     @Transactional
-    public Empleado reactivarEmpleadoEliminado(Empleado existente, Empleado datosNuevos) {
-        existente.setNombre(datosNuevos.getNombre());
-        existente.setApellido(datosNuevos.getApellido());
-        existente.setFechaNacimiento(datosNuevos.getFechaNacimiento());
-        existente.setIngreso(datosNuevos.getIngreso());
-        existente.setActivo(true);
+    public Empleado reactivarEmpleadoEliminado(
+            Empleado existente,
+            Empleado datosNuevos,
+            String email) {
 
-        if (existente.getUser() != null) {
-            existente.getUser().setEnabled(true);
-            userRepository.save(existente.getUser());
+        if (existente == null || existente.getIdEmpleado() == null) {
+            throw new IllegalArgumentException(
+                    "Debe indicar un empleado existente para reactivar."
+            );
         }
 
-        if (existente instanceof Cajero && datosNuevos instanceof Cajero) {
-            ((Cajero) existente).setTurno(((Cajero) datosNuevos).getTurno());
-        } else if (existente instanceof Cocinero && datosNuevos instanceof Cocinero) {
-            ((Cocinero) existente).setCategoria(((Cocinero) datosNuevos).getCategoria());
-            ((Cocinero) existente).setTareaEspecial(((Cocinero) datosNuevos).getTareaEspecial());
+        Empleado empleadoGuardado = empleadoRepository
+                .findById(existente.getIdEmpleado())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No se encontró el empleado que desea reactivar."
+                ));
+
+        if (empleadoGuardado.isActivo()) {
+            throw new IllegalArgumentException(
+                    "El empleado ya se encuentra activo."
+            );
         }
 
-        return guardarPorTipo(existente);
+        if (empleadoGuardado.getDni() != datosNuevos.getDni()) {
+            throw new IllegalArgumentException(
+                    "El DNI no coincide con el empleado que desea reactivar."
+            );
+        }
+
+        boolean ambosCajeros =
+                empleadoGuardado instanceof Cajero
+                        && datosNuevos instanceof Cajero;
+
+        boolean ambosCocineros =
+                empleadoGuardado instanceof Cocinero
+                        && datosNuevos instanceof Cocinero;
+
+        if (!ambosCajeros && !ambosCocineros) {
+            throw new IllegalArgumentException(
+                    "Debe conservar el tipo original del empleado "
+                            + "al reactivarlo: Cajero o Cocinero."
+            );
+        }
+
+        String emailNormalizado = normalizarEmail(email);
+        String passwordGenerada = null;
+
+        if (empleadoGuardado.getUser() != null) {
+
+            User user = empleadoGuardado.getUser();
+
+            if (!emailNormalizado.equalsIgnoreCase(user.getUsername())) {
+                throw new IllegalArgumentException(
+                        "El empleado ya tiene un usuario asociado. "
+                                + "Para reactivarlo, ingrese su email original. "
+                                + "Esta operación no modifica el usuario."
+                );
+            }
+
+            user.setEnabled(true);
+            userRepository.save(user);
+
+        } else {
+
+            if (userRepository.existsByUsername(emailNormalizado)) {
+                throw new IllegalArgumentException(
+                        "Ya existe un usuario registrado con el email: "
+                                + emailNormalizado
+                );
+            }
+
+            passwordGenerada = generarContraseniaAleatoria(12);
+
+            User user = new User();
+            user.setUsername(emailNormalizado);
+            user.setPassword(passwordEncoder.encode(passwordGenerada));
+            user.setEnabled(true);
+
+            UserRole role = new UserRole(user, Role.EMPLEADO);
+            user.getUserRoles().add(role);
+
+            user = userRepository.save(user);
+            empleadoGuardado.setUser(user);
+        }
+
+        empleadoGuardado.setNombre(datosNuevos.getNombre());
+        empleadoGuardado.setApellido(datosNuevos.getApellido());
+        empleadoGuardado.setFechaNacimiento(datosNuevos.getFechaNacimiento());
+        empleadoGuardado.setIngreso(datosNuevos.getIngreso());
+        empleadoGuardado.setActivo(true);
+
+        if (ambosCajeros) {
+            ((Cajero) empleadoGuardado).setTurno(
+                    ((Cajero) datosNuevos).getTurno()
+            );
+        } else {
+            ((Cocinero) empleadoGuardado).setCategoria(
+                    ((Cocinero) datosNuevos).getCategoria()
+            );
+
+            ((Cocinero) empleadoGuardado).setTareaEspecial(
+                    ((Cocinero) datosNuevos).getTareaEspecial()
+            );
+        }
+
+        Empleado resultado = guardarPorTipo(empleadoGuardado);
+
+        if (passwordGenerada != null) {
+            programarEnvioCredenciales(emailNormalizado, passwordGenerada);
+        }
+
+        return resultado;
     }
 
     @Override
@@ -181,23 +305,66 @@ public class EmpleadoService implements IEmpleadoService {
         return sb.toString();
     }
 
-    private void enviarMailCredenciales(String destinatarioDni, String password) {
+    private String normalizarEmail(String email) {
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Debe ingresar el email del empleado."
+            );
+        }
+
+        return email.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private void programarEnvioCredenciales( // para que no llegue el correo si despues falla el guardado
+            String emailDestinatario,
+            String password) {
+
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            throw new IllegalStateException(
+                    "El envío de credenciales requiere una transacción activa."
+            );
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+
+                    @Override
+                    public void afterCommit() {
+                        enviarMailCredenciales(emailDestinatario, password);
+                    }
+                }
+        );
+    }
+
+
+    private void enviarMailCredenciales(String emailDestinatario, String password) {
+
         if (javaMailSender == null) {
-            System.err.println("Aviso: JavaMailSender no está inicializado (entorno de pruebas). Se omite el envío de correo.");
+            System.err.println(
+                    "Aviso: JavaMailSender no está inicializado. Se omite el envío de correo."
+            );
             return;
         }
+
         try {
             SimpleMailMessage mensaje = new SimpleMailMessage();
-            mensaje.setTo(destinatarioDni + "@epicentro.com");
+            mensaje.setTo(emailDestinatario);
             mensaje.setSubject("Credenciales de Acceso - Epicentro Gourmet");
-            mensaje.setText("¡Bienvenido a Epicentro Gourmet!\n\n" +
-                    "Tus datos de acceso para iniciar sesión en el sistema son:\n" +
-                    "Usuario (DNI): " + destinatarioDni + "\n" +
-                    "Contraseña temporal: " + password + "\n\n" +
-                    "Por favor, iniciá sesión en la aplicación y actualizá tus datos.");
+            mensaje.setText(
+                    "¡Bienvenido a Epicentro Gourmet!\n\n" +
+                            "Tus datos de acceso para iniciar sesión son:\n" +
+                            "Usuario: " + emailDestinatario + "\n" +
+                            "Contraseña temporal: " + password + "\n\n" +
+                            "Por favor, iniciá sesión y cambiá tu contraseña."
+            );
+
             javaMailSender.send(mensaje);
-        } catch (Exception e) {
-            System.err.println("Error al enviar el correo (verificar configuración SMTP): " + e.getMessage());
+
+        } catch (MailException e) {
+            System.err.println(
+                    "Error al enviar el correo: " + e.getMessage()
+            );
         }
     }
 }

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.User;
 
+import java.util.Optional;
+
 @Repository("userRepository")
 public interface IUserRepository extends JpaRepository<User, Integer> {
 
@@ -15,4 +17,6 @@ public interface IUserRepository extends JpaRepository<User, Integer> {
 	User findByUsernameAndFetchUserRolesEagerly(@Param("username") String username);
 
 	boolean existsByUsername(String username);
+
+	Optional<User> findByUsername(String username);
 }

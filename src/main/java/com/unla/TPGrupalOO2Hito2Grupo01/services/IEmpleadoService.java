@@ -15,9 +15,11 @@ public interface IEmpleadoService {
 
 	// reactivar un empleado eliminado logicamente
 
-	public Empleado reactivarEmpleadoEliminado(Empleado existente, Empleado datosNuevos);
+	Empleado reactivarEmpleadoEliminado(Empleado existente, Empleado datosNuevos, String email);
 
 	public boolean deleteLogico(int idEmpleado);
+
+	Empleado darDeAltaConUsuario(Empleado empleado, String email);
 
 
 

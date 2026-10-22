@@ -36,11 +36,12 @@ public class Empleado {
     @Column(nullable = false)
     protected boolean activo;
 
-
-
     // Relación 1 a 1 con User
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_user")
+    @OneToOne(
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}, //persist permite guardar el usuario cuando se guarda el empleado y remove no hace falta porque las bajas son logicas
+            fetch = FetchType.LAZY
+    )
+    @JoinColumn(name = "id_user", unique = true)
     protected User user;
 
     /* ----- relaciones comentadas -----

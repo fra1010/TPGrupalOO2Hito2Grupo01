@@ -19,4 +19,6 @@ public interface IEmpleadoService {
 
 	public boolean deleteLogico(int idEmpleado);
 
+
+
 }

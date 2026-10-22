@@ -27,13 +27,34 @@ public class UserService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		// --- MENSAJE DE CONTROL 1 ---
+		System.out.println("\n[DEBUG 1] Spring Security está buscando en la BD al usuario: " + username);
+
 		com.unla.TPGrupalOO2Hito2Grupo01.entities.User user =
 				userRepository.findByUsernameAndFetchUserRolesEagerly(username);
-		if (user == null) { //para evitar nullpointerexception si la consulta JOIN FETCH devuelve null
+
+		if (user == null) {
+			// --- MENSAJE DE CONTROL 2 ---
+			System.out.println("[DEBUG 2] ¡ATENCIÓN! La consulta JOIN FETCH devolvió NULL para: '" + username + "'");
 			throw new UsernameNotFoundException("Usuario no encontrado o sin rol: " + username);
 		}
+
+		// --- MENSAJES DE CONTROL 3, 4 y 5 ---
+		System.out.println("[DEBUG 3] ¡Usuario encontrado en BD!: " + user.getUsername());
+		System.out.println("[DEBUG 4] Hash Bcrypt guardado en la BD: " + user.getPassword());
+		System.out.println("[DEBUG 5] ¿El usuario está habilitado (enabled)?: " + user.isEnabled());
+
+		if (user.getUserRoles() == null || user.getUserRoles().isEmpty()) {
+			System.out.println("[DEBUG 6] ¡ALERTA! El usuario existe pero la lista de roles está VACÍA.");
+		} else {
+			for (UserRole userRole : user.getUserRoles()) {
+				System.out.println("[DEBUG 6] Rol mapeado en la colección: " + userRole.getRole().name());
+			}
+		}
+
 		return buildUser(user, buildGrantedAuthorities(user.getUserRoles()));
 	}
+
 
 	private User buildUser(com.unla.TPGrupalOO2Hito2Grupo01.entities.User user, List<GrantedAuthority> grantedAuthorities) {
 		return new User(user.getUsername(), user.getPassword(), user.isEnabled(),

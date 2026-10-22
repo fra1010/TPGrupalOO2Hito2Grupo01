@@ -1,107 +1,68 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: head}"></head>
+<head th:replace="~{layout :: head}">
+    <title>Epicentro Gourmet</title>
+</head>
 <body>
-    <nav th:replace="~{layout :: navbar}"></nav>
+<nav th:replace="~{layout :: navbar}"></nav>
 
-    <main class="container py-4">
-        <!-- Hero Section -->
-        <div class="hero-section text-center">
-            <div class="container">
-                <h1>Bienvenido al TFI</h1>
-                <p class="mb-4">Sistema de gestion de personas y titulos - Universidad Nacional de Lanus</p>
-            </div>
+<main class="container py-4">
+    <!-- Presentacion del TP-->
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1>Epicentro Gourmet</h1>
+            <p class="mb-4">
+                Consultá los festivales activos, sus temporadas
+                y fechas de realización.
+            </p>
+        </div>
+    </div>
+
+    <!-- Festivales activos -->
+    <div class="card" th:if="${festivales != null and !festivales.isEmpty()}">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Festivales activos</h5>
         </div>
 
-        <!-- Access Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card access-card">
-                    <div class="card-body">
-                        <div class="icon">&#128100;</div>
-                        <h5 class="card-title">Personas</h5>
-                        <p class="card-text text-muted">Gestionar el registro de personas del sistema.</p>
-                        <a th:href="@{/person}" class="btn btn-primary">Acceder</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card access-card">
-                    <div class="card-body">
-                        <div class="icon">&#127891;</div>
-                        <h5 class="card-title">Titulos</h5>
-                        <p class="card-text text-muted">Administrar los titulos y formacion academica.</p>
-                        <a th:href="@{/degrees/}" class="btn btn-primary">Acceder</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card access-card">
-                    <div class="card-body">
-                        <div class="icon">&#128269;</div>
-                        <h5 class="card-title">Buscar Persona</h5>
-                        <p class="card-text text-muted">Buscar personas por nombre.</p>
-                        <select id="selectPerson" class="form-control mt-2">
-                            <option value="">-- Seleccionar persona --</option>
-                            <option th:each="person : ${persons}" th:value="${person.id}" th:text="${person.name}"></option>
-                        </select>
-                    </div>
-                </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Temporada</th>
+                        <th>Fecha de inicio</th>
+                        <th>Fecha de fin</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="festival : ${festivales}">
+                        <td th:text="${festival.nombre}"></td>
+                        <td th:text="${festival.temporada}"></td>
+                        <td th:text="${festival.fechaInicio}"></td>
+                        <td th:text="${festival.fechaFin}"></td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
 
-        <!-- Resultado busqueda AJAX -->
-        <div id="div-select-person" class="row"></div>
-
-        <!-- Personas recientes -->
-        <div class="card" th:if="${persons != null and !persons.isEmpty()}">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0">Personas registradas</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Ver</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="person : ${persons}">
-                                <td th:text="${person.id}"></td>
-                                <td th:text="${person.name}"></td>
-                                <td>
-                                    <a th:href="@{/person/{id}(id=${person.id})}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Sin festivales -->
+    <div class="card" th:if="${festivales == null or festivales.isEmpty()}">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Festivales activos</h5>
         </div>
-    </main>
 
-    <footer th:replace="~{layout :: footer}"></footer>
-    <div th:replace="~{layout :: scripts}"></div>
+        <div class="card-body">
+            <p class="text-muted mb-0">
+                No hay festivales activos.
+            </p>
+        </div>
+    </div>
+</main>
 
-    <script>
-        $(document).ready(function() {
-            $('#selectPerson').on('change', function() {
-                var personId = $(this).val();
-                if (personId) {
-                    $.ajax({
-                        url: '/person/partial/' + personId,
-                        success: function(response) {
-                            $('#div-select-person').html(response);
-                        }
-                    });
-                } else {
-                    $('#div-select-person').html('');
-                }
-            });
-        });
-    </script>
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
 </body>
 </html>

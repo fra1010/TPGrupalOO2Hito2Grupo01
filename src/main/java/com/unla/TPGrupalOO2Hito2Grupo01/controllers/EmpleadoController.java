@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -31,14 +32,18 @@ public class EmpleadoController
         this.empleadoService = empleadoService;
     }
 
+    // El listado puede ser visto por Admin, Responsable o Empleado según requiera tu diseño
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE', 'EMPLEADO')")
     public String listEmpleados(Model model)
     {
         model.addAttribute("empleados", empleadoService.getAllActive());
         return ViewRouteHelper.EMPLEADO_INDEX;
     }
 
+    // Solo ADMIN o RESPONSABLE pueden cargar el formulario de alta
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
     public String newEmpleado(Model model)
     {
         model.addAttribute("empleado", new EmpleadoDTO());
@@ -47,11 +52,12 @@ public class EmpleadoController
         return ViewRouteHelper.EMPLEADO_NEW;
     }
 
+    // Solo ADMIN o RESPONSABLE pueden guardar registros en la base de datos
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
     public String create (@Valid @ModelAttribute("empleado") EmpleadoDTO empleadoDTO,
-            BindingResult bindingResult, Model model)
+                          BindingResult bindingResult, Model model)
     {
-
         if (bindingResult.hasErrors())
         {
             model.addAttribute("turnos", Turno.values());
@@ -77,9 +83,14 @@ public class EmpleadoController
         if (empleadoDTO.getIdEmpleado() != null)
         {
             empleado.setIdEmpleado(empleadoDTO.getIdEmpleado());
+
+            // TIP: Si estás editando, conservá el objeto User que ya tenía asignado el empleado
+            Empleado empleadoExistente = empleadoService.findById(empleadoDTO.getIdEmpleado());
+            if (empleadoExistente != null && empleadoExistente.getUser() != null) {
+                empleado.setUser(empleadoExistente.getUser());
+            }
         }
 
-        // Bloque try-catch para atrapar el error si el DNI ya esta activo
         try
         {
             empleadoService.insertOrUpdate(empleado);
@@ -95,8 +106,9 @@ public class EmpleadoController
         return "redirect:/empleado";
     }
 
-    // Endpoint para cargar la pantalla de edicion con los datos del empleado
+    // Solo ADMIN o RESPONSABLE pueden acceder a la pantalla de edición
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
     public String editEmpleado(@PathVariable("id") int id, Model model)
     {
         Empleado empleado = empleadoService.findById(id);
@@ -105,8 +117,6 @@ public class EmpleadoController
         {
             return "redirect:/empleado";
         }
-
-        // Pasamos los datos del objeto persistido al DTO del formulario
 
         EmpleadoDTO dto = new EmpleadoDTO();
         dto.setIdEmpleado(empleado.getIdEmpleado());
@@ -117,7 +127,6 @@ public class EmpleadoController
         dto.setIngreso(empleado.getIngreso());
         dto.setActivo(empleado.isActivo());
 
-        // Mapeamos los campos especificos segun la instancia de la herencia
         if (empleado instanceof Cajero)
         {
             dto.setTipoEmpleado("CAJERO");
@@ -134,11 +143,12 @@ public class EmpleadoController
         model.addAttribute("turnos", Turno.values());
         model.addAttribute("categorias", CategoriaCocina.values());
 
-        return ViewRouteHelper.EMPLEADO_NEW; // Reutiliza la misma vista de alta
+        return ViewRouteHelper.EMPLEADO_NEW;
     }
 
-    // Endpoint para ejecutar la baja logica al tocar eliminar
+    // Solo ADMIN o RESPONSABLE pueden efectuar la baja lógica
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
     public String deleteLogico(@PathVariable("id") int id)
     {
         empleadoService.deleteLogico(id);

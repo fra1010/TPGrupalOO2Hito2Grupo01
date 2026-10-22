@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    ============================================================
+    ARCHIVO: sueldos-empleados.html
+    DTO:     SueldoEmpleadoDTO (record)
+    MODELO:  "sueldos" -> List<SueldoEmpleadoDTO>
+    ============================================================
+    Mismo formato que canon.html: el head (Bootstrap, CSS propio, title),
+    la navbar, el footer y los scripts vienen del layout, por eso esta
+    vista no los define.
+-->
+<head th:replace="~{layout :: head}"></head>
+<body>
+<nav th:replace="~{layout :: navbarResponsable}"></nav>
+
+<!--
+    th:with define dos variables para toda la vista (se evaluan en orden):
+      - cantidad:      cantidad de empleados. Es null-safe: si "sueldos" no llega
+                       al modelo, vale 0.
+      - nombreUnidad:  nombre de la unidad de venta. Se toma del primer empleado
+                       de la lista, porque todos pertenecen a la misma unidad.
+-->
+<main class="container py-4"
+      th:with="cantidad=${sueldos != null ? #lists.size(sueldos) : 0},
+               nombreUnidad=${cantidad > 0 ? sueldos[0].unidad : null}">
+
+    <!-- ============================================================ -->
+    <!-- ENCABEZADO                                                    -->
+    <!-- Titulo: nombre de la unidad (una sola vez en toda la vista).  -->
+    <!-- Debajo, el subtitulo con el tipo de listado.                  -->
+    <!-- El Elvis (?:) muestra un titulo generico si la lista es vacia.-->
+    <!-- ============================================================ -->
+    <div class="page-header mb-3">
+        <h2 th:text="${nombreUnidad} ?: 'Unidad de venta'">Nombre de la unidad de venta</h2>
+        <p class="text-muted mb-0">Sueldos de empleados</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- LISTADO DE EMPLEADOS                                          -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>Empleados</strong>
+            <span class="badge badge-secondary" th:text="${cantidad}">0</span>
+        </div>
+
+        <!-- card-body p-0: la tabla queda pegada a los bordes de la card -->
+        <div class="card-body p-0">
+
+            <!-- ==================================================== -->
+            <!-- ESTADO VACIO: solo se muestra si no hay empleados     -->
+            <!-- ==================================================== -->
+            <div th:if="${cantidad == 0}" class="text-center text-muted py-4">
+                No hay empleados para mostrar.
+            </div>
+
+            <!-- ==================================================== -->
+            <!-- TABLA: solo se muestra si hay al menos un empleado    -->
+            <!-- table-responsive: scroll horizontal en pantallas      -->
+            <!-- chicas para que la tabla no rompa el layout           -->
+            <!-- ==================================================== -->
+            <div th:unless="${cantidad == 0}" class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Rol</th>
+                        <th>Categoría</th>
+                        <!-- El encabezado copia la alineacion de su columna (derecha) -->
+                        <th class="text-right">Sueldo</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- th:each recorre la lista; "s" es cada SueldoEmpleadoDTO -->
+                    <tr th:each="s : ${sueldos}">
+
+                        <!-- Atributo: nombre -->
+                        <td th:text="${s.nombre}">Nombre</td>
+
+                        <!-- Atributo: apellido -->
+                        <td th:text="${s.apellido}">Apellido</td>
+
+                        <!--
+                            Atributo: rol ("COCINERO" o "CAJERO").
+                            Badge con color segun el rol, asi se distingue de un vistazo.
+                            th:classappend suma la clase de color a la clase base "badge".
+                        -->
+                        <td>
+                                <span class="badge"
+                                      th:classappend="${s.rol == 'COCINERO'} ? 'badge-warning' : 'badge-info'"
+                                      th:text="${s.rol}">COCINERO</span>
+                        </td>
+
+                        <!--
+                            Atributo: categoria (solo cocinero, null en cajero).
+                            El operador ?: (Elvis) muestra "—" si el valor es null,
+                            y en ese caso se atenua el texto con text-muted.
+                        -->
+                        <td th:classappend="${s.categoria == null} ? 'text-muted'"
+                            th:text="${s.categoria} ?: '—'">Categoría</td>
+
+                        <!--
+                            Atributo: sueldo (BigDecimal).
+                            Formato argentino: signo $ a la izquierda del numero, punto para los
+                            miles y coma para los decimales, siempre con 2 decimales
+                            (ej: $ 1.234.567,89).
+                              - text-right: alineado a la derecha, para que las cifras queden
+                                una debajo de otra y se puedan comparar de un vistazo.
+                              - tabular-nums: todos los digitos ocupan el mismo ancho,
+                                asi las columnas de cifras quedan perfectamente alineadas.
+                              - text-nowrap: evita que el importe se parta en dos lineas.
+                        -->
+                        <td class="text-right text-nowrap"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="${s.sueldo != null}
+                                         ? '$ ' + ${#numbers.formatDecimal(s.sueldo, 1, 'POINT', 2, 'COMMA')}
+                                         : '$ 0,00'">
+                            $ 0,00
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

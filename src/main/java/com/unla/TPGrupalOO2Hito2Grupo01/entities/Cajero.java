@@ -18,7 +18,7 @@ public class Cajero extends Empleado {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Turno turno;
-
+    private int antiguedad;
     /* ----- relaciones comentadas -----
     @OneToMany(mappedBy = "cajero", fetch = FetchType.LAZY)
     private Set<CierreCaja> cierresCaja;

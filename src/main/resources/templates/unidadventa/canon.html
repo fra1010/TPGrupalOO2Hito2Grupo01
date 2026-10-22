@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<nav th:replace="~{layout :: navbarResponsable}"></nav>
+
+<main class="container py-4">
+
+    <!-- ============================================================ -->
+    <!-- ENCABEZADO                                                    -->
+    <!-- ============================================================ -->
+    <div class="page-header mb-3">
+        <h2>Total Canon Unidad Venta</h2>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TOTAL DEL CANON                                               -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <strong>Canon total</strong>
+        </div>
+
+        <div class="card-body text-center py-4">
+            <span style="font-size: 2.5rem; font-weight: 700; color: #000;"
+                  th:text="${canon != null}
+                           ? ${#numbers.formatDecimal(canon, 1, 'COMMA', 2, 'POINT')}
+                           : '0.00'">
+                0.00
+            </span>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

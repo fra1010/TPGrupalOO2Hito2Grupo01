@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    ============================================================
+    VISTA: unidadventa/unidadventa-lista.html
+    ENTIDAD: UnidadVentaDTO (clase padre; lista FoodTruck y PuestoDesarmable juntos)
+    ============================================================
+    Muestra todas las unidades de venta como cards (una por unidad), sean
+    Food Trucks o Puestos desarmables.
+
+    Usa el mismo layout que el resto de las paginas (layout.html): el head
+    (que carga Bootstrap, CSS propio y title), la navbar, el footer y los scripts
+    vienen de ahi, por eso esta vista no los define.
+
+    ATRIBUTO DE MODELO que debe enviar el controller:
+        model.addAttribute("unidades", List<UnidadVentaDTO>);
+
+    ESTRUCTURA DE CADA CARD:
+        - Encabezado: nombre de la unidad + etiqueta con el tipo
+        - Cuerpo:     atributos comunes (clase padre UnidadVentaDTO)
+        - Pie:        atributos propios de cada tipo (clases hijas)
+-->
+
+<!-- Fragmento "head" del layout: meta, title, CSS de Bootstrap y estilos propios -->
+<head th:replace="~{layout :: head}"></head>
+<body>
+<!-- Fragmento "navbar" del layout: barra de navegacion superior -->
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<!-- main + container + py-4: mismo contenedor principal que usan las demas paginas -->
+<main class="container py-4">
+
+    <!-- ===================== SECCION: ENCABEZADO DE LA PAGINA ===================== -->
+    <!-- page-header: clase propia del proyecto, igual que en las otras paginas -->
+    <div class="page-header">
+        <h2>Unidades de venta</h2>
+    </div>
+
+    <!-- ===================== SECCION: LISTA VACIA ===================== -->
+    <!-- Se muestra solo si no hay ninguna unidad cargada (lista nula o vacia) -->
+    <div class="text-center text-muted py-4" th:if="${unidades == null or unidades.isEmpty()}">
+        No hay unidades de venta registradas.
+    </div>
+
+    <!-- ===================== SECCION: GRILLA DE CARDS ===================== -->
+    <!--
+        "row" es la grilla de Bootstrap. Se renderiza solo si hay elementos.
+        Cada card ocupa una columna "col-md-4": 3 cards por fila desde pantallas
+        medianas; en celular se apilan una debajo de otra. Es la misma grilla
+        que usan las cards de acceso de index.html.
+    -->
+    <div class="row" th:if="${unidades != null and !unidades.isEmpty()}">
+
+        <!--
+            Cada "col" es una celda de la grilla y contiene una card.
+            mb-4: separacion vertical entre cards.
+            th:each recorre la lista; "unidad" es cada UnidadVentaDTO.
+            th:with define dos variables locales para no repetir el instanceof:
+              esFoodTruck -> true si el objeto es, en realidad, un FoodTruckDTO
+              esPuesto    -> true si el objeto es, en realidad, un PuestoDesarmableDTO
+            T(...) hace referencia a una clase por su nombre completo (con paquete).
+        -->
+        <div class="col-md-4 mb-4" th:each="unidad : ${unidades}"
+             th:with="esFoodTruck=${unidad instanceof T(com.unla.TPGrupalOO2Hito2Grupo01.dtos.FoodTruckDTO)},
+                          esPuesto=${unidad instanceof T(com.unla.TPGrupalOO2Hito2Grupo01.dtos.PuestoDesarmableDTO)}">
+
+            <!-- card: la tarjeta. h-100: todas las cards de una fila tienen la misma altura -->
+            <div class="card h-100">
+
+                <!-- ===================== ENCABEZADO DE LA CARD ===================== -->
+                <!--
+                    Mismo estilo de encabezado que "Personas registradas": fondo oscuro, texto blanco.
+                    d-flex + justify-content-between: nombre a la izquierda y etiqueta de tipo a la derecha.
+                -->
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+
+                    <!-- Atributo comun: nombre -->
+                    <h5 class="mb-0" th:text="${unidad.nombre}">Nombre</h5>
+
+                    <!-- Etiqueta (badge) de tipo. Solo se muestra la que corresponde a la subclase -->
+                    <span class="badge bg-warning text-dark" th:if="${esFoodTruck}">Food truck</span>
+                    <span class="badge bg-info text-dark" th:if="${esPuesto}">Puesto desarmable</span>
+                </div>
+
+                <!-- ===================== CUERPO DE LA CARD: DATOS COMUNES ===================== -->
+                <!--
+                    Atributos de la clase padre UnidadVentaDTO.
+                    Formato "<strong>Etiqueta:</strong> valor", igual que en la pagina de titulo creado.
+                -->
+                <div class="card-body">
+
+                    <!-- Atributo comun: idUnidadVenta -->
+                    <div class="mb-3">
+                        <strong>ID:</strong> <span th:text="${unidad.idUnidadVenta}">1</span>
+                    </div>
+
+                    <!-- Atributo comun: codigo -->
+                    <div class="mb-3">
+                        <strong>Codigo:</strong> <span th:text="${unidad.codigo}">COD-001</span>
+                    </div>
+
+                    <!-- Atributo comun: superficie, con 2 decimales -->
+                    <div class="mb-3">
+                        <strong>Superficie:</strong> <span th:text="${#numbers.formatDecimal(unidad.superficie, 1, 2)}">0.00</span>
+                    </div>
+
+                    <!-- Atributo comun: idFestival (si es null se muestra un guion) -->
+                    <div class="mb-3">
+                        <strong>ID festival:</strong> <span th:text="${unidad.idFestival} ?: '-'">1</span>
+                    </div>
+
+                    <!-- Atributo comun: responsable.username (?. evita error si responsable es null) -->
+                    <div class="mb-0">
+                        <strong>Responsable:</strong> <span th:text="${unidad.responsable?.username} ?: '-'">usuario</span>
+                    </div>
+
+                </div>
+
+                <!-- ===================== PIE DE LA CARD: DATOS PROPIOS DE CADA TIPO ===================== -->
+                <!--
+                    Solo se muestra si la unidad es de alguno de los dos tipos conocidos.
+                    Thymeleaf resuelve las propiedades segun la clase REAL del objeto, por eso
+                    se puede escribir unidad.patente aunque la lista sea de UnidadVentaDTO.
+                    Cada bloque solo se evalua dentro de su th:if, donde el atributo existe.
+                -->
+                <div class="card-footer" th:if="${esFoodTruck or esPuesto}">
+
+                    <!-- Atributos de FoodTruckDTO: patente y conexion -->
+                    <div th:if="${esFoodTruck}">
+
+                        <!-- Atributo de FoodTruckDTO: patente -->
+                        <div class="mb-3">
+                            <strong>Patente:</strong> <span th:text="${unidad.patente}">AAA 123</span>
+                        </div>
+
+                        <!--
+                            Atributo de FoodTruckDTO: conexion (boolean).
+                            th:classappend agrega una clase de color segun el valor:
+                            verde si tiene conexion, gris si no. El texto es Si / No.
+                        -->
+                        <div class="mb-0">
+                            <strong>Conexion:</strong>
+                            <span class="badge text-white"
+                                  th:classappend="${unidad.conexion} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${unidad.conexion} ? 'Si' : 'No'">Si</span>
+                        </div>
+                    </div>
+
+                    <!-- Atributos de PuestoDesarmableDTO: cantidadCarpas y tiempo -->
+                    <div th:if="${esPuesto}">
+
+                        <!-- Atributo de PuestoDesarmableDTO: cantidadCarpas -->
+                        <div class="mb-3">
+                            <strong>Carpas:</strong> <span th:text="${unidad.cantidadCarpas}">2</span>
+                        </div>
+
+                        <!-- Atributo de PuestoDesarmableDTO: tiempo (el DTO no aclara la unidad; agregarla aca si corresponde) -->
+                        <div class="mb-0">
+                            <strong>Tiempo:</strong> <span th:text="${unidad.tiempo}">30</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Fragmentos "footer" y "scripts" del layout (pie de pagina y JS de Bootstrap/jQuery) -->
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

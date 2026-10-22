@@ -1,6 +1,7 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
@@ -11,6 +12,8 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IFestivalService;
+
+import java.util.Set;
 
 @Controller
 @RequestMapping("/")
@@ -28,7 +31,13 @@ public class HomeController {
 		Authentication authentication =
 				SecurityContextHolder.getContext().getAuthentication();
 		Object principal = authentication != null ? authentication.getPrincipal() : null;
+        if (principal instanceof User user) {
+            Set<String> roles = AuthorityUtils.authorityListToSet(user.getAuthorities());
 
+            if (roles.contains("ROLE_RESPONSABLE")) {
+                return new ModelAndView("responsable/index");
+            }
+        }
 		if (principal instanceof User user) {
 			modelAndView.addObject("username", user.getUsername());
 		} else {

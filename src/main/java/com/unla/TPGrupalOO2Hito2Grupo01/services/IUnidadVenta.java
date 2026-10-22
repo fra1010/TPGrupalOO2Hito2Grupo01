@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.services;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
 
 import java.math.BigDecimal;
@@ -10,4 +11,5 @@ public interface IUnidadVenta {
     public void agregarOActualizarUnidadVenta(UnidadVentaDTO unidadVenta);
     public BigDecimal calcularCanon(String username);
     public UnidadVentaDTO traerUnidadVentaConEmpleados(String username);
+    public List<SueldoEmpleadoDTO> calcularSueldoUnidadVenta(String username);
 }

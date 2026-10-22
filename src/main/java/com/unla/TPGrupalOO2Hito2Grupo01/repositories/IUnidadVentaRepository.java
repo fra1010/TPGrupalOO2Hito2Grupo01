@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.repositories;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -36,4 +37,42 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
 
 
     public UnidadVenta findByIdUnidadVenta(int idUnidadVenta);
+    @Query("""
+    SELECT new com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO(
+           uv.nombre,
+           e.nombre,
+           e.apellido,
+           CASE
+               WHEN TYPE(e) = Cocinero THEN 'COCINERO'
+               WHEN TYPE(e) = Cajero   THEN 'CAJERO'
+           END,
+           CASE
+               WHEN TYPE(e) = Cocinero THEN str(TREAT(e AS Cocinero).categoria)
+           END,
+           (floor((cast(function('datediff', f.fechaFin, f.fechaInicio) as BigDecimal) + 1) / 15) + 1)
+           * cast(0.5 as BigDecimal)
+           * (
+               c.sueldoBase
+               + CASE
+                   WHEN TYPE(e) = Cocinero THEN
+                       CASE TREAT(e AS Cocinero).categoria
+                           WHEN 'COCINERO_AYUDANTE' THEN c.plusAyudante
+                           WHEN 'COCINERO'          THEN c.plusCocinero
+                           WHEN 'LAVAPLATOS'        THEN c.plusLavaplatos
+                           ELSE cast(0 as BigDecimal)
+                       END
+                   WHEN TYPE(e) = Cajero THEN
+                       TREAT(e AS Cajero).antiguedad * c.plusAntiguedad
+                   ELSE cast(0 as BigDecimal)
+                 END
+           ))
+    FROM UnidadVenta uv
+        JOIN uv.empleados e
+        JOIN uv.festival f
+        JOIN f.costo c
+    WHERE uv = :unidadVenta
+      AND TYPE(e) IN (Cocinero, Cajero)
+    ORDER BY e.apellido, e.nombre
+    """)
+    public List<SueldoEmpleadoDTO> traerSueldoPorEmpleado(@Param("unidadVenta") UnidadVenta unidadVenta);
 }

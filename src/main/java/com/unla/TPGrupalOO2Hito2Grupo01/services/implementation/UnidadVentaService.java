@@ -1,9 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.FoodTruckDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PuestoDesarmableDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
@@ -128,5 +125,13 @@ public class UnidadVentaService implements IUnidadVenta {
         }
         unidadVentaDTO.setEmpleados(empleadoDTOS);
         return unidadVentaDTO;
+    }
+
+    @Override
+    public List<SueldoEmpleadoDTO> calcularSueldoUnidadVenta(String username) {
+        UnidadVenta unidad = unidadVentaRepository.traerUnidadVentaResponsable(username);
+        List<SueldoEmpleadoDTO> list = unidadVentaRepository.traerSueldoPorEmpleado(unidad);
+
+        return list;
     }
 }

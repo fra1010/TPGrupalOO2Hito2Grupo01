@@ -1,6 +1,8 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.entities;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,8 +38,6 @@ public class Empleado {
     @Column(nullable = false)
     protected boolean activo;
 
-
-
     // Relación 1 a 1 con User
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user")
@@ -65,5 +65,13 @@ public class Empleado {
         this.fechaNacimiento = fechaNacimiento;
         this.ingreso = ingreso;
         this.activo = activo;
+
     }
+
+    // Metodo para obtener la antigüedad calculada de forma dinámica
+    public int getAntiguedad() {
+        if (this.ingreso == null) return 0;
+        return (int) ChronoUnit.YEARS.between(this.ingreso, LocalDate.now());
+    }
+
 }

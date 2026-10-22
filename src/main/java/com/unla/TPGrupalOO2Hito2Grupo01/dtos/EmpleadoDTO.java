@@ -7,6 +7,8 @@ import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +25,11 @@ public class EmpleadoDTO
 
     @NotBlank(message = "El apellido es obligatorio")
     private String apellido;
+
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Ingrese un email válido")
+    @Size(max = 45, message = "El email no puede superar los 45 caracteres")
+    private String email;
 
     @Positive(message = "El DNI debe ser un número positivo")
     private long dni;

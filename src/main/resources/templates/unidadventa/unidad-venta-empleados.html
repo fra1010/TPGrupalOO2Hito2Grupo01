@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="~{layout :: head}"></head>
 
@@ -61,14 +63,13 @@
             <strong>
                 Empleados de la unidad
                 (<span th:text="${unidad.empleados != null
-                                  ? #lists.size(unidad.empleados) : 0}">
-                    0
-                </span>)
+                                  ? #lists.size(unidad.empleados) : 0}">0</span>)
             </strong>
 
-            <!-- La unidad se determina en el servicio según el responsable -->
+            <!-- Alta disponible únicamente para responsables -->
             <a class="btn btn-sm btn-success"
-               th:href="@{/empleado/new}">
+               th:href="@{/empleado/new}"
+               sec:authorize="hasRole('RESPONSABLE')">
                 Nuevo Empleado
             </a>
         </div>
@@ -146,18 +147,14 @@
 
                             <!-- Editar empleado -->
                             <a class="btn btn-sm btn-warning"
-                               th:href="@{/empleado/edit/{id}(
-                                            id=${emp.idEmpleado})}">
+                               th:href="@{/empleado/edit/{id}(id=${emp.idEmpleado})}">
                                 Actualizar
                             </a>
 
                             <!-- Baja lógica mediante la ruta GET actual -->
                             <a class="btn btn-sm btn-danger"
-                               th:href="@{/empleado/delete/{id}(
-                                            id=${emp.idEmpleado})}"
-                               onclick="return confirm(
-                                   '¿Seguro que querés dar de baja a este empleado?'
-                               );">
+                               th:href="@{/empleado/delete/{id}(id=${emp.idEmpleado})}"
+                               onclick="return confirm('¿Seguro que querés dar de baja a este empleado?');">
                                 Eliminar
                             </a>
 

@@ -19,8 +19,7 @@ public interface IEmpleadoService {
 
 	public boolean deleteLogico(int idEmpleado);
 
-	Empleado darDeAltaConUsuario(Empleado empleado, String email);
-
+	Empleado darDeAltaConUsuario(Empleado empleado, String email, String usernameResponsable);
 
 
 }

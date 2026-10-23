@@ -26,7 +26,8 @@ import com.unla.TPGrupalOO2Hito2Grupo01.repositories.ICocineroRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IEmpleadoRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUserRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
-
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
 import jakarta.transaction.Transactional;
 
 @Service("empleadoService")
@@ -49,6 +50,9 @@ public class EmpleadoService implements IEmpleadoService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private IUnidadVentaRepository unidadVentaRepository;
 
     // Se hace opcional para que las pruebas (tests) no fallen si no hay servidor SMTP configurado
     @Autowired(required = false)
@@ -91,7 +95,10 @@ public class EmpleadoService implements IEmpleadoService {
 
     @Override
     @Transactional
-    public Empleado darDeAltaConUsuario(Empleado empleado, String email) {//
+    public Empleado darDeAltaConUsuario(
+            Empleado empleado,
+            String email,
+            String usernameResponsable) {
 
         if (empleado.getIdEmpleado() != null) {
             throw new IllegalArgumentException(
@@ -99,7 +106,17 @@ public class EmpleadoService implements IEmpleadoService {
             );
         }
 
-        String emailNormalizado = normalizarEmail(email); //revisa que no sea null y hace tolowercase
+        String emailNormalizado = normalizarEmail(email);
+
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaResponsable(usernameResponsable);
+
+        if (unidad == null) {
+            throw new IllegalArgumentException(
+                    "Solo un responsable con una unidad de venta asignada "
+                            + "puede dar de alta empleados."
+            );
+        }
 
         Optional<Empleado> empleadoExistente =
                 empleadoRepository.findByDni(empleado.getDni());
@@ -114,11 +131,14 @@ public class EmpleadoService implements IEmpleadoService {
                 );
             }
 
-            return reactivarEmpleadoEliminado(
+            Empleado reactivado = reactivarEmpleadoEliminado(
                     existente,
                     empleado,
                     emailNormalizado
             );
+
+            asignarAUnidad(unidad, reactivado);
+            return reactivado;
         }
 
         if (userRepository.existsByUsername(emailNormalizado)) {
@@ -132,24 +152,31 @@ public class EmpleadoService implements IEmpleadoService {
 
         User user = new User();
         user.setUsername(emailNormalizado);
-        user.setPassword(passwordEncoder.encode(passwordGenerada)); //la contraseña original se usa en el  correo
-        user.setEnabled(true);                                      //la encriptada se guarda en la base
+        user.setPassword(passwordEncoder.encode(passwordGenerada));
+        user.setEnabled(true);
 
         UserRole role = new UserRole(user, Role.EMPLEADO);
         user.getUserRoles().add(role);
 
-        user = userRepository.save(user); //primero se guarda al usuario despues se lo vincula al empleado
+        user = userRepository.save(user);
 
         empleado.setUser(user);
         empleado.setActivo(true);
 
         Empleado empleadoGuardado = guardarPorTipo(empleado);
 
+        asignarAUnidad(unidad, empleadoGuardado);
+
         programarEnvioCredenciales(emailNormalizado, passwordGenerada);
 
-        return empleadoGuardado; //envio mediante smtp con credendenciales en variables de entorno
+        return empleadoGuardado;
     }
 
+    private void asignarAUnidad(UnidadVenta unidad, Empleado empleado) {
+        if (!unidad.getEmpleados().contains(empleado)) {
+            unidad.getEmpleados().add(empleado);
+        }
+    }
 
     @Override
     @Transactional

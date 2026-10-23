@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.security.core.Authentication;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
@@ -39,20 +39,20 @@ public class EmpleadoController {
     }
 
     @GetMapping("/new")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
+    @PreAuthorize("hasRole('RESPONSABLE')")
     public String newEmpleado(Model model) {
         model.addAttribute("empleado", new EmpleadoDTO());
-        model.addAttribute("turnos", Turno.values());
-        model.addAttribute("categorias", CategoriaCocina.values());
+        cargarDatosFormulario(model);
         return ViewRouteHelper.EMPLEADO_NEW;//controller prepara un dto vacio y le pasa las opciones
     }                                       // de los enums para que la vista pueda construir el formulario
 
     @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
+    @PreAuthorize("hasRole('RESPONSABLE')")
     public String create(
             @Valid @ModelAttribute("empleado") EmpleadoDTO empleadoDTO,
             BindingResult bindingResult,
-            Model model) {
+            Model model,
+            Authentication authentication) {
 
         if (bindingResult.hasErrors()) {
             cargarDatosFormulario(model);
@@ -75,7 +75,8 @@ public class EmpleadoController {
             if (empleado.getIdEmpleado() == null) {
                 empleadoService.darDeAltaConUsuario(
                         empleado,
-                        empleadoDTO.getEmail()
+                        empleadoDTO.getEmail(),
+                        authentication.getName()
                 );
             } else {
                 empleadoService.insertOrUpdate(empleado);
@@ -87,7 +88,7 @@ public class EmpleadoController {
             return ViewRouteHelper.EMPLEADO_NEW;
         }
 
-        return "redirect:/empleado";
+        return "redirect:/responsable/empleados";
     }
 
     @GetMapping("/edit/{id}")
@@ -130,10 +131,10 @@ public class EmpleadoController {
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
+    @PreAuthorize("hasRole('RESPONSABLE')")
     public String deleteLogico(@PathVariable("id") int id) {
         empleadoService.deleteLogico(id);
-        return "redirect:/empleado";
+        return "redirect:/responsable/empleados";
     }
 
     private Empleado crearEmpleadoDesdeDTO(EmpleadoDTO empleadoDTO) { //reune los datos del formulario y

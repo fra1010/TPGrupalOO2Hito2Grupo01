@@ -44,8 +44,8 @@ public class EmpleadoController {
         model.addAttribute("empleado", new EmpleadoDTO());
         model.addAttribute("turnos", Turno.values());
         model.addAttribute("categorias", CategoriaCocina.values());
-        return ViewRouteHelper.EMPLEADO_NEW;
-    }
+        return ViewRouteHelper.EMPLEADO_NEW;//controller prepara un dto vacio y le pasa las opciones
+    }                                       // de los enums para que la vista pueda construir el formulario
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE')")
@@ -71,7 +71,7 @@ public class EmpleadoController {
             }
         }
 
-        try {
+        try { //si no hay ID es un alta y se ejecuta la creacion de usuario si hay id es una edicion y se conserva la cuenta existente
             if (empleado.getIdEmpleado() == null) {
                 empleadoService.darDeAltaConUsuario(
                         empleado,
@@ -136,8 +136,8 @@ public class EmpleadoController {
         return "redirect:/empleado";
     }
 
-    private Empleado crearEmpleadoDesdeDTO(EmpleadoDTO empleadoDTO) {
-
+    private Empleado crearEmpleadoDesdeDTO(EmpleadoDTO empleadoDTO) { //reune los datos del formulario y
+                                                                //crea la entidad segun el tipo elegido
         if ("CAJERO".equalsIgnoreCase(empleadoDTO.getTipoEmpleado())) {
             return new Cajero(
                     empleadoDTO.getNombre(),

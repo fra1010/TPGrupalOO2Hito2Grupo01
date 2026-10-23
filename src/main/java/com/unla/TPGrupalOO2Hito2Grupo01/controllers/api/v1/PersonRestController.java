@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PersonRestController {
 
   private final IPersonService personService;
-
   private final ModelMapper modelMapper;
 
   public PersonRestController(IPersonService personService, ModelMapper modelMapper){

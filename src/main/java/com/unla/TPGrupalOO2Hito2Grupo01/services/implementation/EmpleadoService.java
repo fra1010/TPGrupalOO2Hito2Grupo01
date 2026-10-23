@@ -91,7 +91,7 @@ public class EmpleadoService implements IEmpleadoService {
 
     @Override
     @Transactional
-    public Empleado darDeAltaConUsuario(Empleado empleado, String email) {
+    public Empleado darDeAltaConUsuario(Empleado empleado, String email) {//
 
         if (empleado.getIdEmpleado() != null) {
             throw new IllegalArgumentException(
@@ -99,7 +99,7 @@ public class EmpleadoService implements IEmpleadoService {
             );
         }
 
-        String emailNormalizado = normalizarEmail(email);
+        String emailNormalizado = normalizarEmail(email); //revisa que no sea null y hace tolowercase
 
         Optional<Empleado> empleadoExistente =
                 empleadoRepository.findByDni(empleado.getDni());
@@ -132,13 +132,13 @@ public class EmpleadoService implements IEmpleadoService {
 
         User user = new User();
         user.setUsername(emailNormalizado);
-        user.setPassword(passwordEncoder.encode(passwordGenerada));
-        user.setEnabled(true);
+        user.setPassword(passwordEncoder.encode(passwordGenerada)); //la contraseña original se usa en el  correo
+        user.setEnabled(true);                                      //la encriptada se guarda en la base
 
         UserRole role = new UserRole(user, Role.EMPLEADO);
         user.getUserRoles().add(role);
 
-        user = userRepository.save(user);
+        user = userRepository.save(user); //primero se guarda al usuario despues se lo vincula al empleado
 
         empleado.setUser(user);
         empleado.setActivo(true);
@@ -147,7 +147,7 @@ public class EmpleadoService implements IEmpleadoService {
 
         programarEnvioCredenciales(emailNormalizado, passwordGenerada);
 
-        return empleadoGuardado;
+        return empleadoGuardado; //envio mediante smtp con credendenciales en variables de entorno
     }
 
 
@@ -316,7 +316,7 @@ public class EmpleadoService implements IEmpleadoService {
         return email.trim().toLowerCase(java.util.Locale.ROOT);
     }
 
-    private void programarEnvioCredenciales( // para que no llegue el correo si despues falla el guardado
+    private void programarEnvioCredenciales( // para que no mande el correo si falla el guardado en la base
             String emailDestinatario,
             String password) {
 

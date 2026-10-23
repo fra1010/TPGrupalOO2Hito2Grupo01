@@ -2,8 +2,8 @@ package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,22 +12,21 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Role;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.User;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UserRole;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.ICajeroRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.ICocineroRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IEmpleadoRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUserRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
-import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
+
 import jakarta.transaction.Transactional;
 
 @Service("empleadoService")
@@ -54,7 +53,8 @@ public class EmpleadoService implements IEmpleadoService {
     @Autowired
     private IUnidadVentaRepository unidadVentaRepository;
 
-    // Se hace opcional para que las pruebas (tests) no fallen si no hay servidor SMTP configurado
+    // Permite iniciar el contexto sin un servicio de correo.
+    // Sin embargo, el alta se rechaza si no está disponible.
     @Autowired(required = false)
     private JavaMailSender javaMailSender;
 
@@ -76,21 +76,39 @@ public class EmpleadoService implements IEmpleadoService {
     @Override
     @Transactional
     public Empleado insertOrUpdate(Empleado empleado) {
-        // Para una edición ordinaria, conservamos el User ya asociado
-        if (empleado.getIdEmpleado() != null) {
-            Empleado empleadoExistente = findById(empleado.getIdEmpleado());
 
-            if (empleadoExistente != null && empleadoExistente.getUser() != null) {
-                empleado.setUser(empleadoExistente.getUser());
-            }
-
-            return guardarPorTipo(empleado);
+        if (empleado.getIdEmpleado() == null) {
+            throw new IllegalArgumentException(
+                    "Para dar de alta un empleado, utilice "
+                            + "darDeAltaConUsuario() e indique el email."
+            );
         }
 
-        // Un alta nueva debe usar obligatoriamente darDeAltaConUsuario()
-        throw new IllegalArgumentException(
-                "Para dar de alta un empleado, utilice darDeAltaConUsuario() e indique el email."
-        );
+        Empleado empleadoExistente = empleadoRepository
+                .findById(empleado.getIdEmpleado())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No se encontró el empleado que desea modificar."
+                ));
+
+        // Una edición no debe cambiar la cuenta ni activar al empleado.
+        empleado.setUser(empleadoExistente.getUser());
+        empleado.setActivo(empleadoExistente.isActivo());
+
+        // Evita asignar el DNI de otro empleado durante la edición.
+        Optional<Empleado> empleadoConDni =
+                empleadoRepository.findByDni(empleado.getDni());
+
+        if (empleadoConDni.isPresent()
+                && !empleadoConDni.get().getIdEmpleado()
+                .equals(empleado.getIdEmpleado())) {
+
+            throw new IllegalArgumentException(
+                    "Ya existe otro empleado con el DNI: "
+                            + empleado.getDni()
+            );
+        }
+
+        return guardarPorTipo(empleado);
     }
 
     @Override
@@ -109,38 +127,20 @@ public class EmpleadoService implements IEmpleadoService {
         String emailNormalizado = normalizarEmail(email);
 
         UnidadVenta unidad =
-                unidadVentaRepository.traerUnidadVentaResponsable(usernameResponsable);
+                obtenerUnidadDelResponsable(usernameResponsable);
 
-        if (unidad == null) {
+        // El alta nunca reactiva empleados existentes.
+        // Se rechaza el DNI tanto si está activo como si está inactivo.
+        if (empleadoRepository.findByDni(empleado.getDni()).isPresent()) {
             throw new IllegalArgumentException(
-                    "Solo un responsable con una unidad de venta asignada "
-                            + "puede dar de alta empleados."
+                    "Ya existe un empleado con el DNI: "
+                            + empleado.getDni()
+                            + ". Si está inactivo, debe activarlo "
+                            + "desde la lista de empleados."
             );
         }
 
-        Optional<Empleado> empleadoExistente =
-                empleadoRepository.findByDni(empleado.getDni());
-
-        if (empleadoExistente.isPresent()) {
-            Empleado existente = empleadoExistente.get();
-
-            if (existente.isActivo()) {
-                throw new IllegalArgumentException(
-                        "Ya existe un empleado activo con el DNI: "
-                                + empleado.getDni()
-                );
-            }
-
-            Empleado reactivado = reactivarEmpleadoEliminado(
-                    existente,
-                    empleado,
-                    emailNormalizado
-            );
-
-            asignarAUnidad(unidad, reactivado);
-            return reactivado;
-        }
-
+        // También se rechazan las cuentas deshabilitadas.
         if (userRepository.existsByUsername(emailNormalizado)) {
             throw new IllegalArgumentException(
                     "Ya existe un usuario registrado con el email: "
@@ -158,6 +158,11 @@ public class EmpleadoService implements IEmpleadoService {
         UserRole role = new UserRole(user, Role.EMPLEADO);
         user.getUserRoles().add(role);
 
+        // Primero se envían las credenciales.
+        // Si falla el envío, no se ejecutan los guardados.
+        enviarMailCredenciales(emailNormalizado, passwordGenerada);
+
+        // Solo después del envío se guarda el usuario.
         user = userRepository.save(user);
 
         empleado.setUser(user);
@@ -167,168 +172,154 @@ public class EmpleadoService implements IEmpleadoService {
 
         asignarAUnidad(unidad, empleadoGuardado);
 
-        programarEnvioCredenciales(emailNormalizado, passwordGenerada);
-
         return empleadoGuardado;
-    }
-
-    private void asignarAUnidad(UnidadVenta unidad, Empleado empleado) {
-        if (!unidad.getEmpleados().contains(empleado)) {
-            unidad.getEmpleados().add(empleado);
-        }
     }
 
     @Override
     @Transactional
-    public Empleado reactivarEmpleadoEliminado(
-            Empleado existente,
-            Empleado datosNuevos,
-            String email) {
+    public Empleado activarEmpleado(
+            Integer idEmpleado,
+            String usernameResponsable) {
 
-        if (existente == null || existente.getIdEmpleado() == null) {
+        if (idEmpleado == null) {
             throw new IllegalArgumentException(
-                    "Debe indicar un empleado existente para reactivar."
+                    "Debe indicar el empleado que desea activar."
             );
         }
 
-        Empleado empleadoGuardado = empleadoRepository
-                .findById(existente.getIdEmpleado())
+        UnidadVenta unidad =
+                obtenerUnidadDelResponsable(usernameResponsable);
+
+        Empleado empleado = empleadoRepository
+                .findById(idEmpleado)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No se encontró el empleado que desea reactivar."
+                        "No se encontró el empleado que desea activar."
                 ));
 
-        if (empleadoGuardado.isActivo()) {
+        // Se compara por ID para no depender del equals de la entidad.
+        boolean perteneceALaUnidad = unidad.getEmpleados().stream()
+                .anyMatch(e -> idEmpleado.equals(e.getIdEmpleado()));
+
+        if (!perteneceALaUnidad) {
+            throw new IllegalArgumentException(
+                    "No puede activar un empleado que no pertenece "
+                            + "a su unidad de venta."
+            );
+        }
+
+        if (empleado.isActivo()) {
             throw new IllegalArgumentException(
                     "El empleado ya se encuentra activo."
             );
         }
 
-        if (empleadoGuardado.getDni() != datosNuevos.getDni()) {
+        if (empleado.getUser() == null) {
             throw new IllegalArgumentException(
-                    "El DNI no coincide con el empleado que desea reactivar."
+                    "El empleado no tiene una cuenta de usuario asociada. "
+                            + "No se puede activar desde esta operación."
             );
         }
 
-        boolean ambosCajeros =
-                empleadoGuardado instanceof Cajero
-                        && datosNuevos instanceof Cajero;
+        // Se conservan los datos, el usuario y la contraseña existentes.
+        User user = empleado.getUser();
+        user.setEnabled(true);
 
-        boolean ambosCocineros =
-                empleadoGuardado instanceof Cocinero
-                        && datosNuevos instanceof Cocinero;
+        empleado.setActivo(true);
 
-        if (!ambosCajeros && !ambosCocineros) {
-            throw new IllegalArgumentException(
-                    "Debe conservar el tipo original del empleado "
-                            + "al reactivarlo: Cajero o Cocinero."
-            );
-        }
+        userRepository.save(user);
 
-        String emailNormalizado = normalizarEmail(email);
-        String passwordGenerada = null;
-
-        if (empleadoGuardado.getUser() != null) {
-
-            User user = empleadoGuardado.getUser();
-
-            if (!emailNormalizado.equalsIgnoreCase(user.getUsername())) {
-                throw new IllegalArgumentException(
-                        "El empleado ya tiene un usuario asociado. "
-                                + "Para reactivarlo, ingrese su email original. "
-                                + "Esta operación no modifica el usuario."
-                );
-            }
-
-            user.setEnabled(true);
-            userRepository.save(user);
-
-        } else {
-
-            if (userRepository.existsByUsername(emailNormalizado)) {
-                throw new IllegalArgumentException(
-                        "Ya existe un usuario registrado con el email: "
-                                + emailNormalizado
-                );
-            }
-
-            passwordGenerada = generarContraseniaAleatoria(12);
-
-            User user = new User();
-            user.setUsername(emailNormalizado);
-            user.setPassword(passwordEncoder.encode(passwordGenerada));
-            user.setEnabled(true);
-
-            UserRole role = new UserRole(user, Role.EMPLEADO);
-            user.getUserRoles().add(role);
-
-            user = userRepository.save(user);
-            empleadoGuardado.setUser(user);
-        }
-
-        empleadoGuardado.setNombre(datosNuevos.getNombre());
-        empleadoGuardado.setApellido(datosNuevos.getApellido());
-        empleadoGuardado.setFechaNacimiento(datosNuevos.getFechaNacimiento());
-        empleadoGuardado.setIngreso(datosNuevos.getIngreso());
-        empleadoGuardado.setActivo(true);
-
-        if (ambosCajeros) {
-            ((Cajero) empleadoGuardado).setTurno(
-                    ((Cajero) datosNuevos).getTurno()
-            );
-        } else {
-            ((Cocinero) empleadoGuardado).setCategoria(
-                    ((Cocinero) datosNuevos).getCategoria()
-            );
-
-            ((Cocinero) empleadoGuardado).setTareaEspecial(
-                    ((Cocinero) datosNuevos).getTareaEspecial()
-            );
-        }
-
-        Empleado resultado = guardarPorTipo(empleadoGuardado);
-
-        if (passwordGenerada != null) {
-            programarEnvioCredenciales(emailNormalizado, passwordGenerada);
-        }
-
-        return resultado;
+        return guardarPorTipo(empleado);
     }
 
     @Override
     @Transactional
     public boolean deleteLogico(int idEmpleado) {
-        Optional<Empleado> objetoOptional = empleadoRepository.findById(idEmpleado);
-        if (objetoOptional.isPresent()) {
-            Empleado emp = objetoOptional.get();
-            emp.setActivo(false);
 
-            if (emp.getUser() != null) {
-                emp.getUser().setEnabled(false);
-                userRepository.save(emp.getUser());
+        Optional<Empleado> objetoOptional =
+                empleadoRepository.findById(idEmpleado);
+
+        if (objetoOptional.isPresent()) {
+            Empleado empleado = objetoOptional.get();
+            empleado.setActivo(false);
+
+            if (empleado.getUser() != null) {
+                empleado.getUser().setEnabled(false);
+                userRepository.save(empleado.getUser());
             }
 
-            guardarPorTipo(emp);
+            guardarPorTipo(empleado);
             return true;
         }
+
         return false;
     }
 
+    private UnidadVenta obtenerUnidadDelResponsable(
+            String usernameResponsable) {
+
+        if (usernameResponsable == null
+                || usernameResponsable.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Debe indicar el responsable que realiza la operación."
+            );
+        }
+
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaResponsable(
+                        usernameResponsable
+                );
+
+        if (unidad == null) {
+            throw new IllegalArgumentException(
+                    "Solo un responsable con una unidad de venta asignada "
+                            + "puede realizar esta operación."
+            );
+        }
+
+        return unidad;
+    }
+
+    private void asignarAUnidad(
+            UnidadVenta unidad,
+            Empleado empleado) {
+
+        if (!unidad.getEmpleados().contains(empleado)) {
+            unidad.getEmpleados().add(empleado);
+        }
+    }
+
     private Empleado guardarPorTipo(Empleado empleado) {
+
         if (empleado instanceof Cajero) {
             return cajeroRepository.save((Cajero) empleado);
-        } else if (empleado instanceof Cocinero) {
+        }
+
+        if (empleado instanceof Cocinero) {
             return cocineroRepository.save((Cocinero) empleado);
         }
+
         return empleadoRepository.save(empleado);
     }
 
     private String generarContraseniaAleatoria(int longitud) {
-        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        String caracteres =
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        + "abcdefghijklmnopqrstuvwxyz"
+                        + "0123456789";
+
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder(longitud);
+
         for (int i = 0; i < longitud; i++) {
-            sb.append(caracteres.charAt(random.nextInt(caracteres.length())));
+            sb.append(
+                    caracteres.charAt(
+                            random.nextInt(caracteres.length())
+                    )
+            );
         }
+
         return sb.toString();
     }
 
@@ -340,57 +331,90 @@ public class EmpleadoService implements IEmpleadoService {
             );
         }
 
-        return email.trim().toLowerCase(java.util.Locale.ROOT);
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    private void programarEnvioCredenciales( // para que no mande el correo si falla el guardado en la base
+    @Override
+    @Transactional
+    public Empleado cambiarEstadoEmpleado(
+            Integer idEmpleado,
+            boolean activo,
+            String usernameResponsable) {
+
+        if (idEmpleado == null) {
+            throw new IllegalArgumentException(
+                    "Debe indicar el empleado que desea modificar."
+            );
+        }
+
+        UnidadVenta unidad =
+                obtenerUnidadDelResponsable(usernameResponsable);
+
+        Empleado empleado = empleadoRepository
+                .findById(idEmpleado)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No se encontró el empleado."
+                ));
+
+        boolean perteneceALaUnidad = unidad.getEmpleados().stream()
+                .anyMatch(e -> idEmpleado.equals(e.getIdEmpleado()));
+
+        if (!perteneceALaUnidad) {
+            throw new IllegalArgumentException(
+                    "No puede modificar un empleado que no pertenece "
+                            + "a su unidad de venta."
+            );
+        }
+
+        // Se conserva la restricción para registros sin cuenta.
+        if (activo && empleado.getUser() == null) {
+            throw new IllegalArgumentException(
+                    "El empleado no tiene una cuenta de usuario asociada. "
+                            + "No se puede activar desde esta operación."
+            );
+        }
+
+        empleado.setActivo(activo);
+
+        if (empleado.getUser() != null) {
+            empleado.getUser().setEnabled(activo);
+            userRepository.save(empleado.getUser());
+        }
+
+        return guardarPorTipo(empleado);
+    }
+
+    private void enviarMailCredenciales(
             String emailDestinatario,
             String password) {
 
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            throw new IllegalStateException(
-                    "El envío de credenciales requiere una transacción activa."
-            );
-        }
-
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-
-                    @Override
-                    public void afterCommit() {
-                        enviarMailCredenciales(emailDestinatario, password);
-                    }
-                }
-        );
-    }
-
-
-    private void enviarMailCredenciales(String emailDestinatario, String password) {
-
         if (javaMailSender == null) {
-            System.err.println(
-                    "Aviso: JavaMailSender no está inicializado. Se omite el envío de correo."
+            throw new IllegalArgumentException(
+                    "El servicio de correo no está configurado. "
+                            + "No se realizó el alta del empleado."
             );
-            return;
         }
+
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setTo(emailDestinatario);
+        mensaje.setSubject(
+                "Credenciales de Acceso - Epicentro Gourmet"
+        );
+        mensaje.setText(
+                "¡Bienvenido a Epicentro Gourmet!\n\n"
+                        + "Tus datos de acceso para iniciar sesión son:\n"
+                        + "Usuario: " + emailDestinatario + "\n"
+                        + "Contraseña temporal: " + password + "\n\n"
+                        + "Por favor, iniciá sesión y cambiá tu contraseña."
+        );
 
         try {
-            SimpleMailMessage mensaje = new SimpleMailMessage();
-            mensaje.setTo(emailDestinatario);
-            mensaje.setSubject("Credenciales de Acceso - Epicentro Gourmet");
-            mensaje.setText(
-                    "¡Bienvenido a Epicentro Gourmet!\n\n" +
-                            "Tus datos de acceso para iniciar sesión son:\n" +
-                            "Usuario: " + emailDestinatario + "\n" +
-                            "Contraseña temporal: " + password + "\n\n" +
-                            "Por favor, iniciá sesión y cambiá tu contraseña."
-            );
-
             javaMailSender.send(mensaje);
-
         } catch (MailException e) {
-            System.err.println(
-                    "Error al enviar el correo: " + e.getMessage()
+            throw new IllegalArgumentException(
+                    "No se pudo enviar el correo con las credenciales. "
+                            + "No se realizó el alta del empleado.",
+                    e
             );
         }
     }

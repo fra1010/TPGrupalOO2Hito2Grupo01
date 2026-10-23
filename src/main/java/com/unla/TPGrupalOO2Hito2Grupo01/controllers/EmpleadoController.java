@@ -61,16 +61,31 @@ public class EmpleadoController {
 
         Empleado empleado = crearEmpleadoDesdeDTO(empleadoDTO);
 
-        if (empleadoDTO.getIdEmpleado() != null) {
-            empleado.setIdEmpleado(empleadoDTO.getIdEmpleado());
+        if (empleadoDTO.getIdEmpleado() == null) {
+            // Los nuevos empleados se crean activos.
+            empleado.setActivo(true);
+        } else {
+            Empleado empleadoExistente = empleadoService.findById(
+                    empleadoDTO.getIdEmpleado()
+            );
 
-            Empleado empleadoExistente = empleadoService.findById(empleadoDTO.getIdEmpleado());
-
-            if (empleadoExistente != null && empleadoExistente.getUser() != null) {
-                empleado.setUser(empleadoExistente.getUser());
+            if (empleadoExistente == null) {
+                model.addAttribute(
+                        "error",
+                        "No se encontró el empleado que se intenta modificar."
+                );
+                cargarDatosFormulario(model);
+                return ViewRouteHelper.EMPLEADO_NEW;
             }
-        }
 
+            empleado.setIdEmpleado(empleadoExistente.getIdEmpleado());
+
+            // Al editar, se conserva el estado almacenado.
+            empleado.setActivo(empleadoExistente.isActivo());
+
+            // Se conserva la cuenta existente.
+            empleado.setUser(empleadoExistente.getUser());
+        }
         try { //si no hay ID es un alta y se ejecuta la creacion de usuario si hay id es una edicion y se conserva la cuenta existente
             if (empleado.getIdEmpleado() == null) {
                 empleadoService.darDeAltaConUsuario(

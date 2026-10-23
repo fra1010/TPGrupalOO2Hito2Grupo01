@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,6 +56,16 @@ public class EmpleadoDTO
 
     private String tareaEspecial; // Se usará si tipoEmpleado es "COCINERO"
 
+    @AssertTrue(message = "El empleado debe tener al menos 18 años cumplidos")
+    public boolean isMayorDeEdad() {
+        if (fechaNacimiento == null) {
+            return true; // La fecha vacía ya se valida con @NotNull.
+        }
+
+        return !fechaNacimiento.isAfter(LocalDate.now().minusYears(18));
+    }
+
+
     public EmpleadoDTO(Integer idEmpleado, String nombre, String apellido, long dni,
                        LocalDate fechaNacimiento, LocalDate ingreso, boolean activo,
                        String tipoEmpleado, Turno turno, CategoriaCocina categoria, String tareaEspecial)
@@ -71,4 +82,7 @@ public class EmpleadoDTO
         this.categoria = categoria;
         this.tareaEspecial = tareaEspecial;
     }
+
+
+
 }

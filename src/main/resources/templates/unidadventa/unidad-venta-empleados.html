@@ -9,15 +9,42 @@
 
 <nav th:replace="~{layout :: navbarResponsable}"></nav>
 
+<!-- Mensajes flotantes: no desplazan el contenido de la página -->
+<div style="position: fixed;
+            top: 75px;
+            right: 20px;
+            z-index: 1050;
+            width: calc(100% - 40px);
+            max-width: 500px;"
+     aria-live="polite">
+
+    <!-- Mensaje de operación exitosa -->
+    <div th:if="${exito != null}"
+         class="alert alert-success shadow"
+         role="status"
+         th:text="${exito}">
+    </div>
+
+    <!-- Mensaje de error -->
+    <div th:if="${error != null}"
+         class="alert alert-danger shadow"
+         role="alert"
+         th:text="${error}">
+    </div>
+</div>
+
 <main class="container py-4">
 
     <!-- Encabezado -->
     <div class="page-header mb-3">
-        <h2 th:text="${unidad.nombre}">Nombre de la unidad</h2>
+        <h2 th:text="${unidad.nombre}">
+            Nombre de la unidad
+        </h2>
     </div>
 
     <!-- Datos de la unidad -->
     <div class="card shadow-sm mb-4">
+
         <div class="card-header">
             <strong>Datos de la unidad</strong>
         </div>
@@ -25,6 +52,7 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
+
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -36,9 +64,13 @@
 
                     <tbody>
                     <tr>
-                        <td th:text="${unidad.idUnidadVenta}">1</td>
+                        <td th:text="${unidad.idUnidadVenta}">
+                            1
+                        </td>
 
-                        <td th:text="${unidad.codigo}">COD-001</td>
+                        <td th:text="${unidad.codigo}">
+                            COD-001
+                        </td>
 
                         <td th:text="${unidad.idFestival != null
                                       ? unidad.idFestival : '—'}">
@@ -51,6 +83,7 @@
                         </td>
                     </tr>
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -63,7 +96,9 @@
             <strong>
                 Empleados de la unidad
                 (<span th:text="${unidad.empleados != null
-                                  ? #lists.size(unidad.empleados) : 0}">0</span>)
+                                  ? #lists.size(unidad.empleados) : 0}">
+                    0
+                </span>)
             </strong>
 
             <!-- Alta disponible únicamente para responsables -->
@@ -80,6 +115,7 @@
                  th:unless="${#lists.isEmpty(unidad.empleados)}">
 
                 <table class="table table-striped table-hover mb-0">
+
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -88,6 +124,7 @@
                         <th>Fecha Ingreso</th>
                         <th>Rol / Puesto</th>
                         <th>Detalle Específico</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                     </thead>
@@ -97,7 +134,8 @@
 
                         <td th:text="${emp.idEmpleado}"></td>
 
-                        <td th:text="${emp.apellido + ', ' + emp.nombre}"></td>
+                        <td th:text="${emp.apellido + ', ' + emp.nombre}">
+                        </td>
 
                         <td th:text="${emp.dni}"></td>
 
@@ -105,6 +143,7 @@
                             th:text="${emp.ingreso}">
                         </td>
 
+                        <!-- Tipo de empleado -->
                         <td>
                             <span th:if="${#strings.equalsIgnoreCase(
                                               emp.tipoEmpleado, 'CAJERO')}"
@@ -119,6 +158,7 @@
                             </span>
                         </td>
 
+                        <!-- Datos específicos según el tipo -->
                         <td>
                             <span th:if="${#strings.equalsIgnoreCase(
                                               emp.tipoEmpleado, 'CAJERO')}"
@@ -143,24 +183,51 @@
                             </div>
                         </td>
 
+                        <!-- Consultar y modificar el estado -->
                         <td class="text-nowrap">
+                            <form th:action="@{/responsable/empleados/estado/{id}(id=${emp.idEmpleado})}"
+                                  method="post"
+                                  class="mb-0"
+                                  sec:authorize="hasRole('RESPONSABLE')">
 
-                            <!-- Editar empleado -->
-                            <a class="btn btn-sm btn-warning"
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           th:id="${'activo-' + emp.idEmpleado}"
+                                           name="activo"
+                                           value="true"
+                                           th:checked="${emp.activo}"
+                                           onchange="confirmarCambioEstado(this)"/>
+
+                                    <label class="form-check-label"
+                                           th:for="${'activo-' + emp.idEmpleado}"
+                                           th:text="${emp.activo
+                                                     ? 'Activo' : 'Inactivo'}">
+                                        Activo
+                                    </label>
+                                </div>
+                            </form>
+                        </td>
+
+                        <!-- Acciones disponibles -->
+                        <td class="text-nowrap"
+                            sec:authorize="hasRole('RESPONSABLE')">
+
+                            <!-- Editar únicamente empleados activos -->
+                            <a th:if="${emp.activo}"
+                               class="btn btn-sm btn-warning"
                                th:href="@{/empleado/edit/{id}(id=${emp.idEmpleado})}">
                                 Actualizar
                             </a>
 
-                            <!-- Baja lógica mediante la ruta GET actual -->
-                            <a class="btn btn-sm btn-danger"
-                               th:href="@{/empleado/delete/{id}(id=${emp.idEmpleado})}"
-                               onclick="return confirm('¿Seguro que querés dar de baja a este empleado?');">
-                                Eliminar
-                            </a>
-
+                            <span th:unless="${emp.activo}"
+                                  class="text-muted">
+                                —
+                            </span>
                         </td>
                     </tr>
                     </tbody>
+
                 </table>
             </div>
 
@@ -178,6 +245,46 @@
 <footer th:replace="~{layout :: footer}"></footer>
 
 <div th:replace="~{layout :: scripts}"></div>
+
+<script>
+    const claveScrollEmpleados =
+        "scroll-empleados:" + window.location.pathname;
+
+    function confirmarCambioEstado(checkbox) {
+        const accion = checkbox.checked ? "activar" : "desactivar";
+
+        if (!window.confirm(
+            "¿Seguro que querés " + accion + " a este empleado?")) {
+            checkbox.checked = !checkbox.checked;
+            return;
+        }
+
+        // Guardar la posición antes de enviar el formulario.
+        sessionStorage.setItem(
+            claveScrollEmpleados,
+            String(window.scrollY)
+        );
+
+        checkbox.form.requestSubmit();
+    }
+
+    // Recuperar la posición después del POST y la redirección.
+    window.addEventListener("load", function () {
+        const posicion = sessionStorage.getItem(
+            claveScrollEmpleados
+        );
+
+        if (posicion !== null) {
+            sessionStorage.removeItem(claveScrollEmpleados);
+
+            window.scrollTo({
+                top: Number(posicion),
+                left: 0,
+                behavior: "instant"
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

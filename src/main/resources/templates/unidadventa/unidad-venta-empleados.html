@@ -213,17 +213,11 @@
                         <td class="text-nowrap"
                             sec:authorize="hasRole('RESPONSABLE')">
 
-                            <!-- Editar únicamente empleados activos -->
-                            <a th:if="${emp.activo}"
-                               class="btn btn-sm btn-warning"
+                            <!-- Editar empleados activos e inactivos -->
+                            <a class="btn btn-sm btn-warning"
                                th:href="@{/empleado/edit/{id}(id=${emp.idEmpleado})}">
                                 Actualizar
                             </a>
-
-                            <span th:unless="${emp.activo}"
-                                  class="text-muted">
-                                —
-                            </span>
                         </td>
                     </tr>
                     </tbody>

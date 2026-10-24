@@ -75,4 +75,6 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
     ORDER BY e.apellido, e.nombre
     """)
     public List<SueldoEmpleadoDTO> traerSueldoPorEmpleado(@Param("unidadVenta") UnidadVenta unidadVenta);
+    public UnidadVenta findByCodigo(String codigo);
+
 }

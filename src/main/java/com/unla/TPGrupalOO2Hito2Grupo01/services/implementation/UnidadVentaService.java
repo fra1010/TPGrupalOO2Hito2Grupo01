@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
@@ -60,82 +61,6 @@ public class UnidadVentaService implements IUnidadVenta {
         return unidades;
     }
 
-    @Override
-    public void agregarOActualizarUnidadVenta(
-            UnidadVentaDTO unidadVenta) {
-
-        if (unidadVenta.getIdUnidadVenta() != null) {
-
-            // Actualizar unidad existente.
-            if (unidadVenta instanceof FoodTruckDTO foodTruckDTO) {
-                unidadVentaRepository.save(
-                        modelMapper.map(
-                                foodTruckDTO,
-                                FoodTruck.class
-                        )
-                );
-
-            } else if (unidadVenta
-                    instanceof PuestoDesarmableDTO puestoDTO) {
-
-                unidadVentaRepository.save(
-                        modelMapper.map(
-                                puestoDTO,
-                                PuestoDesarmable.class
-                        )
-                );
-            }
-
-        } else {
-
-            // Agregar una nueva unidad.
-            if (unidadVenta instanceof FoodTruckDTO foodTruckDTO) {
-
-                UnidadVenta guardar = modelMapper.map(
-                        foodTruckDTO,
-                        FoodTruck.class
-                );
-
-                guardar.getResponsable().setPassword(
-                        pe.encode(
-                                unidadVenta.getResponsable().getPassword()
-                        )
-                );
-
-                guardar.getResponsable().getUserRoles().add(
-                        new UserRole(
-                                guardar.getResponsable(),
-                                Role.RESPONSABLE
-                        )
-                );
-
-                unidadVentaRepository.save(guardar);
-
-            } else if (unidadVenta
-                    instanceof PuestoDesarmableDTO puestoDTO) {
-
-                UnidadVenta guardar = modelMapper.map(
-                        puestoDTO,
-                        PuestoDesarmable.class
-                );
-
-                guardar.getResponsable().setPassword(
-                        pe.encode(
-                                unidadVenta.getResponsable().getPassword()
-                        )
-                );
-
-                guardar.getResponsable().getUserRoles().add(
-                        new UserRole(
-                                guardar.getResponsable(),
-                                Role.RESPONSABLE
-                        )
-                );
-
-                unidadVentaRepository.save(guardar);
-            }
-        }
-    }
 
     @Override
     public BigDecimal calcularCanon(String username) {
@@ -228,4 +153,64 @@ public class UnidadVentaService implements IUnidadVenta {
 
         return unidadVentaRepository.traerSueldoPorEmpleado(unidad);
     }
-}
+
+    @Override
+    public void agregarUnidadVenta(UnidadVentaFormDTO unidadVenta, UserDTO responsable) {
+
+        UnidadVentaDTO unidad = switch (unidadVenta.getTipoUnidad()) {
+            case UnidadVentaFormDTO.FOOD_TRUCK -> modelMapper.map(unidadVenta, FoodTruckDTO.class);
+            case UnidadVentaFormDTO.PUESTO_DESARMABLE -> modelMapper.map(unidadVenta, PuestoDesarmableDTO.class);
+            default -> throw new IllegalStateException(
+                    "Tipo de unidad no soportado: " + unidadVenta.getTipoUnidad());
+        };
+
+        String codigo= generarCodigo(10);
+        while (unidadVentaRepository.findByCodigo(codigo)!=null){
+            codigo= generarCodigo(10);
+        }
+        if (unidad instanceof FoodTruckDTO foodTruckDTO) {
+
+            UnidadVenta guardar = modelMapper.map(foodTruckDTO, FoodTruck.class);  // DTO -> ENTITY
+            guardar.setResponsable(modelMapper.map(responsable, User.class));
+            guardar.setCodigo(codigo);
+            unidadVentaRepository.save(guardar);                                   // se guarda la entidad
+        }
+        else {
+            if (unidad instanceof PuestoDesarmableDTO puestoDesarmableDTO){
+                UnidadVenta guardar = modelMapper.map(puestoDesarmableDTO, PuestoDesarmable.class);  // DTO -> ENTITY
+                guardar.setResponsable(modelMapper.map(responsable, User.class));
+                guardar.setCodigo(codigo);
+                unidadVentaRepository.save(guardar);
+            }
+        }
+
+    }
+
+    @Override
+    public UnidadVenta traerUnidadVentaResponsable(String username) {
+        return unidadVentaRepository.traerUnidadVentaResponsable(username);
+    }
+
+    private String generarCodigo(int longitud) {
+
+        String caracteres =
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        + "abcdefghijklmnopqrstuvwxyz"
+                        + "0123456789";
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(longitud);
+
+        for (int i = 0; i < longitud; i++) {
+            sb.append(
+                    caracteres.charAt(
+                            random.nextInt(caracteres.length())
+                    )
+            );
+        }
+
+        return sb.toString().toUpperCase();
+    }
+    }
+
+

@@ -31,8 +31,8 @@ public class UnidadVentaDTO {
     // En lugar de la entidad Festival se expone solo su id
     private Integer idFestival;
 
-    @NotBlank(message = "El codigo es obligatorio")
-    @Size(max = 45, message = "El codigo no puede superar los 45 caracteres")
+//    @NotBlank(message = "El codigo es obligatorio")
+//    @Size(max = 45, message = "El codigo no puede superar los 45 caracteres")
     private String codigo;
 
     // Se crea junto con la unidad de venta. @Valid hace que se validen tambien los campos de UserDTO.

@@ -1,10 +1,13 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.FoodTruckDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PuestoDesarmableDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.*;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Role;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IFestivalService;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IUser;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,60 +16,21 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import java.util.List;
 
 @Controller
 @RequestMapping("/unidadVenta")
 public class UnidadVentaController {
     private final IUnidadVenta unidadVentaService;
+    private  final IUser userService;
+    private  final IFestivalService festivalService;
 
-    public UnidadVentaController(IUnidadVenta unidadVentaService) {
-
+    public UnidadVentaController(IUnidadVenta unidadVentaService,IUser userService,IFestivalService festivalService) {
+        this.userService=userService;
         this.unidadVentaService = unidadVentaService;
+        this.festivalService=festivalService;
     }
 
-    @GetMapping("/formularioFoodTruck")
-    public ModelAndView unidadVentaFoodTruck(Model model){
-        ModelAndView mV = new ModelAndView();
-        mV.setViewName("unidadventa/formulario-foodtruck");
-        mV.addObject("foodTruckDTO", new FoodTruckDTO());
-        return mV;
-
-    }
-    @GetMapping("/formularioPuestoDesarmable")
-    public ModelAndView unidadVentaPuestoDesarmable(Model model){
-        ModelAndView mV = new ModelAndView();
-        mV.setViewName("unidadventa/formulario-puesto-desarmable");
-        mV.addObject("puestoDesarmableDTO", new PuestoDesarmableDTO());
-        return mV;
-
-    }
-    @PostMapping("/nuevafoodtruck")
-    public RedirectView unidadVenta(@Valid @ModelAttribute("unidadVenta")FoodTruckDTO foodTruck , BindingResult bindingResult){
-        RedirectView rV = new RedirectView();
-        if(bindingResult.hasErrors()){
-            rV.setUrl("/unidadventa/formulario-foodtruck");
-        }
-        else {
-            unidadVentaService.agregarOActualizarUnidadVenta(foodTruck);
-            rV.setUrl("/unidadventa/unidades");
-        }
-        return rV;
-    }
-    @PostMapping("/nuevapuestodesarmable")
-    public RedirectView unidadVenta(@Valid @ModelAttribute("unidadVenta")PuestoDesarmableDTO puestoDesarmable , BindingResult bindingResult){
-        RedirectView rV = new RedirectView();
-        if(bindingResult.hasErrors()){
-            rV.setUrl("/unidadventa/formulario-puesto-desarmable");
-        }
-        else {
-            unidadVentaService.agregarOActualizarUnidadVenta(puestoDesarmable);
-            rV.setUrl("/unidadventa/unidades");
-        }
-        return rV;
-    }
     @GetMapping("/unidades")
     public ModelAndView unidadesVenta(){
         List<UnidadVentaDTO> unidades = unidadVentaService.traerUnidadesVenta();
@@ -75,4 +39,45 @@ public class UnidadVentaController {
         mV.addObject("unidades",unidades);
         return mV;
     }
+    @GetMapping("/formulariounidadventa")
+    @PreAuthorize("isAnonymous()")
+    public ModelAndView unidadventa(){
+        List<Festival> festivales= festivalService.getAllActive();
+        ModelAndView mV = new ModelAndView();
+        mV.setViewName("unidadventa/formulario-unidad-venta");
+        mV.addObject("unidadVenta", new UnidadVentaFormDTO());
+        mV.addObject("festivales", festivales);
+        return mV;
+    }
+    @PostMapping("/crearunidadventa")
+    @PreAuthorize("isAnonymous()")
+    public String unidadVenta(
+            @Valid @ModelAttribute("unidadVenta") UnidadVentaFormDTO unidadVenta,
+            BindingResult bindingResult,
+            Model model) {
+
+        if (bindingResult.hasErrors()) {
+
+            model.addAttribute("festivales", festivalService.getAllActive());
+
+            return "unidadventa/formulario-unidad-venta"; // vista (forward, no redirect)
+        }
+
+
+        try {
+
+            UserDTO responsable = userService.agregarUser(unidadVenta.getResponsable(), Role.RESPONSABLE);
+            unidadVentaService.agregarUnidadVenta(unidadVenta, responsable);
+
+        } catch (Exception e) {
+            // Se muestra en la alerta ${error} del formulario
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("festivales", festivalService.getAllActive());
+            return "unidadventa/formulario-unidad-venta";
+        }
+        return "redirect:/index";
+    }
+
+
+
 }

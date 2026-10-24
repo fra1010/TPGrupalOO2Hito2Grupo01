@@ -51,7 +51,13 @@
             </ul>
 
             <ul class="navbar-nav align-items-lg-center">
-
+                <li class="nav-item mr-2"
+                    sec:authorize="isAnonymous()">
+                    <a class="btn btn-primary"
+                       th:href="@{/unidadVenta/formulariounidadventa}">
+                        Registrar Unidad Venta
+                    </a>
+                </li>
                 <!-- Visitante sin sesión -->
                 <li class="nav-item"
                     sec:authorize="isAnonymous()">

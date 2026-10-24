@@ -5,24 +5,30 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UserDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Role;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IUser;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UserRole;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUserRepository;
 
 @Service("userService")
-public class UserService implements UserDetailsService {
+public class UserService implements UserDetailsService, IUser {
 
 	private final IUserRepository userRepository;
-
-	public UserService(IUserRepository userRepository) {
+    private final ModelMapper modelMapper;
+	public UserService(IUserRepository userRepository,ModelMapper modelMapper) {
 		this.userRepository = userRepository;
+        this.modelMapper=modelMapper;
 	}
 
 	@Override
@@ -84,4 +90,22 @@ public class UserService implements UserDetailsService {
 
 		return new ArrayList<>(grantedAuthorities);
 	}
+
+    @Override
+    public UserDTO agregarUser(UserDTO user, Role role) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException(
+                    "Ya existe un usuario registrado con el username: " + user.getUsername()
+            );
+        }
+        BCryptPasswordEncoder pe = new BCryptPasswordEncoder();
+        com.unla.TPGrupalOO2Hito2Grupo01.entities.User userGuardar = new com.unla.TPGrupalOO2Hito2Grupo01.entities.User(
+                user.getUsername(),
+                pe.encode(user.getPassword()),
+                true
+        );
+        userGuardar.getUserRoles().add(new UserRole(userGuardar, role));
+        com.unla.TPGrupalOO2Hito2Grupo01.entities.User saved = userRepository.save(userGuardar);
+        return modelMapper.map(saved, UserDTO.class);
+    }
 }

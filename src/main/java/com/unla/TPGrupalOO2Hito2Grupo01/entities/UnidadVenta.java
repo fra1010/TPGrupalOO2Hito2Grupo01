@@ -43,7 +43,7 @@ public abstract class UnidadVenta {
     @Column(name="codigo", nullable=false, length=45)
     protected String codigo;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id",unique = true, nullable = false)
     protected User responsable;
 

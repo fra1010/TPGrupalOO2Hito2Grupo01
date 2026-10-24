@@ -71,12 +71,11 @@
                         <td th:text="${unidad.codigo}">
                             COD-001
                         </td>
-
-                        <td th:text="${unidad.idFestival != null
-                                      ? unidad.idFestival : '—'}">
-                            1
+                        
+                        <td th:text="${unidad.nombreFestival != null
+              ? unidad.nombreFestival : '—'}">
+                            Festival
                         </td>
-
                         <td th:text="${unidad.responsable != null
                                       ? unidad.responsable.username : '—'}">
                             usuario

@@ -138,7 +138,10 @@ public class UnidadVentaService implements IUnidadVenta {
         );
 
         unidadVentaDTO.setEmpleados(empleadoDTOS);
-
+        if (unidad.getFestival() != null) {
+            unidadVentaDTO.setIdFestival(unidad.getFestival().getIdFestival());
+            unidadVentaDTO.setNombreFestival(unidad.getFestival().getNombre());
+        }
         return unidadVentaDTO;
     }
 

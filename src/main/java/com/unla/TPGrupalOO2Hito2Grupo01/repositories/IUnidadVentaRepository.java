@@ -32,7 +32,7 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
         """)
     public BigDecimal calcularCanonUnidad(@Param("unidadVenta") UnidadVenta unidadVenta);
 
-    @Query("SELECT u FROM UnidadVenta u LEFT JOIN FETCH u.empleados WHERE u = :unidadVenta")
+    @Query("SELECT u FROM UnidadVenta u LEFT JOIN FETCH u.empleados LEFT JOIN FETCH u.festival WHERE u = :unidadVenta")
     public UnidadVenta traerUnidadVentaConEmpleados(@Param("unidadVenta") UnidadVenta unidadVenta );
 
 

@@ -30,7 +30,7 @@ public class UnidadVentaDTO {
 
     // En lugar de la entidad Festival se expone solo su id
     private Integer idFestival;
-
+    private String nombreFestival;
 //    @NotBlank(message = "El codigo es obligatorio")
 //    @Size(max = 45, message = "El codigo no puede superar los 45 caracteres")
     private String codigo;

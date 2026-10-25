@@ -3,6 +3,7 @@ package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -42,11 +43,11 @@ public class ResponsableController {
 
         ModelAndView mV = new ModelAndView();
 
-        BigDecimal canon =
+        ReporteCanonDTO reporte  =
                 unidadVentaService.calcularCanon(user.getUsername());
 
         mV.setViewName("unidadventa/canon");
-        mV.addObject("canon", canon);
+        mV.addObject("reporte", reporte);
 
         return mV;
     }

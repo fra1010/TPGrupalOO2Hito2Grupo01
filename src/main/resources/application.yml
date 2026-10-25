@@ -25,9 +25,3 @@ spring:
       "[mail.smtp.connectiontimeout]": 5000
       "[mail.smtp.timeout]": 10000
       "[mail.smtp.writetimeout]": 10000
-
-app:
-  mail:
-    prueba:
-      enabled: ${MAIL_TEST_ENABLED:false}
-      destinatario: ${MAIL_TEST_TO:}

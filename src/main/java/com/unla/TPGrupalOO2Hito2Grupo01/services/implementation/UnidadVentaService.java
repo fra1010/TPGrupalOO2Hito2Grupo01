@@ -5,6 +5,7 @@ import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +65,18 @@ public class UnidadVentaService implements IUnidadVenta {
 
 
     @Override
-    public BigDecimal calcularCanon(String username) {
+    public ReporteCanonDTO calcularCanon(String username) {
+        ReporteCanonDTO reporte = unidadVentaRepository.calcularCanonReporte(username);
 
-        UnidadVenta unidadVenta =
-                unidadVentaRepository.traerUnidadVentaResponsable(
-                        username
-                );
+        if (reporte == null) {
+            throw new EntityNotFoundException(
+                    "No se encontró una unidad de venta con festival y costos para: " + username);
+        }
+        if ("OTRO".equals(reporte.getTipo())) {
+            throw new IllegalArgumentException("Tipo de unidad sin cálculo de canon.");
+        }
 
-        return unidadVentaRepository.calcularCanonUnidad(unidadVenta);
+        return reporte;
     }
 
     @Override

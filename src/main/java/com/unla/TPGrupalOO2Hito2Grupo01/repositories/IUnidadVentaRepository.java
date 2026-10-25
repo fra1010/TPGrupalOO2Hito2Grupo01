@@ -1,5 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.repositories;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +16,34 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
     @Query("SELECT u FROM UnidadVenta u WHERE u.responsable.username = :username")
     public abstract UnidadVenta traerUnidadVentaResponsable(@Param("username") String username );
     @Query("""
-        SELECT CASE
+    SELECT new com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO(
+        u.id,
+        CASE WHEN TYPE(u) = FoodTruck THEN 'FOOD_TRUCK'
+             WHEN TYPE(u) = PuestoDesarmable THEN 'PUESTO_DESARMABLE'
+             ELSE 'OTRO' END,
+        u.nombre,
+        f.nombre,
+        CAST(u.superficie AS BigDecimal),
+        c.costoSuperficies,
+        (CAST(u.superficie AS BigDecimal) * c.costoSuperficies),
+
+        CASE WHEN TYPE(u) = FoodTruck THEN
+                        (CASE WHEN TREAT(u AS FoodTruck).conexion = true THEN 1 ELSE 0 END)
+                     ELSE 0 END ,
+        CASE WHEN TYPE(u) = FoodTruck THEN
+                (CASE WHEN TREAT(u AS FoodTruck).conexion = true
+                      THEN c.plusElectricidad ELSE 0bd END)
+             ELSE 0bd END,
+
+        CASE WHEN TYPE(u) = PuestoDesarmable
+             THEN CAST(TREAT(u AS PuestoDesarmable).tiempo AS BigDecimal)
+             ELSE 0bd END,
+        c.costoMontaje,
+        CASE WHEN TYPE(u) = PuestoDesarmable
+             THEN (TREAT(u AS PuestoDesarmable).tiempo * c.costoMontaje)
+             ELSE 0bd END,
+
+        CASE
             WHEN TYPE(u) = FoodTruck THEN
                 (CAST(u.superficie AS BigDecimal) * c.costoSuperficies)
                 + (CASE WHEN TREAT(u AS FoodTruck).conexion = true
@@ -25,12 +53,13 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
                 + (TREAT(u AS PuestoDesarmable).tiempo * c.costoMontaje)
             ELSE 0bd
         END
-        FROM UnidadVenta u
-        JOIN u.festival f
-        JOIN f.costo c
-        WHERE u = :unidadVenta
-        """)
-    public BigDecimal calcularCanonUnidad(@Param("unidadVenta") UnidadVenta unidadVenta);
+    )
+    FROM UnidadVenta u
+    JOIN u.festival f
+    JOIN f.costo c
+    WHERE u.responsable.username = :username
+    """)
+    public ReporteCanonDTO calcularCanonReporte(@Param("username") String username);
 
     @Query("SELECT u FROM UnidadVenta u LEFT JOIN FETCH u.empleados LEFT JOIN FETCH u.festival WHERE u = :unidadVenta")
     public UnidadVenta traerUnidadVentaConEmpleados(@Param("unidadVenta") UnidadVenta unidadVenta );
@@ -76,5 +105,12 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
     """)
     public List<SueldoEmpleadoDTO> traerSueldoPorEmpleado(@Param("unidadVenta") UnidadVenta unidadVenta);
     public UnidadVenta findByCodigo(String codigo);
-
+    @Query("""
+    SELECT u
+    FROM UnidadVenta u
+    LEFT JOIN FETCH u.festival f
+    LEFT JOIN FETCH f.costo
+    WHERE u.responsable.username = :username
+    """)
+    UnidadVenta traerUnidadVentaConFestival(@Param("username") String username);
 }

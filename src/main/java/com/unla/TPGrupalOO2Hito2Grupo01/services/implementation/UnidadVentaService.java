@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
@@ -152,15 +153,15 @@ public class UnidadVentaService implements IUnidadVenta {
     }
 
     @Override
-    public List<SueldoEmpleadoDTO> calcularSueldoUnidadVenta(
-            String username) {
-
-        UnidadVenta unidad =
-                unidadVentaRepository.traerUnidadVentaResponsable(
-                        username
-                );
-
-        return unidadVentaRepository.traerSueldoPorEmpleado(unidad);
+    public List<ReciboDetalladoDTO>  calcularSueldoUnidadVenta(
+            String username, LocalDate desde, LocalDate hasta) {
+        UnidadVenta unidadVenta = unidadVentaRepository.traerUnidadVentaResponsable(username);
+        if (unidadVenta == null) {
+            throw new IllegalArgumentException(
+                    "El responsable no tiene una unidad de venta asignada."
+            );
+        }
+            return unidadVentaRepository.traerSueldoPorEmpleado(unidadVenta,desde,hasta);
     }
 
     @Override
@@ -196,8 +197,21 @@ public class UnidadVentaService implements IUnidadVenta {
     }
 
     @Override
-    public UnidadVenta traerUnidadVentaResponsable(String username) {
-        return unidadVentaRepository.traerUnidadVentaResponsable(username);
+    public UnidadVentaDTO traerUnidadVentaResponsable(String username) {
+        UnidadVenta unidadVenta = unidadVentaRepository.traerUnidadVentaResponsable(username);
+        UnidadVentaDTO dto=null;
+        if (unidadVenta instanceof FoodTruck foodTruck) {
+
+            dto = modelMapper.map(foodTruck,FoodTruckDTO.class );
+            return dto;
+        }
+        else {
+            if (unidadVenta instanceof PuestoDesarmable puestoDesarmable){
+                dto = modelMapper.map(puestoDesarmable, PuestoDesarmableDTO.class);
+                return dto;
+            }
+        }
+        return dto;
     }
 
     private String generarCodigo(int longitud) {

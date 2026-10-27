@@ -1,6 +1,7 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.repositories;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoEmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
@@ -203,5 +204,89 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
     List<ReciboDetalladoDTO> traerSueldoPorEmpleado(@Param("unidadVenta") UnidadVenta unidadVenta,
                                                   @Param("desde") LocalDate desde,
                                                   @Param("hasta") LocalDate hasta);
+    @Query("""
+SELECT new com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoEmpleadoDTO(
+
+       uv.nombre,
+       e.nombre,
+       e.apellido,
+       CASE WHEN TYPE(e) = Cocinero THEN 'COCINERO'
+            WHEN TYPE(e) = Cajero   THEN 'CAJERO' END,
+       CASE WHEN TYPE(e) = Cocinero THEN str(TREAT(e AS Cocinero).categoria) END,
+
+       f.fechaInicio,
+       f.fechaFin,
+
+       cast(cast(function('datediff', f.fechaFin, f.fechaInicio) as BigDecimal) + 1 as Long),
+
+       cast(floor((cast(function('datediff', f.fechaFin, f.fechaInicio) as BigDecimal) + 1) / 15) + 1 as Long),
+
+       cast((floor((cast(function('datediff', f.fechaFin, f.fechaInicio) as BigDecimal) + 1) / 15) + 1)
+            * cast(0.5 as BigDecimal) as BigDecimal),
+
+       c.sueldoBase,
+
+       CASE WHEN TYPE(e) = Cocinero THEN 'Plus categoría ' || str(TREAT(e AS Cocinero).categoria)
+            ELSE 'Plus antigüedad' END,
+
+       cast(CASE WHEN TYPE(e) = Cocinero THEN 1
+                 ELSE TREAT(e AS Cajero).antiguedad END as Integer),
+
+       cast(CASE WHEN TYPE(e) = Cocinero THEN
+                CASE TREAT(e AS Cocinero).categoria
+                    WHEN 'COCINERO_AYUDANTE' THEN c.plusAyudante
+                    WHEN 'COCINERO'          THEN c.plusCocinero
+                    WHEN 'LAVAPLATOS'        THEN c.plusLavaplatos
+                    ELSE cast(0 as BigDecimal)
+                END
+            ELSE c.plusAntiguedad END as BigDecimal),
+
+       cast((CASE WHEN TYPE(e) = Cocinero THEN 1
+                  ELSE TREAT(e AS Cajero).antiguedad END)
+            * (CASE WHEN TYPE(e) = Cocinero THEN
+                    CASE TREAT(e AS Cocinero).categoria
+                        WHEN 'COCINERO_AYUDANTE' THEN c.plusAyudante
+                        WHEN 'COCINERO'          THEN c.plusCocinero
+                        WHEN 'LAVAPLATOS'        THEN c.plusLavaplatos
+                        ELSE cast(0 as BigDecimal)
+                    END
+                ELSE c.plusAntiguedad END) as BigDecimal),
+
+       cast(c.sueldoBase
+            + (CASE WHEN TYPE(e) = Cocinero THEN 1
+                    ELSE TREAT(e AS Cajero).antiguedad END)
+            * (CASE WHEN TYPE(e) = Cocinero THEN
+                    CASE TREAT(e AS Cocinero).categoria
+                        WHEN 'COCINERO_AYUDANTE' THEN c.plusAyudante
+                        WHEN 'COCINERO'          THEN c.plusCocinero
+                        WHEN 'LAVAPLATOS'        THEN c.plusLavaplatos
+                        ELSE cast(0 as BigDecimal)
+                    END
+                ELSE c.plusAntiguedad END) as BigDecimal),
+
+       cast((floor((cast(function('datediff', f.fechaFin, f.fechaInicio) as BigDecimal) + 1) / 15) + 1)
+            * cast(0.5 as BigDecimal)
+            * (c.sueldoBase
+               + (CASE WHEN TYPE(e) = Cocinero THEN 1
+                       ELSE TREAT(e AS Cajero).antiguedad END)
+               * (CASE WHEN TYPE(e) = Cocinero THEN
+                       CASE TREAT(e AS Cocinero).categoria
+                           WHEN 'COCINERO_AYUDANTE' THEN c.plusAyudante
+                           WHEN 'COCINERO'          THEN c.plusCocinero
+                           WHEN 'LAVAPLATOS'        THEN c.plusLavaplatos
+                           ELSE cast(0 as BigDecimal)
+                       END
+                   ELSE c.plusAntiguedad END)) as BigDecimal)
+)
+FROM UnidadVenta uv
+    JOIN uv.empleados e
+    JOIN uv.festival f
+    JOIN f.costo c
+WHERE e.user.username = :username
+  AND TYPE(e) IN (Cocinero, Cajero)
+  AND e.activo = true
+""")
+    public ReciboDetalladoEmpleadoDTO traerSueldoPorUsername(@Param("username") String username);
+
 }
 

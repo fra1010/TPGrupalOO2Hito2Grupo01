@@ -15,5 +15,5 @@ public interface IUnidadVenta {
     List<ReciboDetalladoDTO>  calcularSueldoUnidadVenta(String username, LocalDate desde,LocalDate hasta);
     public void agregarUnidadVenta(UnidadVentaFormDTO unidadVenta, UserDTO responsable);
     public  UnidadVentaDTO traerUnidadVentaResponsable(String username );
-
+    public ReciboDetalladoEmpleadoDTO sueldoEmpleado(String username);
 }

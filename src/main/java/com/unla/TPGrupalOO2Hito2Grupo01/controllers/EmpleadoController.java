@@ -1,6 +1,14 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoEmpleadoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.utilidades.ReciboPdfService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,15 +28,23 @@ import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
 
 import jakarta.validation.Valid;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/empleado")
 public class EmpleadoController {
 
     private final IEmpleadoService empleadoService;
+    private final IUnidadVenta unidadVentaService;
+    private final ReciboPdfService reciboPdfService;
 
-    public EmpleadoController(IEmpleadoService empleadoService) {
+    public EmpleadoController(IEmpleadoService empleadoService,IUnidadVenta unidadVentaService,
+                              ReciboPdfService reciboPdfService) {
         this.empleadoService = empleadoService;
+        this.unidadVentaService=unidadVentaService;
+        this.reciboPdfService = reciboPdfService;
     }
 
     @GetMapping
@@ -177,7 +193,33 @@ public class EmpleadoController {
                 empleadoDTO.getTareaEspecial()
         );
     }
+    @GetMapping("/sueldo")
+    public ModelAndView traerSueldo(@AuthenticationPrincipal User user){
+        ModelAndView mV = new ModelAndView();
+        mV.setViewName("unidadventa/mi-sueldo");
+        mV.addObject("recibo", unidadVentaService.sueldoEmpleado(user.getUsername()));
+        return mV;
+    }
 
+    // Descarga del recibo en PDF. Ruta final: /empleado/sueldo/pdf
+    @GetMapping("/sueldo/pdf")
+    public void descargarSueldoPdf(@AuthenticationPrincipal User user,
+                                   HttpServletResponse response) throws IOException {
+        // Se obtiene siempre el recibo del empleado logueado, nunca por parametro en la URL
+        ReciboDetalladoEmpleadoDTO recibo = unidadVentaService.sueldoEmpleado(user.getUsername());
+
+        if (recibo == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        byte[] pdf = reciboPdfService.generarRecibo(recibo);
+
+        response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"recibo-sueldo.pdf\"");
+        response.setContentLength(pdf.length);
+        response.getOutputStream().write(pdf);
+    }
     private void cargarDatosFormulario(Model model) {
         model.addAttribute("turnos", Turno.values());
         model.addAttribute("categorias", CategoriaCocina.values());

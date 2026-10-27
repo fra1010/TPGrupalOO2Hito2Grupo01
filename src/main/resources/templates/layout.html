@@ -49,7 +49,14 @@
                     </a>
                 </li>
             </ul>
-
+            <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item mr-2"
+                    sec:authorize="hasRole('EMPLEADO')">
+                    <a class="btn btn-primary"
+                       th:href="@{/empleado/sueldo}">
+                        liquidacion de sueldo
+                    </a>
+                </li>
             <ul class="navbar-nav align-items-lg-center">
                 <li class="nav-item mr-2"
                     sec:authorize="isAnonymous()">

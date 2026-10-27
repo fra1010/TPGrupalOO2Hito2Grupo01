@@ -214,6 +214,11 @@ public class UnidadVentaService implements IUnidadVenta {
         return dto;
     }
 
+    @Override
+    public ReciboDetalladoEmpleadoDTO sueldoEmpleado(String username) {
+        return unidadVentaRepository.traerSueldoPorUsername(username);
+    }
+
     private String generarCodigo(int longitud) {
 
         String caracteres =

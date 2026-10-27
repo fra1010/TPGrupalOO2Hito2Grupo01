@@ -287,6 +287,13 @@ WHERE e.user.username = :username
   AND e.activo = true
 """)
     public ReciboDetalladoEmpleadoDTO traerSueldoPorUsername(@Param("username") String username);
-
+    @Query("""
+       SELECT u
+       FROM UnidadVenta u
+       JOIN u.empleados e
+       WHERE e.user.username = :username
+         AND TYPE(e) = Cajero
+       """)
+    public UnidadVenta findByCajeroUsername(@Param("username") String username);
 }
 

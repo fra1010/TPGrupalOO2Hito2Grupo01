@@ -19,4 +19,10 @@ public interface IUserRepository extends JpaRepository<User, Integer> {
 	boolean existsByUsername(String username);
 
 	Optional<User> findByUsername(String username);
+    @Query("""
+    SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END
+    FROM User u JOIN Empleado e ON e.user = u
+    WHERE u.username = :username AND TYPE(e) = Cajero
+    """)
+    boolean esCajero(@Param("username") String username);
 }

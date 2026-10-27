@@ -53,10 +53,15 @@ public class UserService implements UserDetailsService, IUser {
 					"El usuario no tiene roles asignados: " + username
 			);
 		}
-
+        List<GrantedAuthority> authorities =
+                buildGrantedAuthorities(user.getUserRoles());
+        if (esCajero(username)) {
+            authorities.add(
+                    new SimpleGrantedAuthority("CAJERO")
+            );}
 		return buildUser(
 				user,
-				buildGrantedAuthorities(user.getUserRoles())
+				authorities
 		);
 	}
 
@@ -107,5 +112,10 @@ public class UserService implements UserDetailsService, IUser {
         userGuardar.getUserRoles().add(new UserRole(userGuardar, role));
         com.unla.TPGrupalOO2Hito2Grupo01.entities.User saved = userRepository.save(userGuardar);
         return modelMapper.map(saved, UserDTO.class);
+    }
+
+    @Override
+    public boolean esCajero(String username) {
+        return userRepository.esCajero(username);
     }
 }

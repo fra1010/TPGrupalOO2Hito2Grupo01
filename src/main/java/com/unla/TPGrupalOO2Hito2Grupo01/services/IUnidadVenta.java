@@ -16,4 +16,5 @@ public interface IUnidadVenta {
     public void agregarUnidadVenta(UnidadVentaFormDTO unidadVenta, UserDTO responsable);
     public  UnidadVentaDTO traerUnidadVentaResponsable(String username );
     public ReciboDetalladoEmpleadoDTO sueldoEmpleado(String username);
+    public UnidadVenta findByCajeroUsername(String username);
 }

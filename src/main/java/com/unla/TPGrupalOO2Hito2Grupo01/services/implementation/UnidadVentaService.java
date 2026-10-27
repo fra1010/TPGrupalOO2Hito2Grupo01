@@ -219,6 +219,11 @@ public class UnidadVentaService implements IUnidadVenta {
         return unidadVentaRepository.traerSueldoPorUsername(username);
     }
 
+    @Override
+    public UnidadVenta findByCajeroUsername(String username) {
+        return unidadVentaRepository.findByCajeroUsername(username);
+    }
+
     private String generarCodigo(int longitud) {
 
         String caracteres =

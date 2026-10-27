@@ -51,59 +51,65 @@
             </ul>
             <ul class="navbar-nav align-items-lg-center">
                 <li class="nav-item mr-2"
+                    sec:authorize="hasAuthority('CAJERO')">
+                    <a class="btn btn-primary"
+                       th:href="@{/pedido/new}">
+                        Nuevo Pedido
+                    </a>
+                </li>
+                <li class="nav-item mr-2"
                     sec:authorize="hasRole('EMPLEADO')">
                     <a class="btn btn-primary"
                        th:href="@{/empleado/sueldo}">
-                        liquidacion de sueldo
+                        Liquidación de sueldo
                     </a>
                 </li>
-            <ul class="navbar-nav align-items-lg-center">
-                <li class="nav-item mr-2"
-                    sec:authorize="isAnonymous()">
-                    <a class="btn btn-primary"
-                       th:href="@{/unidadVenta/formulariounidadventa}">
-                        Registrar Unidad Venta
-                    </a>
-                </li>
-                <!-- Visitante sin sesión -->
-                <li class="nav-item"
-                    sec:authorize="isAnonymous()">
-                    <a class="btn btn-primary"
-                       th:href="@{/login}">
-                        Iniciar sesión
-                    </a>
-                </li>
+                    <li class="nav-item mr-2"
+                        sec:authorize="isAnonymous()">
+                        <a class="btn btn-primary"
+                           th:href="@{/unidadVenta/formulariounidadventa}">
+                            Registrar Unidad Venta
+                        </a>
+                    </li>
+                    <!-- Visitante sin sesión -->
+                    <li class="nav-item"
+                        sec:authorize="isAnonymous()">
+                        <a class="btn btn-primary"
+                           th:href="@{/login}">
+                            Iniciar sesión
+                        </a>
+                    </li>
 
-                <!-- Usuario con sesión -->
-                <li class="nav-item dropdown"
-                    sec:authorize="isAuthenticated()">
+                    <!-- Usuario con sesión -->
+                    <li class="nav-item dropdown"
+                        sec:authorize="isAuthenticated()">
 
-                    <a class="nav-link dropdown-toggle"
-                       href="#"
-                       id="userDropdown"
-                       role="button"
-                       data-toggle="dropdown"
-                       aria-haspopup="true"
-                       aria-expanded="false">
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           id="userDropdown"
+                           role="button"
+                           data-toggle="dropdown"
+                           aria-haspopup="true"
+                           aria-expanded="false">
 
                         <span sec:authentication="name">
                             Usuario
                         </span>
-                    </a>
+                        </a>
 
-                    <div class="dropdown-menu dropdown-menu-right"
-                         aria-labelledby="userDropdown">
+                        <div class="dropdown-menu dropdown-menu-right"
+                             aria-labelledby="userDropdown">
 
-                        <form th:action="@{/logout}" method="post">
-                            <button type="submit"
-                                    class="dropdown-item">
-                                Cerrar sesión
-                            </button>
-                        </form>
-                    </div>
-                </li>
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit"
+                                        class="dropdown-item">
+                                    Cerrar sesión
+                                </button>
+                            </form>
+                        </div>
+                    </li>
 
-            </ul>
+                </ul>
         </div>
     </div>
 </nav>

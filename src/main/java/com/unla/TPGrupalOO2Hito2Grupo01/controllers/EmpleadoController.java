@@ -193,6 +193,7 @@ public class EmpleadoController {
                 empleadoDTO.getTareaEspecial()
         );
     }
+    @PreAuthorize("hasRole('EMPLEADO')")
     @GetMapping("/sueldo")
     public ModelAndView traerSueldo(@AuthenticationPrincipal User user){
         ModelAndView mV = new ModelAndView();

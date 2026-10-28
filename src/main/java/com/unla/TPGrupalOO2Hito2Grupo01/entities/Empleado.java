@@ -49,7 +49,7 @@ public class Empleado {
    // Relación N a 1 con UnidadVenta (Varios empleados en una unidad)
    @ManyToOne(fetch = FetchType.LAZY)
 
-   @JoinColumn(name = "id_unidad_venta")
+   @JoinColumn(name = "id_unidad_venta",insertable = false,updatable = false)
    protected UnidadVenta unidadVenta;
 
    // Relación 1 a N con Liquidacion

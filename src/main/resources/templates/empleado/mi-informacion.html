@@ -44,8 +44,10 @@
                             <span class="badge bg-primary text-white"
                                   th:text="${empleado.tipo}">
                                         Puesto
-                                </span>
-                    </div>
+                            </span>
+                        </div>
+                    </div> <!-- <-- FALTABA ESTE CIERRE DE ROW -->
+
                     <!-- Unidad de Venta Asignada -->
                     <h5 class="text-primary border-bottom pb-2 mb-3">Unidad de Venta Asignada</h5>
                     <div th:if="${unidadVenta != null}">

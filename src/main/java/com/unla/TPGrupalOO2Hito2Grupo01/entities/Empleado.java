@@ -44,7 +44,7 @@ public class Empleado {
     @JoinColumn(name = "id_user", unique = true)
     protected User user;
 
-    /* ----- relaciones comentadas -----
+
 
    // Relación N a 1 con UnidadVenta (Varios empleados en una unidad)
    @ManyToOne(fetch = FetchType.LAZY)
@@ -53,10 +53,10 @@ public class Empleado {
    protected UnidadVenta unidadVenta;
 
    // Relación 1 a N con Liquidacion
-   @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-   protected Set<Liquidacion> liquidaciones;
+  // @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//   protected Set<Liquidacion> liquidaciones;
 
-*/
+
     public Empleado(String nombre, String apellido, long dni,
                     LocalDate fechaNacimiento, LocalDate ingreso,
                     boolean activo) {
@@ -67,4 +67,24 @@ public class Empleado {
         this.ingreso = ingreso;
         this.activo = activo;
     }
+
+    // Métodos auxiliares para usar en Thymeleaf de forma segura
+    public boolean isCajero() {
+        return this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
+    }
+
+    public boolean isCocinero() {
+        return this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
+    }
+
+    public String getTipo() {
+        if (this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero) {
+            return "Cajero";
+        } else if (this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero) {
+            return "Cocinero";
+        }
+        return "Empleado";
+    }
+
+
 }

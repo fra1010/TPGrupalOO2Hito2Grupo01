@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{layout :: head}"></head>
+
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4">
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <!-- Encabezado de la Tarjeta -->
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0 fs-4">Mi Información de Empleado</h3>
+                    <span class="badge bg-success" th:text="${empleado.activo} ? 'Activo' : 'Inactivo'">Estado</span>
+                </div>
+
+                <div class="card-body">
+                    <!-- Secciones: Datos Personales -->
+                    <h5 class="text-primary border-bottom pb-2 mb-3">Datos Personales</h5>
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <p class="mb-1 text-secondary"><strong>Nombre y Apellido:</strong></p>
+                            <span class="fs-6" th:text="${empleado.apellido + ', ' + empleado.nombre}"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-1 text-secondary"><strong>DNI:</strong></p>
+                            <span class="fs-6" th:text="${empleado.dni}"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <p class="mb-1 text-secondary"><strong>Fecha de Ingreso:</strong></p>
+                            <span class="fs-6" th:text="${empleado.ingreso}"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-1 text-secondary"><strong>Tipo de Puesto:</strong></p>
+                            <!-- Muestra dinámicamente el tipo de empleado sin errores de SpEL -->
+                            <span class="badge bg-primary text-white"
+                                  th:text="${empleado.tipo}">
+                                        Puesto
+                                </span>
+                    </div>
+                    <!-- Unidad de Venta Asignada -->
+                    <h5 class="text-primary border-bottom pb-2 mb-3">Unidad de Venta Asignada</h5>
+                    <div th:if="${unidadVenta != null}">
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-secondary"><strong>Nombre:</strong></p>
+                                <span class="fs-6 fw-semibold" th:text="${unidadVenta.nombre}"></span>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-secondary"><strong>Código:</strong></p>
+                                <span class="badge bg-secondary" th:text="${unidadVenta.codigo}"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-secondary"><strong>Superficie:</strong></p>
+                                <span class="fs-6" th:text="${unidadVenta.superficie} + ' m²'"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${unidadVenta != null}" class="alert alert-warning">
+                        No tienes una Unidad de Venta asignada actualmente.
+                    </div>
+
+                    <!-- Festival Asociado -->
+                    <h5 class="text-primary border-bottom pb-2 mb-3">Festival Asociado</h5>
+                    <div th:if="${festival != null}">
+                        <div class="row mb-3">
+                            <div class="col-sm-12">
+                                <p class="mb-1 text-secondary"><strong>Nombre del Festival:</strong></p>
+                                <span class="fs-5 text-dark fw-bold" th:text="${festival.nombre}"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-secondary"><strong>Temporada:</strong></p>
+                                <span class="fs-6" th:text="${festival.temporada}"></span>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-secondary"><strong>Duración:</strong></p>
+                                <span class="fs-6">Del <span th:text="${festival.fechaInicio}"></span> al <span th:text="${festival.fechaFin}"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${festival != null}" class="alert alert-warning">
+                        No hay un festival asociado a tu unidad de venta actual.
+                    </div>
+                </div>
+
+                <!-- Pie de Tarjeta con Accesos Directos -->
+                <div class="card-footer d-flex justify-content-between align-items-center bg-white py-3">
+                    <a th:href="@{/index}" class="btn btn-outline-secondary">
+                        &larr; Volver al Inicio
+                    </a>
+                    <a th:href="@{/empleado/sueldo}" class="btn btn-primary">
+                        Ver Mi Recibo de Sueldo &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+
+<div th:replace="~{layout :: scripts}"></div>
+
+</body>
+</html>

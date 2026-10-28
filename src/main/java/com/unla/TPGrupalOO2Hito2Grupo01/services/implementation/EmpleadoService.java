@@ -384,6 +384,12 @@ public class EmpleadoService implements IEmpleadoService {
         return guardarPorTipo(empleado);
     }
 
+    @Override
+    public Empleado traerPorUsername(String username) {
+        return empleadoRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("No se encontró un empleado asociado al usuario: " + username));
+    }
+
     private void enviarMailCredenciales(
             String emailDestinatario,
             String password) {

@@ -5,9 +5,10 @@
 <nav th:replace="~{layout :: navbarResponsable}"></nav>
 
 <main class="container py-4">
-    <h2 class="mb-4 text-center" >
-        Detalle de costos · <span class="fw-bold" th:text="${reporte.unidadNombre}"></span>
-    </h2>
+    <div class="page-header mb-3">
+        <h2 class="text-center" th:text="${reporte.unidadNombre}">Nombre de la unidad de venta</h2>
+        <p class="text-muted mb-0 text-center">Detalle de costos</p>
+    </div>
     <table class="table table-hover mb-0">
         <thead>
         <tr>

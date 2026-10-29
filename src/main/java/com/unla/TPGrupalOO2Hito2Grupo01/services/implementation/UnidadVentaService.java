@@ -224,6 +224,19 @@ public class UnidadVentaService implements IUnidadVenta {
         return unidadVentaRepository.findByCajeroUsername(username);
     }
 
+    @Override
+    public ReporteUnidadDTO reporteUnidadVenta(String username) {
+        UnidadVenta unidad = unidadVentaRepository.traerUnidadVentaConFestival(username);
+
+        return new ReporteUnidadDTO(
+                unidad != null ? unidad.getFestival().getIdFestival() : null,
+                unidad != null ? unidad.getFestival().getNombre() : null,
+                unidad.getIdUnidadVenta(),
+                unidad.getNombre(),
+                unidadVentaRepository.recaudacion(unidad),
+                unidadVentaRepository.detallePorPlato(unidad));
+    }
+
     private String generarCodigo(int longitud) {
 
         String caracteres =

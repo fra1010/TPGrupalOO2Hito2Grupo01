@@ -1,9 +1,6 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.repositories;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoEmpleadoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -295,5 +292,31 @@ WHERE e.user.username = :username
          AND TYPE(e) = Cajero
        """)
     public UnidadVenta findByCajeroUsername(@Param("username") String username);
+    @Query("""
+    SELECT COALESCE(SUM(i.totalItem), 0)
+    FROM UnidadVenta uv
+    JOIN uv.pedidos p
+    JOIN p.itemsPedido i
+    WHERE uv = :unidad
+""")
+    BigDecimal recaudacion(@Param("unidad") UnidadVenta unidad);
+
+    @Query("""
+    SELECT new com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO(
+        pl.idPlato,
+        pl.nombre,
+        SUM(i.cantidad),
+        SUM(i.totalItem),
+        pl.precioDeVenta)
+        
+    FROM UnidadVenta uv
+    JOIN uv.pedidos p
+    JOIN p.itemsPedido i
+    JOIN i.plato pl
+    WHERE uv = :unidad
+    GROUP BY pl.idPlato, pl.nombre
+    ORDER BY SUM(i.totalItem) DESC
+""")
+    List<PlatoReporteDTO> detallePorPlato(@Param("unidad") UnidadVenta unidad);
 }
 

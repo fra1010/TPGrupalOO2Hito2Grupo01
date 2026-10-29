@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+
+
+
+-->
+<head th:replace="~{layout :: head}"></head>
+<body>
+<nav th:replace="~{layout :: navbarResponsable}"></nav>
+
+<!--
+    th:with define dos variables para toda la vista (se evaluan en orden):
+      - sinPlatos: true si no hay reporte o si la unidad no vendio ningun plato.
+                   Es null-safe: el "or" corta en cuanto una condicion se cumple.
+      - unidades:  suma de las cantidades vendidas de todos los platos (0 si no hay).
+                   "reportes.platos.![cantidad]" arma una lista solo con ese
+                   campo y #aggregates.sum la suma.
+-->
+<main class="container py-4"
+      th:with="sinPlatos=${reportes == null or reportes.platos == null or #lists.isEmpty(reportes.platos)},
+               unidades=${sinPlatos ? 0 : #aggregates.sum(reportes.platos.![cantidad])}">
+
+    <!-- ============================================================ -->
+    <!-- ENCABEZADO                                                    -->
+    <!-- Titulo: nombre de la unidad. El Elvis (?:) muestra un titulo  -->
+    <!-- generico si no hay reporte. Subtitulo: festival de la unidad. -->
+    <!-- ============================================================ -->
+    <div class="page-header mb-3">
+        <h2 class="text-center" th:text="${reportes?.nombreUnidad} ?: 'Unidad de venta'">Nombre de la unidad de venta</h2>
+        <p class="text-muted mb-0 text-center">Detalle de recaudación</p>
+        <p class="text-muted mb-0 text-center"
+           th:if="${reportes != null}"
+           th:text="' ' + ${reportes.nombreFestival}">Festival: Nombre del festival</p>
+    </div>
+
+    <!-- Alerta para mostrar errores informados por el controller -->
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ESTADO VACIO: solo se muestra si no hay reporte               -->
+    <!-- ============================================================ -->
+    <div th:if="${reportes == null}" class="text-center text-muted py-4">
+        No hay recaudación para mostrar.
+    </div>
+
+    <!--
+        Tabla de platos.
+        Formato de importes: signo $ a la izquierda, punto para los miles
+        y coma para los decimales, siempre con 2 decimales (ej: $ 1.234.567,89).
+          - text-right: cifras alineadas a la derecha.
+          - tabular-nums: todos los digitos ocupan el mismo ancho,
+            asi las columnas de cifras quedan alineadas.
+          - text-nowrap: evita que el importe se parta en dos lineas.
+    -->
+    <div class="table-responsive" th:if="${reportes != null}">
+        <table class="table table-hover mb-0">
+            <thead>
+            <tr>
+                <th>Plato</th>
+                <th class="text-right">Precio de venta</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">Total recaudado</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <!-- Atributos de PlatoReporteDTO: plato, precioDeVenta, cantidad y totalRecaudado -->
+            <tr th:each="p : ${reportes.platos}">
+                <td th:text="${p.plato}">Plato</td>
+                <td class="text-right text-nowrap"
+                    style="font-variant-numeric: tabular-nums;"
+                    th:text="'$ ' + ${#numbers.formatDecimal(p.precioDeVenta, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+                <td class="text-right"
+                    style="font-variant-numeric: tabular-nums;"
+                    th:text="${#numbers.formatInteger(p.cantidad, 1, 'POINT')}">0</td>
+                <td class="text-right text-nowrap"
+                    style="font-variant-numeric: tabular-nums;"
+                    th:text="'$ ' + ${#numbers.formatDecimal(p.totalRecaudado, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+            </tr>
+
+            <!-- Aviso si la unidad todavia no vendio ningun plato -->
+            <tr th:if="${sinPlatos}">
+                <td colspan="4" class="text-center text-muted">
+                    Esta unidad de venta todavía no registró ventas.
+                </td>
+            </tr>
+            </tbody>
+
+            <tfoot>
+            <!-- Atributo: recaudacionTotal. La cantidad es la suma de platos vendidos -->
+            <tr>
+                <th>Total recaudado</th>
+                <th></th>
+                <th class="text-right"
+                    style="font-variant-numeric: tabular-nums;"
+                    th:text="${#numbers.formatInteger(unidades, 1, 'POINT')}">0</th>
+                <th class="text-right text-nowrap"
+                    style="font-variant-numeric: tabular-nums;"
+                    th:text="'$ ' + ${#numbers.formatDecimal(reportes.recaudacionTotal, 1, 'POINT', 2, 'COMMA')}">$ 0,00</th>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

@@ -17,4 +17,5 @@ public interface IUnidadVenta {
     public  UnidadVentaDTO traerUnidadVentaResponsable(String username );
     public ReciboDetalladoEmpleadoDTO sueldoEmpleado(String username);
     public UnidadVenta findByCajeroUsername(String username);
+    public ReporteUnidadDTO reporteUnidadVenta(String username);
 }

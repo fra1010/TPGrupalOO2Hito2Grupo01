@@ -15,11 +15,12 @@ public interface IEmpleadoRepository extends JpaRepository<Empleado, Integer>
     @Query("SELECT e FROM Empleado e WHERE e.activo = true")
     List<Empleado> findByActivoTrue();
 
+    //  verifico si ya exitia ese empleado
 
-    // para verificar si ya exitia ese empleado
     Optional<Empleado> findByDni(long dni);
 
-    // NUEVO PASO 1: Buscar empleado por el username del usuario logueado
+    //  Buscor empleado por el nombreusuario del usuario logueado
+
     @Query("SELECT e FROM Empleado e JOIN e.user u WHERE u.username = :username")
     Optional<Empleado> findByUsername(@Param("username") String username);
 

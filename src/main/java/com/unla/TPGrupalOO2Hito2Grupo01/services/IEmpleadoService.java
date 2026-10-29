@@ -32,4 +32,9 @@ public interface IEmpleadoService {
 			boolean activo,
 			String usernameResponsable
 	);
+
+	// NUEVO MÉTODO PARA TU CASO DE USO
+	Empleado traerPorUsername(String username);
+
+
 }

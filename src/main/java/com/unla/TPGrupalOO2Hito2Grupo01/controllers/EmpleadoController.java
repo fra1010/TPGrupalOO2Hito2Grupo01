@@ -225,4 +225,33 @@ public class EmpleadoController {
         model.addAttribute("turnos", Turno.values());
         model.addAttribute("categorias", CategoriaCocina.values());
     }
+
+    @PreAuthorize("hasRole('EMPLEADO')")
+    @GetMapping("/mi-informacion")
+    public String verMiInformacion(@AuthenticationPrincipal User user, Model model) {
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        Empleado empleado = empleadoService.traerPorUsername(user.getUsername());
+
+        if (empleado == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("empleado", empleado);
+
+        if (empleado.getUnidadVenta() != null) {
+            model.addAttribute("unidadVenta", empleado.getUnidadVenta());
+            model.addAttribute("festival", empleado.getUnidadVenta().getFestival());
+        } else {
+            model.addAttribute("unidadVenta", null);
+            model.addAttribute("festival", null);
+        }
+
+        return ViewRouteHelper.EMPLEADO_MI_INFORMACION;
+    }
+
+
+
 }

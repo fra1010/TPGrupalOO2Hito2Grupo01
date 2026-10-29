@@ -12,8 +12,8 @@ import lombok.Setter;
 @NoArgsConstructor
 
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Empleado {
-
+public class Empleado
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer idEmpleado;
@@ -36,35 +36,59 @@ public class Empleado {
     @Column(nullable = false)
     protected boolean activo;
 
-    // Relación 1 a 1 con User
+    // relacion 1 a 1 con usuario
     @OneToOne(
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}, //persist permite guardar el usuario cuando se guarda el empleado y remove no hace falta porque las bajas son logicas
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}, // persiste
             fetch = FetchType.LAZY
     )
     @JoinColumn(name = "id_user", unique = true)
     protected User user;
 
-    /* ----- relaciones comentadas -----
+   // relacion N a 1 con UnidadVenta (varios empleados en una unidad)
 
-   // Relación N a 1 con UnidadVenta (Varios empleados en una unidad)
    @ManyToOne(fetch = FetchType.LAZY)
 
-   @JoinColumn(name = "id_unidad_venta")
+   @JoinColumn(name = "id_unidad_venta",insertable = false,updatable = false)
    protected UnidadVenta unidadVenta;
 
-   // Relación 1 a N con Liquidacion
-   @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-   protected Set<Liquidacion> liquidaciones;
+   // relacion 1 a N con liquidacion
+  // @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//   protected Set<Liquidacion> liquidaciones;
 
-*/
-    public Empleado(String nombre, String apellido, long dni,
-                    LocalDate fechaNacimiento, LocalDate ingreso,
-                    boolean activo) {
+
+    public Empleado(String nombre, String apellido, long dni, LocalDate fechaNacimiento, LocalDate ingreso, boolean activo)
+    {
         this.nombre = nombre;
         this.apellido = apellido;
         this.dni = dni;
         this.fechaNacimiento = fechaNacimiento;
         this.ingreso = ingreso;
         this.activo = activo;
+    }
+
+    // metodos auxiliares para usar en thymeleaf de forma segura
+
+    public boolean isCajero()
+    {
+        return this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
+    }
+
+    public boolean isCocinero()
+    {
+        return this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
+    }
+
+    public String getTipo()
+    {
+        if (this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero)
+        {
+            return "Cajero";
+        }
+        else if (this instanceof com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero)
+        {
+            return "Cocinero";
+        }
+
+        return "Empleado";
     }
 }

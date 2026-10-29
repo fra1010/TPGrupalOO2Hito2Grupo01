@@ -14,7 +14,6 @@ public class ViewRouteHelper {
 	// EMPLEADO
 	public final static String EMPLEADO_INDEX = "empleado/index";
 	public final static String EMPLEADO_NEW = "empleado/new";
-	public final static String EMPLEADO_MI_INFORMACION = "empleado/mi-informacion";
 
 	/**** Redirects ****/
 

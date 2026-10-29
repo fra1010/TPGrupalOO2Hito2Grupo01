@@ -50,16 +50,16 @@ public class EmpleadoDTO
     @NotBlank(message = "Debe seleccionar el tipo de empleado")
     private String tipoEmpleado; // "CAJERO" o "COCINERO"
 
-    private Turno turno; // se usara si tipoEmpleado es "CAJERO"
+    private Turno turno; // Se usará si tipoEmpleado es "CAJERO"
 
-    private CategoriaCocina categoria; // se usara si tipoEmpleado es "COCINERO"
+    private CategoriaCocina categoria; // Se usará si tipoEmpleado es "COCINERO"
 
-    private String tareaEspecial; // se usara si tipoEmpleado es "COCINERO"
+    private String tareaEspecial; // Se usará si tipoEmpleado es "COCINERO"
 
     @AssertTrue(message = "El empleado debe tener al menos 18 años cumplidos")
     public boolean isMayorDeEdad() {
         if (fechaNacimiento == null) {
-            return true; // La fecha vacia ya se valida con @NotNull.
+            return true; // La fecha vacía ya se valida con @NotNull.
         }
 
         return !fechaNacimiento.isAfter(LocalDate.now().minusYears(18));

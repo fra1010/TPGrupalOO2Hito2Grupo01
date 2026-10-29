@@ -185,6 +185,21 @@ public class ResponsableController {
 
         return mav;
     }
+
+    @GetMapping("/reportes")
+    public String reportes() {
+        return "unidadventa/reportes";
+    }
+
+    @GetMapping("/recaudacion")
+    public ModelAndView recaudacionUnidadVenta(@AuthenticationPrincipal User user){
+        ModelAndView mV = new ModelAndView();
+        mV.setViewName("unidadventa/reporte-recaudacion");
+        mV.addObject("reportes", unidadVentaService.reporteUnidadVenta(user.getUsername()));
+
+
+        return mV;
+    }
     private ModelAndView vistaConError(LocalDate desde, LocalDate hasta, String mensaje) {
         ModelAndView mav = new ModelAndView("unidadventa/unidadventa-sueldos");
         mav.addObject("desde", desde);

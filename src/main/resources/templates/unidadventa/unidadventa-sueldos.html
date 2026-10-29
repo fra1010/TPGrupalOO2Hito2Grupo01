@@ -41,8 +41,8 @@
     <!-- El Elvis (?:) muestra un titulo generico si la lista es vacia.-->
     <!-- ============================================================ -->
     <div class="page-header mb-3">
-        <h2 th:text="${nombreUnidad} ?: 'Unidad de venta'">Nombre de la unidad de venta</h2>
-        <p class="text-muted mb-0">Recibos de sueldo</p>
+        <h2 class="text-center" th:text="${nombreUnidad} ?: 'Unidad de venta'">Nombre de la unidad de venta</h2>
+        <p class="text-muted mb-0 text-center">Recibos de sueldo</p>
     </div>
 
     <!-- Alerta para mostrar errores informados por el controller -->
@@ -88,7 +88,7 @@
                 <!-- d-flex + align-items-end: el boton queda alineado con los inputs -->
                 <div class="col-md-4 mb-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary">
-                        Generar recibos
+                        Generar Sueldo estimativo
                     </button>
                 </div>
             </div>

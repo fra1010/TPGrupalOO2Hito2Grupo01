@@ -1,35 +1,24 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.helpers;
 
 public class ViewRouteHelper {
+
 	/**** Views ****/
-	//HOME
+
+	// HOME
 	public final static String INDEX = "home/index";
-	public final static String HELLO = "home/hello";
 
-	//DEGREE
-	public final static String DEGREE_INDEX = "degree/index";
-	public final static String DEGREE_FORM = "degree/form";
-	public final static String DEGREE_NEW = "degree/new";
-
-	//PERSON
-	public final static String PERSON_INDEX = "person/index";
-	public final static String PERSON_NEW = "person/new";
-	public final static String PERSON_UPDATE = "person/update";
-	public final static String PERSON_PARTIAL_VIEW = "person/partialPersonView";
-
-	//USER
+	// USER
 	public final static String USER_LOGIN = "user/login";
 	public final static String USER_LOGOUT = "user/logout";
 
-     //EMPLEADO 
+	// EMPLEADO
 	public final static String EMPLEADO_INDEX = "empleado/index";
 	public final static String EMPLEADO_NEW = "empleado/new";
+	public final static String EMPLEADO_MI_INFORMACION = "empleado/mi-informacion";
 
 	/**** Redirects ****/
+
 	public final static String ROUTE = "/index";
-	public final static String DEGREE_ROOT = "/degrees/";
-	public final static String PERSON_ROOT = "/person";
 
-    public final static String EMPLEADO_ROOT = "redirect:/empleado";
-
+	public final static String EMPLEADO_ROOT = "redirect:/empleado";
 }

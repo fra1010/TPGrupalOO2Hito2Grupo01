@@ -5,31 +5,63 @@
 <nav th:replace="~{layout :: navbarResponsable}"></nav>
 
 <main class="container py-4">
+    <h2 class="mb-4 text-center" >
+        Detalle de costos · <span class="fw-bold" th:text="${reporte.unidadNombre}"></span>
+    </h2>
+    <table class="table table-hover mb-0">
+        <thead>
+        <tr>
+            <th>Concepto</th>
+            <th class="text-end">Cantidad</th>
+            <th class="text-end">Precio unitario</th>
+            <th class="text-end">Subtotal</th>
+        </tr>
+        </thead>
 
-    <!-- ============================================================ -->
-    <!-- ENCABEZADO                                                    -->
-    <!-- ============================================================ -->
-    <div class="page-header mb-3">
-        <h2>Total Canon Unidad Venta</h2>
-    </div>
+        <tbody th:switch="${reporte.tipo}">
 
-    <!-- ============================================================ -->
-    <!-- TOTAL DEL CANON                                               -->
-    <!-- ============================================================ -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <strong>Canon total</strong>
-        </div>
+        <!-- FOOD TRUCK -->
+        <th:block th:case="'FOOD_TRUCK'">
+            <tr>
+                <td>Superficie</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(reporte.superficie,1,'POINT',2,'COMMA')} + ' m²'"></td>
+                <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.costoPorM2,1,'POINT',2,'COMMA')}"></td>
+                <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.subtotalSuperficie,1,'POINT',2,'COMMA')}"></td>
+            </tr>
+            <th:block th:if="${reporte.conexion}">
+                <tr>
+                    <td>Conexión eléctrica</td>
+                    <td class="text-end">1</td>
+                    <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.plusElectricidad,1,'POINT',2,'COMMA')}"></td>
+                    <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.plusElectricidad,1,'POINT',2,'COMMA')}"></td>
+                </tr>
+            </th:block>
+        </th:block>
 
-        <div class="card-body text-center py-4">
-            <span style="font-size: 2.5rem; font-weight: 700; color: #000;"
-                  th:text="${canon != null}
-                           ? ${#numbers.formatDecimal(canon, 1, 'COMMA', 2, 'POINT')}
-                           : '0.00'">
-                0.00
-            </span>
-        </div>
-    </div>
+        <!-- PUESTO DESARMABLE -->
+        <th:block th:case="'PUESTO_DESARMABLE'">
+            <tr>
+                <td>Superficie</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(reporte.superficie,1,'POINT',2,'COMMA')} + ' m²'"></td>
+                <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.costoPorM2,1,'POINT',2,'COMMA')}"></td>
+                <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.subtotalSuperficie,1,'POINT',2,'COMMA')}"></td>
+            </tr>
+            <tr>
+                <td>Montaje</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(reporte.tiempo,1,'POINT',2,'COMMA')} + ' min'"></td>
+                <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.costoMontaje,1,'POINT',2,'COMMA')}"></td>
+                <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.subtotalMontaje,1,'POINT',2,'COMMA')}"></td>
+            </tr>
+        </th:block>
+        </tbody>
+
+        <tfoot>
+        <tr>
+            <th colspan="3" class="text-end">Total a pagar</th>
+            <th class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(reporte.total,1,'POINT',2,'COMMA')}"></th>
+        </tr>
+        </tfoot>
+    </table>
 </main>
 
 <footer th:replace="~{layout :: footer}"></footer>

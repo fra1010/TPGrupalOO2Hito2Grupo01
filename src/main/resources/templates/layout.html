@@ -40,20 +40,54 @@
                         Inicio
                     </a>
                 </li>
+
+                <!-- Unidades de venta: visible solo para el administrador -->
+                <li class="nav-item"
+                    sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/unidadVenta/unidades}">
+                        Unidades de venta
+                    </a>
+                </li>
             </ul>
 
             <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item mr-2"
+                    sec:authorize="hasAuthority('CAJERO')">
+                    <a class="btn btn-primary"
+                       th:href="@{/pedido/new}">
+                        Nuevo Pedido
+                    </a>
+                </li>
+
+                <!-- Liquidación de sueldo -->
+                <li class="nav-item mr-2"
+                    sec:authorize="hasRole('EMPLEADO')">
+                    <a class="btn btn-primary"
+                       th:href="@{/empleado/sueldo}">
+                        Liquidación de sueldo
+                    </a>
+                </li>
+
+                <!-- Mi Información (Agregado) -->
+                <li class="nav-item mr-2"
+                    sec:authorize="hasRole('EMPLEADO')">
+                    <a class="btn btn-outline-light"
+                       th:href="@{/empleado/mi-informacion}">
+                        Mi Información
+                    </a>
+                </li>
+
+                <li class="nav-item mr-2"
+                    sec:authorize="isAnonymous()">
+                    <a class="btn btn-primary"
+                       th:href="@{/unidadVenta/formulariounidadventa}">
+                        Registrar Unidad Venta
+                    </a>
+                </li>
 
                 <!-- Visitante sin sesión -->
                 <li class="nav-item"
-                    th:if="${username == null or username == 'anonymous'}">
-                        <span class="navbar-text mr-lg-3">
-                            Anónimo
-                        </span>
-                </li>
-
-                <li class="nav-item"
-                    th:if="${username == null or username == 'anonymous'}">
+                    sec:authorize="isAnonymous()">
                     <a class="btn btn-primary"
                        th:href="@{/login}">
                         Iniciar sesión
@@ -62,7 +96,7 @@
 
                 <!-- Usuario con sesión -->
                 <li class="nav-item dropdown"
-                    th:if="${username != null and username != 'anonymous'}">
+                    sec:authorize="isAuthenticated()">
 
                     <a class="nav-link dropdown-toggle"
                        href="#"
@@ -72,7 +106,9 @@
                        aria-haspopup="true"
                        aria-expanded="false">
 
-                        <span th:text="${username}">Usuario</span>
+                        <span sec:authentication="name">
+                            Usuario
+                        </span>
                     </a>
 
                     <div class="dropdown-menu dropdown-menu-right"
@@ -91,49 +127,96 @@
         </div>
     </div>
 </nav>
-    <!-- Navbar responsable-->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" th:fragment="navbarResponsable">
-        <div class="container">
-            <a class="navbar-brand mr-4" th:href="@{/index}">Epicentro Gourmet</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavResponsable">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavResponsable">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/responsable/empleados}">Empleados</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/responsable/canon}">Canon</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/responsable/haberes}">Haberes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/reporte-recaudacion}">Recaudación</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/unidadVenta/rentabilidadneta}">Rentabilidad</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/plato-estrella}">Plato Estrella</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav" sec:authorize="isAuthenticated()">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                            <span sec:authentication="name">Usuario</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <form th:action="@{/logout}" method="post">
-                                <button type="submit" class="dropdown-item">Cerrar sesión</button>
-                            </form>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+
+<!-- Navbar responsable-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"
+     th:fragment="navbarResponsable">
+
+    <div class="container">
+        <a class="navbar-brand mr-4" th:href="@{/index}">
+            Epicentro Gourmet
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-toggle="collapse"
+                data-target="#navbarNavResponsable"
+                aria-controls="navbarNavResponsable"
+                aria-expanded="false"
+                aria-label="Abrir navegación">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavResponsable">
+
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/responsable/empleados}">
+                        Empleados
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/responsable/canon}">
+                        Canon
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/responsable/haberes}">
+                        Haberes
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/reporte-recaudacion}">
+                        Recaudación
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/unidadVenta/rentabilidadneta}">
+                        Rentabilidad
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/pedido/new}">
+                        Nuevo pedido
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav" sec:authorize="isAuthenticated()">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle"
+                       href="#"
+                       id="userDropdownResponsable"
+                       role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true"
+                       aria-expanded="false">
+
+                        <span sec:authentication="name">
+                            Usuario
+                        </span>
+                    </a>
+
+                    <div class="dropdown-menu dropdown-menu-right"
+                         aria-labelledby="userDropdownResponsable">
+
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item">
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+
         </div>
-    </nav>
+    </div>
+</nav>
 
 <!-- Footer -->
 <footer class="bg-dark text-white py-4" th:fragment="footer">

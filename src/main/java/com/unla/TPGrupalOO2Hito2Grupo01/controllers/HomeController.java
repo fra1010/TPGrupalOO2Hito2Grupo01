@@ -1,5 +1,7 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
+import java.util.Set;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,11 +15,10 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IFestivalService;
 
-import java.util.Set;
-
 @Controller
 @RequestMapping("/")
 public class HomeController {
+
 	private final IFestivalService festivalService;
 
 	public HomeController(IFestivalService festivalService) {
@@ -26,25 +27,39 @@ public class HomeController {
 
 	@GetMapping("/index")
 	public ModelAndView index() {
-		ModelAndView modelAndView = new ModelAndView(ViewRouteHelper.INDEX);
+
+		ModelAndView modelAndView =
+				new ModelAndView(ViewRouteHelper.INDEX);
 
 		Authentication authentication =
 				SecurityContextHolder.getContext().getAuthentication();
-		Object principal = authentication != null ? authentication.getPrincipal() : null;
-        if (principal instanceof User user) {
-            Set<String> roles = AuthorityUtils.authorityListToSet(user.getAuthorities());
 
-            if (roles.contains("ROLE_RESPONSABLE")) {
-                return new ModelAndView("responsable/index");
-            }
-        }
+		Object principal = null;
+
+		if (authentication != null) {
+			principal = authentication.getPrincipal();
+		}
+
 		if (principal instanceof User user) {
+			Set<String> roles =
+					AuthorityUtils.authorityListToSet(
+							user.getAuthorities()
+					);
+
+			if (roles.contains("ROLE_RESPONSABLE")) {
+				modelAndView.setViewName("responsable/index");
+			}
+
 			modelAndView.addObject("username", user.getUsername());
+
 		} else {
 			modelAndView.addObject("username", "anonymous");
 		}
 
-		modelAndView.addObject("festivales", festivalService.getAllActive());
+		modelAndView.addObject(
+				"festivales",
+				festivalService.getAllActive()
+		);
 
 		return modelAndView;
 	}

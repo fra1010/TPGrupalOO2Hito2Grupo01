@@ -1,6 +1,7 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.services;
 
 import java.util.List;
+
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
 
 public interface IEmpleadoService {
@@ -13,12 +14,27 @@ public interface IEmpleadoService {
 
 	Empleado insertOrUpdate(Empleado empleado);
 
-	// reactivar un empleado eliminado logicamente
+	Empleado activarEmpleado(
+			Integer idEmpleado,
+			String usernameResponsable
+	);
 
-	public Empleado reactivarEmpleadoEliminado(Empleado existente, Empleado datosNuevos);
+	boolean deleteLogico(int idEmpleado);
 
-	public boolean deleteLogico(int idEmpleado);
+	Empleado darDeAltaConUsuario(
+			Empleado empleado,
+			String email,
+			String usernameResponsable
+	);
 
+	Empleado cambiarEstadoEmpleado(
+			Integer idEmpleado,
+			boolean activo,
+			String usernameResponsable
+	);
+
+	// NUEVO MÉTODO PARA TU CASO DE USO
+	Empleado traerPorUsername(String username);
 
 
 }

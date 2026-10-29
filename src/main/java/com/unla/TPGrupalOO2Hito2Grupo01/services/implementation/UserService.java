@@ -5,68 +5,117 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UserDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Role;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IUser;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UserRole;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUserRepository;
 
 @Service("userService")
-public class UserService implements UserDetailsService {
+public class UserService implements UserDetailsService, IUser {
 
-	private IUserRepository userRepository;
-
-	public UserService(IUserRepository userRepository) {
+	private final IUserRepository userRepository;
+    private final ModelMapper modelMapper;
+	public UserService(IUserRepository userRepository,ModelMapper modelMapper) {
 		this.userRepository = userRepository;
+        this.modelMapper=modelMapper;
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		// --- MENSAJE DE CONTROL 1 ---
-		System.out.println("\n[DEBUG 1] Spring Security está buscando en la BD al usuario: " + username);
+	public UserDetails loadUserByUsername(String username)
+			throws UsernameNotFoundException {
 
 		com.unla.TPGrupalOO2Hito2Grupo01.entities.User user =
-				userRepository.findByUsernameAndFetchUserRolesEagerly(username);
+				userRepository.findByUsernameAndFetchUserRolesEagerly(
+						username
+				);
 
 		if (user == null) {
-			// --- MENSAJE DE CONTROL 2 ---
-			System.out.println("[DEBUG 2] ¡ATENCIÓN! La consulta JOIN FETCH devolvió NULL para: '" + username + "'");
-			throw new UsernameNotFoundException("Usuario no encontrado o sin rol: " + username);
+			throw new UsernameNotFoundException(
+					"Usuario no encontrado o sin rol: " + username
+			);
 		}
 
-		// --- MENSAJES DE CONTROL 3, 4 y 5 ---
-		System.out.println("[DEBUG 3] ¡Usuario encontrado en BD!: " + user.getUsername());
-		System.out.println("[DEBUG 4] Hash Bcrypt guardado en la BD: " + user.getPassword());
-		System.out.println("[DEBUG 5] ¿El usuario está habilitado (enabled)?: " + user.isEnabled());
+		if (user.getUserRoles() == null
+				|| user.getUserRoles().isEmpty()) {
 
-		if (user.getUserRoles() == null || user.getUserRoles().isEmpty()) {
-			System.out.println("[DEBUG 6] ¡ALERTA! El usuario existe pero la lista de roles está VACÍA.");
-		} else {
-			for (UserRole userRole : user.getUserRoles()) {
-				System.out.println("[DEBUG 6] Rol mapeado en la colección: " + userRole.getRole().name());
-			}
+			throw new UsernameNotFoundException(
+					"El usuario no tiene roles asignados: " + username
+			);
 		}
-
-		return buildUser(user, buildGrantedAuthorities(user.getUserRoles()));
+        List<GrantedAuthority> authorities =
+                buildGrantedAuthorities(user.getUserRoles());
+        if (esCajero(username)) {
+            authorities.add(
+                    new SimpleGrantedAuthority("CAJERO")
+            );}
+		return buildUser(
+				user,
+				authorities
+		);
 	}
 
+	private User buildUser(
+			com.unla.TPGrupalOO2Hito2Grupo01.entities.User user,
+			List<GrantedAuthority> grantedAuthorities) {
 
-	private User buildUser(com.unla.TPGrupalOO2Hito2Grupo01.entities.User user, List<GrantedAuthority> grantedAuthorities) {
-		return new User(user.getUsername(), user.getPassword(), user.isEnabled(),
-						true, true, true, //accountNonExpired, credentialsNonExpired, accountNonLocked,
-						grantedAuthorities);
+		return new User(
+				user.getUsername(),
+				user.getPassword(),
+				user.isEnabled(),
+				true, // accountNonExpired
+				true, // credentialsNonExpired
+				true, // accountNonLocked
+				grantedAuthorities
+		);
 	}
 
-	private List<GrantedAuthority> buildGrantedAuthorities(Set<UserRole> userRoles) {
+	private List<GrantedAuthority> buildGrantedAuthorities(
+			Set<UserRole> userRoles) {
+
 		Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
+
 		for (UserRole userRole : userRoles) {
-			grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getRole().name()));
+			grantedAuthorities.add(
+					new SimpleGrantedAuthority(
+							"ROLE_" + userRole.getRole().name()
+					)
+			);
 		}
+
 		return new ArrayList<>(grantedAuthorities);
 	}
+
+    @Override
+    public UserDTO agregarUser(UserDTO user, Role role) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException(
+                    "Ya existe un usuario registrado con el username: " + user.getUsername()
+            );
+        }
+        BCryptPasswordEncoder pe = new BCryptPasswordEncoder();
+        com.unla.TPGrupalOO2Hito2Grupo01.entities.User userGuardar = new com.unla.TPGrupalOO2Hito2Grupo01.entities.User(
+                user.getUsername(),
+                pe.encode(user.getPassword()),
+                true
+        );
+        userGuardar.getUserRoles().add(new UserRole(userGuardar, role));
+        com.unla.TPGrupalOO2Hito2Grupo01.entities.User saved = userRepository.save(userGuardar);
+        return modelMapper.map(saved, UserDTO.class);
+    }
+
+    @Override
+    public boolean esCajero(String username) {
+        return userRepository.esCajero(username);
+    }
 }

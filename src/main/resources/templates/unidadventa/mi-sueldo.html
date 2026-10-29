@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    ============================================================
+    VISTA: mi-sueldo.html
+    DTO:     ReciboDetalladoEmpleadoDTO (clase con Lombok)
+    MODELO:  "recibo" -> ReciboDetalladoEmpleadoDTO (null si el empleado no tiene un
+                         festival que ya haya comenzado)
+             "error"  -> String (opcional, mensaje de error del controller)
+    ============================================================
+    Mismo formato que unidadventa-sueldos.html: el head (Bootstrap, CSS propio,
+    title), la navbar, el footer y los scripts vienen del layout, por eso esta
+    vista no los define.
+
+    Es la version "de un solo empleado" de esa vista: muestra una unica card con
+    el recibo del empleado logueado. No tiene filtro de periodo ni total general,
+    porque el sueldo depende de la duracion completa del festival (de su fecha
+    de inicio a su fecha de fin), no de la fecha en que se consulta.
+-->
+<head th:replace="~{layout :: head}">
+</head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4">
+
+    <!-- ============================================================ -->
+    <!-- ENCABEZADO                                                    -->
+    <!-- Subtitulo: nombre de la unidad de venta del empleado.         -->
+    <!-- El Elvis (?:) muestra un texto generico si no hay recibo.     -->
+    <!-- ============================================================ -->
+    <div class="page-header mb-3">
+        <h2>Mi sueldo</h2>
+        <p class="text-muted mb-0" th:text="${recibo?.unidadVenta} ?: 'Recibo de sueldo'">Nombre de la unidad de venta</p>
+    </div>
+
+    <!-- Alerta para mostrar errores informados por el controller -->
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ESTADO VACIO: solo se muestra si no hay recibo                -->
+    <!-- ============================================================ -->
+    <div th:if="${recibo == null}" class="text-center text-muted py-4">
+        Todavía no hay un sueldo para mostrar. Aparecerá cuando comience el festival de tu unidad de venta.
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RECIBO: una sola card, la del empleado logueado               -->
+    <!--
+        th:if va antes que th:with en el orden de Thymeleaf, asi que si "recibo"
+        es null la card no se renderiza y th:with no se evalua.
+        th:with define un alias corto del recibo ("r"), igual que en
+        unidadventa-sueldos.html.
+    -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm mb-4"
+         th:if="${recibo != null}"
+         th:with="r=${recibo}">
+
+        <!--
+            Encabezado de la card: empleado a la izquierda y, a la derecha,
+            el rol y la categoria.
+            Atributo: rol ("COCINERO" o "CAJERO"). Mismos colores que en
+            unidadventa-sueldos.html: amarillo para cocinero, celeste para cajero.
+            Atributo: categoria (solo cocinero, null en cajero). Si es null no
+            se muestra la etiqueta.
+        -->
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong th:text="${r.apellido + ', ' + r.nombre}">Apellido, Nombre</strong>
+
+            <span class="d-flex align-items-center">
+                <span class="badge"
+                      th:classappend="${r.rol == 'COCINERO'} ? 'badge-warning' : 'badge-info'"
+                      th:text="${r.rol}">COCINERO</span>
+
+                <span class="badge badge-secondary ml-1"
+                      th:if="${r.categoria != null}"
+                      th:text="${r.categoria}">CATEGORIA</span>
+
+                <!-- Boton de descarga del recibo en PDF (EmpleadoController: /empleado + /sueldo/pdf) -->
+                <a th:href="@{/empleado/sueldo/pdf}" target="_blank"
+                   class="btn btn-outline-primary btn-sm ml-3">
+                    Recibo PDF
+                </a>
+            </span>
+        </div>
+
+        <div class="card-body">
+
+            <!--
+                Aviso con los dias que faltan para cobrar el sueldo.
+                Atributo: diasRestantes (metodo del DTO): dias desde hoy hasta la
+                fecha de fin del festival, que es cuando se cobra. Si es 0 el
+                festival ya termino y se muestra el aviso verde.
+            -->
+            <div class="alert alert-info" role="alert" th:if="${r.diasRestantes > 0}">
+                <span th:text="${r.diasRestantes == 1} ? 'Falta' : 'Faltan'">Faltan</span>
+                <strong th:text="${r.diasRestantes}">12</strong>
+                <span th:text="${r.diasRestantes == 1} ? 'día' : 'días'">días</span>
+                para cobrar tu sueldo
+                (el festival termina el <span th:text="${#temporals.format(r.fechaHasta, 'dd/MM/yyyy')}">20/10/2026</span>).
+            </div>
+            <div class="alert alert-success" role="alert" th:unless="${r.diasRestantes > 0}">
+                El festival ya terminó: ya podés cobrar tu sueldo.
+            </div>
+
+            <!--
+                Atributos: fechaDesde, fechaHasta y dias.
+                Es la duracion completa del festival: desde su fecha de inicio
+                hasta su fecha de fin.
+                Las fechas se formatean dd/MM/yyyy con #temporals.
+            -->
+            <div class="mb-3">
+                <strong>Duración del festival:</strong>
+                <span th:text="${#temporals.format(r.fechaDesde, 'dd/MM/yyyy')}">01/10/2026</span>
+                al
+                <span th:text="${#temporals.format(r.fechaHasta, 'dd/MM/yyyy')}">20/10/2026</span>
+                (<span th:text="${r.dias} + (${r.dias == 1} ? ' día' : ' días')">20 días</span>)
+            </div>
+
+            <!--
+                Tabla del recibo, con el mismo formato de canon.html y
+                unidadventa-sueldos.html.
+                Formato de importes: signo $ a la izquierda, punto para los miles
+                y coma para los decimales, siempre con 2 decimales (ej: $ 1.234.567,89).
+                  - text-right: cifras alineadas a la derecha.
+                  - tabular-nums: todos los digitos ocupan el mismo ancho,
+                    asi las columnas de cifras quedan alineadas.
+                  - text-nowrap: evita que el importe se parta en dos lineas.
+            -->
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th class="text-right" style="width: 30%;">Importe</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <!-- Atributo: sueldoBase. Se paga una sola vez -->
+                    <tr>
+                        <td>Sueldo base</td>
+                        <td class="text-right text-nowrap"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="'$ ' + ${#numbers.formatDecimal(r.sueldoBase, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+                    </tr>
+
+                    <!--
+                        Atributos: descripcionPlus, antiguedad, valorPlus y totalPlus.
+                        Cocinero: plus de su categoria (solo la descripcion).
+                        Cajero: plus por antiguedad, y se agrega el detalle del calculo
+                        "(anios x valor por anio)" junto a la descripcion.
+                        El importe de la columna es totalPlus.
+                    -->
+                    <tr>
+                        <td>
+                            <span th:text="${r.descripcionPlus}">Plus</span>
+                            <span class="text-muted"
+                                  th:if="${r.rol == 'CAJERO' and r.antiguedad != null}"
+                                  th:text="'(' + ${r.antiguedad} + (${r.antiguedad == 1} ? ' año' : ' años') + ' x $ ' + ${#numbers.formatDecimal(r.valorPlus, 1, 'POINT', 2, 'COMMA')} + ')'">(3 años x $ 5.000,00)</span>
+                        </td>
+                        <td class="text-right text-nowrap"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="'$ ' + ${#numbers.formatDecimal(r.totalPlus, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+                    </tr>
+                    </tbody>
+
+                    <tfoot>
+                    <!-- Atributo: bruto (sueldo base + monto del plus) -->
+                    <tr>
+                        <th>Valor de referencia</th>
+                        <th class="text-right text-nowrap"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="'$ ' + ${#numbers.formatDecimal(r.bruto, 1, 'POINT', 2, 'COMMA')}">$ 0,00</th>
+                    </tr>
+
+                    <!--
+                        Atributos: quincenas y meses.
+                        "meses" es el factor de liquidacion (quincenas x 0,5): la proporcion del valor de referencia que se paga
+                        por el periodo liquidado. Se muestra con 2 decimales (ej: 1,50).
+                    -->
+                    <tr>
+                        <td class="text-muted">
+                            Factor de liquidación
+                            (<span th:text="${r.quincenas} + (${r.quincenas == 1} ? ' quincena' : ' quincenas')">2 quincenas</span>)
+                        </td>
+                        <td class="text-right text-nowrap"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="${#numbers.formatDecimal(r.meses, 1, 'POINT', 2, 'COMMA')}">1,00</td>
+                    </tr>
+
+                    <!-- Atributo: total (valor de referencia x factor) -->
+                    <tr>
+                        <th>
+                            Total a pagar
+                            <small class="text-muted" style="font-weight: normal;">(valor de referencia x factor)</small>
+                        </th>
+                        <th class="text-right text-nowrap"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="'$ ' + ${#numbers.formatDecimal(r.total, 1, 'POINT', 2, 'COMMA')}">$ 0,00</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

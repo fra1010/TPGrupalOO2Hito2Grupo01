@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head}">
+    <title>Unidad de Venta — Epicentro Gourmet</title>
+</head>
+
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4" style="max-width: 700px;">
+
+    <div class="page-header mb-3">
+        <h2 th:text="${unidadVenta.idUnidadVenta != null}
+                     ? 'Editar Unidad de Venta' : 'Nueva Unidad de Venta'">
+            Nueva Unidad de Venta
+        </h2>
+    </div>
+
+    <!-- Alerta para mostrar errores informados por el controller -->
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
+    </div>
+
+    <div class="card form-card shadow-sm">
+        <div class="card-body">
+
+            <form th:action="@{/unidadVenta/crearunidadventa}"
+                  th:object="${unidadVenta}"
+                  method="post">
+
+                <!-- Campo oculto indispensable para procesar actualizaciones -->
+                <input type="hidden" th:field="*{idUnidadVenta}"/>
+
+                <!-- ==================================================== -->
+                <!-- SELECTOR DE TIPO                                      -->
+                <!-- En edición no se puede cambiar el tipo de una unidad  -->
+                <!-- ya creada: el select va deshabilitado y el valor se   -->
+                <!-- envía con un campo oculto.                            -->
+                <!-- ==================================================== -->
+                <div class="mb-3 pb-3 border-bottom">
+                    <label for="tipoUnidad"
+                           class="form-label fw-bold">
+                        Tipo de Unidad de Venta
+                    </label>
+
+                    <select class="form-select form-control"
+                            style="height: auto; min-height: 46px; padding-top: .6rem; padding-bottom: .6rem; line-height: 1.5; font-size: 1rem;"
+                            id="tipoUnidad"
+                            th:field="*{tipoUnidad}"
+                            th:disabled="${unidadVenta.idUnidadVenta != null}"
+                            required
+                            onchange="toggleCamposEspecificos()">
+
+                        <option value="">
+                            -- Seleccione un tipo --
+                        </option>
+
+                        <option value="FOOD_TRUCK">
+                            Food Truck
+                        </option>
+
+                        <option value="PUESTO_DESARMABLE">
+                            Puesto Desarmable
+                        </option>
+                    </select>
+
+                    <input type="hidden"
+                           name="tipoUnidad"
+                           th:if="${unidadVenta.idUnidadVenta != null}"
+                           th:value="${unidadVenta.tipoUnidad}"/>
+
+                    <div class="text-danger"
+                         th:if="${#fields.hasErrors('tipoUnidad')}"
+                         th:errors="*{tipoUnidad}">
+                    </div>
+
+                    <!-- Error de la validación del DTO (tipo manipulado) -->
+                    <div class="text-danger"
+                         th:if="${#fields.hasErrors('tipoUnidadValido')}"
+                         th:errors="*{tipoUnidadValido}">
+                    </div>
+                </div>
+
+                <!-- ==================================================== -->
+                <!-- CAMPOS COMUNES (UnidadVentaDTO)                       -->
+                <!-- ==================================================== -->
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">
+                        Nombre
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           id="nombre"
+                           th:field="*{nombre}"
+                           required
+                           placeholder="Ingrese el nombre"/>
+
+                    <div class="text-danger"
+                         th:if="${#fields.hasErrors('nombre')}"
+                         th:errors="*{nombre}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="superficie" class="form-label">
+                        Superficie (m²)
+                    </label>
+
+                    <input type="number"
+                           step="0.01"
+                           min="0.01"
+                           class="form-control"
+                           id="superficie"
+                           th:field="*{superficie}"
+                           required
+                           placeholder="Ej: 12.5"/>
+
+                    <div class="text-danger"
+                         th:if="${#fields.hasErrors('superficie')}"
+                         th:errors="*{superficie}">
+                    </div>
+                </div>
+
+                <!-- Se muestra el nombre del festival, pero se envía su id -->
+                <div class="mb-3">
+                    <label for="idFestival" class="form-label">
+                        Festival
+                    </label>
+
+                    <select class="form-select form-control"
+                            style="height: auto; min-height: 46px; padding-top: .6rem; padding-bottom: .6rem; line-height: 1.5; font-size: 1rem;"
+                            id="idFestival"
+                            th:field="*{idFestival}">
+
+                        <!-- value vacío: Spring lo convierte a null (festival opcional) -->
+                        <option value=""
+                                th:if="${festivales == null or festivales.isEmpty()}">
+                            -- Sin festival --
+                        </option>
+
+                        <option th:each="f : ${festivales}"
+                                th:value="${f.idFestival}"
+                                th:text="${f.nombre}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- ==================================================== -->
+                <!-- RESPONSABLE (UserDTO anidado)                         -->
+                <!-- ==================================================== -->
+                <div class="mb-3 border-top pt-3">
+                    <h5 class="mb-3">Responsable</h5>
+
+                    <div class="mb-3">
+                        <label for="responsable.username" class="form-label">
+                            Usuario
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               id="responsable.username"
+                               th:field="*{responsable.username}"
+                               maxlength="45"
+                               required
+                               placeholder="Ingrese el usuario"/>
+
+                        <div class="text-danger"
+                             th:if="${#fields.hasErrors('responsable.username')}"
+                             th:errors="*{responsable.username}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="responsable.password" class="form-label">
+                            Clave
+                        </label>
+
+                        <input type="password"
+                               class="form-control"
+                               id="responsable.password"
+                               th:field="*{responsable.password}"
+                               minlength="6"
+                               maxlength="72"
+                               required
+                               placeholder="Mínimo 6 caracteres"/>
+
+                        <div class="text-danger"
+                             th:if="${#fields.hasErrors('responsable.password')}"
+                             th:errors="*{responsable.password}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================================================== -->
+                <!-- Sección dinámica: Food Truck                          -->
+                <!-- data-obligatorio marca los campos que pasan a         -->
+                <!-- required solo cuando la sección está visible.         -->
+                <!-- ==================================================== -->
+                <div class="seccion-tipo mb-3 p-3 bg-light rounded"
+                     data-tipo="FOOD_TRUCK"
+                     style="display: none;">
+
+                    <h5 class="mb-3">Datos del Food Truck</h5>
+
+                    <div class="mb-3">
+                        <label for="patente" class="form-label">
+                            Patente
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               id="patente"
+                               th:field="*{patente}"
+                               data-obligatorio
+                               placeholder="Ej: AB123CD"/>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               id="conexion"
+                               th:field="*{conexion}"/>
+
+                        <label for="conexion" class="form-check-label">
+                            Conexión eléctrica
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ==================================================== -->
+                <!-- Sección dinámica: Puesto Desarmable                   -->
+                <!-- ==================================================== -->
+                <div class="seccion-tipo mb-3 p-3 bg-light rounded"
+                     data-tipo="PUESTO_DESARMABLE"
+                     style="display: none;">
+
+                    <h5 class="mb-3">Datos del Puesto Desarmable</h5>
+
+                    <div class="mb-3">
+                        <label for="cantidadCarpas" class="form-label">
+                            Cantidad de carpas
+                        </label>
+
+                        <input type="number"
+                               min="1"
+                               class="form-control"
+                               id="cantidadCarpas"
+                               th:field="*{cantidadCarpas}"
+                               data-obligatorio
+                               placeholder="Ej: 2"/>
+
+                        <div class="text-danger"
+                             th:if="${#fields.hasErrors('cantidadCarpas')}"
+                             th:errors="*{cantidadCarpas}">
+                        </div>
+
+                        <div class="text-danger"
+                             th:if="${#fields.hasErrors('cantidadCarpasValida')}"
+                             th:errors="*{cantidadCarpasValida}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tiempo" class="form-label">
+                            Tiempo de armado (min)
+                        </label>
+
+                        <input type="number"
+                               min="1"
+                               class="form-control"
+                               id="tiempo"
+                               th:field="*{tiempo}"
+                               data-obligatorio
+                               placeholder="Ej: 30"/>
+
+                        <div class="text-danger"
+                             th:if="${#fields.hasErrors('tiempo')}"
+                             th:errors="*{tiempo}">
+                        </div>
+
+                        <div class="text-danger"
+                             th:if="${#fields.hasErrors('tiempoValido')}"
+                             th:errors="*{tiempoValido}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar Unidad de Venta
+                    </button>
+
+                    <a th:href="@{/}"
+                       class="btn btn-secondary">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+
+<div th:replace="~{layout :: scripts}"></div>
+
+<script>
+    /*
+     * Muestra solo la sección del tipo elegido. Los inputs de las secciones
+     * ocultas se deshabilitan para que no se envíen ni bloqueen el submit
+     * por un "required" que el usuario no puede ver.
+     */
+    function toggleCamposEspecificos() {
+        var tipo = document.getElementById("tipoUnidad").value;
+
+        document.querySelectorAll(".seccion-tipo").forEach(function (seccion) {
+            var activa = seccion.dataset.tipo === tipo;
+
+            seccion.style.display = activa ? "block" : "none";
+
+            seccion.querySelectorAll("input").forEach(function (input) {
+                input.disabled = !activa;
+                input.required = activa && input.hasAttribute("data-obligatorio");
+            });
+        });
+    }
+
+    window.addEventListener("load", function () {
+        toggleCamposEspecificos();
+    });
+</script>
+
+</body>
+</html>

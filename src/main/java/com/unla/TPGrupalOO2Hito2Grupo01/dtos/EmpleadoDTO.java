@@ -7,6 +7,9 @@ import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +26,11 @@ public class EmpleadoDTO
 
     @NotBlank(message = "El apellido es obligatorio")
     private String apellido;
+
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Ingrese un email válido")
+    @Size(max = 45, message = "El email no puede superar los 45 caracteres")
+    private String email;
 
     @Positive(message = "El DNI debe ser un número positivo")
     private long dni;
@@ -42,11 +50,21 @@ public class EmpleadoDTO
     @NotBlank(message = "Debe seleccionar el tipo de empleado")
     private String tipoEmpleado; // "CAJERO" o "COCINERO"
 
-    private Turno turno; // Se usará si tipoEmpleado es "CAJERO"
+    private Turno turno; // se usara si tipoEmpleado es "CAJERO"
 
-    private CategoriaCocina categoria; // Se usará si tipoEmpleado es "COCINERO"
+    private CategoriaCocina categoria; // se usara si tipoEmpleado es "COCINERO"
 
-    private String tareaEspecial; // Se usará si tipoEmpleado es "COCINERO"
+    private String tareaEspecial; // se usara si tipoEmpleado es "COCINERO"
+
+    @AssertTrue(message = "El empleado debe tener al menos 18 años cumplidos")
+    public boolean isMayorDeEdad() {
+        if (fechaNacimiento == null) {
+            return true; // La fecha vacia ya se valida con @NotNull.
+        }
+
+        return !fechaNacimiento.isAfter(LocalDate.now().minusYears(18));
+    }
+
 
     public EmpleadoDTO(Integer idEmpleado, String nombre, String apellido, long dni,
                        LocalDate fechaNacimiento, LocalDate ingreso, boolean activo,
@@ -64,4 +82,7 @@ public class EmpleadoDTO
         this.categoria = categoria;
         this.tareaEspecial = tareaEspecial;
     }
+
+
+
 }

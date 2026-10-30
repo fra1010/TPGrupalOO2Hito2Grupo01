@@ -84,31 +84,33 @@ public class EmpleadoService implements IEmpleadoService {
             );
         }
 
-        Empleado empleadoExistente = empleadoRepository
+        Empleado existente = empleadoRepository
                 .findById(empleado.getIdEmpleado())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No se encontró el empleado que desea modificar."
                 ));
 
-        // Una edición no debe cambiar la cuenta ni activar al empleado.
-        empleado.setUser(empleadoExistente.getUser());
-        empleado.setActivo(empleadoExistente.isActivo());
+        existente.setNombre(empleado.getNombre());
+        existente.setApellido(empleado.getApellido());
+        existente.setDni(empleado.getDni());
+        existente.setFechaNacimiento(empleado.getFechaNacimiento());
+        existente.setIngreso(empleado.getIngreso());
 
-        // Evita asignar el DNI de otro empleado durante la edición.
+        // Validación de DNI duplicado
         Optional<Empleado> empleadoConDni =
-                empleadoRepository.findByDni(empleado.getDni());
+                empleadoRepository.findByDni(existente.getDni());
 
         if (empleadoConDni.isPresent()
                 && !empleadoConDni.get().getIdEmpleado()
-                .equals(empleado.getIdEmpleado())) {
+                .equals(existente.getIdEmpleado())) {
 
             throw new IllegalArgumentException(
                     "Ya existe otro empleado con el DNI: "
-                            + empleado.getDni()
+                            + existente.getDni()
             );
         }
 
-        return guardarPorTipo(empleado);
+        return guardarPorTipo(existente);
     }
 
     @Override
@@ -383,6 +385,14 @@ public class EmpleadoService implements IEmpleadoService {
 
         return guardarPorTipo(empleado);
     }
+
+
+    @Override
+    public Empleado traerPorUsername(String username) {
+        return empleadoRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("No se encontró un empleado asociado al usuario: " + username));
+    }
+
 
     private void enviarMailCredenciales(
             String emailDestinatario,

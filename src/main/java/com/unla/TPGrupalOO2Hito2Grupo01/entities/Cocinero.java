@@ -8,13 +8,12 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "cocinero")
-@PrimaryKeyJoinColumn(name = "idEmpleado") // uno la clave de Cocinero con la de Empleado
+@PrimaryKeyJoinColumn(name = "idEmpleado") // Une la clave de Cocinero con la de Empleado
 @Getter
 @Setter
 @NoArgsConstructor
+public class Cocinero extends Empleado {
 
-public class Cocinero extends Empleado
-{
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoriaCocina categoria;
@@ -22,11 +21,10 @@ public class Cocinero extends Empleado
     @Column(length = 100)
     private String tareaEspecial;
 
-    // constructor completo usando super() para inicializar la base comun
-
-    public Cocinero(String nombre, String apellido, long dni, LocalDate fechaNacimiento, LocalDate ingreso,
-                    boolean activo, CategoriaCocina categoria, String tareaEspecial)
-    {
+    // Constructor completo usando super() para inicializar la base común
+    public Cocinero(String nombre, String apellido, long dni,
+                    LocalDate fechaNacimiento, LocalDate ingreso,
+                    boolean activo, CategoriaCocina categoria, String tareaEspecial) {
         super(nombre, apellido, dni, fechaNacimiento, ingreso, activo);
         this.categoria = categoria;
         this.tareaEspecial = tareaEspecial;

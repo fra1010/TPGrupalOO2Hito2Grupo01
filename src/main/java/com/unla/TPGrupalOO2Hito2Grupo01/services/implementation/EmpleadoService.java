@@ -53,20 +53,18 @@ public class EmpleadoService implements IEmpleadoService {
     @Autowired
     private IUnidadVentaRepository unidadVentaRepository;
 
-    // permite iniciar el contexto sin un servicio de correo
-    // pero el alta se rechaza si no esta disponible.
+    // Permite iniciar el contexto sin un servicio de correo.
+    // Sin embargo, el alta se rechaza si no está disponible.
     @Autowired(required = false)
     private JavaMailSender javaMailSender;
 
     @Override
-    public List<Empleado> getAll()
-    {
+    public List<Empleado> getAll() {
         return empleadoRepository.findAll();
     }
 
     @Override
-    public List<Empleado> getAllActive()
-    {
+    public List<Empleado> getAllActive() {
         return empleadoRepository.findByActivoTrue();
     }
 
@@ -92,11 +90,11 @@ public class EmpleadoService implements IEmpleadoService {
                         "No se encontró el empleado que desea modificar."
                 ));
 
-        // una edicion no cambio la cuenta ni activo al empleado.
+        // Una edición no debe cambiar la cuenta ni activar al empleado.
         empleado.setUser(empleadoExistente.getUser());
         empleado.setActivo(empleadoExistente.isActivo());
 
-        // Evito asignar el DNI de otro empleado durante la edicion.
+        // Evita asignar el DNI de otro empleado durante la edición.
         Optional<Empleado> empleadoConDni =
                 empleadoRepository.findByDni(empleado.getDni());
 
@@ -384,12 +382,6 @@ public class EmpleadoService implements IEmpleadoService {
         }
 
         return guardarPorTipo(empleado);
-    }
-
-    @Override
-    public Empleado traerPorUsername(String username) {
-        return empleadoRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("No se encontró un empleado asociado al usuario: " + username));
     }
 
     private void enviarMailCredenciales(

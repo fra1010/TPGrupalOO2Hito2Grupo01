@@ -9,27 +9,25 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "cajero")
-@PrimaryKeyJoinColumn(name = "idEmpleado") // uno la clave de cajero con la de empleado
+@PrimaryKeyJoinColumn(name = "idEmpleado") // Une la clave de Cajero con la de Empleado
 @Getter
 @Setter
 @NoArgsConstructor
+public class Cajero extends Empleado {
 
-public class Cajero extends Empleado
-{
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Turno turno;
     private int antiguedad;
-
-    /* ----- relaciones comentadas por ahora-----
+    /* ----- relaciones comentadas -----
     @OneToMany(mappedBy = "cajero", fetch = FetchType.LAZY)
     private Set<CierreCaja> cierresCaja;
     */
 
-    // constructor completo uso super() para inicializarlo
-
-    public Cajero(String nombre, String apellido, long dni, LocalDate fechaNacimiento, LocalDate ingreso, boolean activo, Turno turno)
-    {
+    // Constructor completo usando super() para inicializar la base
+    public Cajero(String nombre, String apellido, long dni,
+                  LocalDate fechaNacimiento, LocalDate ingreso,
+                  boolean activo, Turno turno) {
         super(nombre, apellido, dni, fechaNacimiento, ingreso, activo);
         this.turno = turno;
     }

@@ -10,6 +10,7 @@ import com.unla.TPGrupalOO2Hito2Grupo01.services.IPlatoService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/pedido")
+@PreAuthorize("hasAuthority('CAJERO')")
 public class PedidoController {
 
     private final IPedidoService pedidoService;
@@ -36,9 +38,12 @@ public class PedidoController {
     }
 
     @GetMapping
-    public String listPedidos(Model model) {
+    public String listPedidos(Model model, Authentication authentication) {
 
-        model.addAttribute("pedidos", pedidoService.getAll());
+        UnidadVenta unidad = obtenerUnidad(authentication);
+
+        model.addAttribute("unidad", unidad);
+        model.addAttribute("pedidos", pedidoService.getByUnidad(unidad.getIdUnidadVenta()));
 
         return "pedido/index";
     }
@@ -93,18 +98,12 @@ public class PedidoController {
 
     private UnidadVenta obtenerUnidad(Authentication authentication) {
 
-        if (authentication == null ||
-                !authentication.isAuthenticated()) {
-            throw new IllegalArgumentException(
-                    "El usuario debe iniciar sesión");
-        }
-
         UnidadVenta unidad = unidadVentaRepository
-                .traerUnidadVentaResponsable(authentication.getName());
+                .findByCajeroUsername(authentication.getName());
 
         if (unidad == null) {
             throw new IllegalArgumentException(
-                    "El usuario no tiene una unidad de venta asignada");
+                    "El cajero no tiene una unidad de venta asignada");
         }
 
         return unidad;

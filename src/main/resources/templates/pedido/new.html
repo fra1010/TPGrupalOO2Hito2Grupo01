@@ -1,112 +1,191 @@
-
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Nuevo pedido</title>
+
+<head th:replace="~{layout :: head}">
 </head>
+
 <body>
 
-<h1>Nuevo pedido</h1>
+<nav th:replace="~{layout :: navbar}"></nav>
 
-<p>
-    Unidad de venta:
-    <strong th:text="${unidad.nombre}"></strong>
-</p>
+<main class="container py-4" style="max-width: 800px; margin-top: 70px;">
 
-<form th:action="@{/pedido/create}"
-      th:object="${pedido}"
-      method="post">
-
-    <input type="hidden" th:field="*{idUnidadVenta}">
-
-    <!-- Errores generales -->
-    <div th:if="${#fields.hasGlobalErrors()}">
-        <p th:each="error : ${#fields.globalErrors()}"
-           th:text="${error}"></p>
+    <div class="page-header mb-3">
+        <h2>Nuevo Pedido</h2>
     </div>
 
-    <h2>Platos del pedido</h2>
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
+    </div>
 
-    <div id="items-container">
+    <div class="card form-card shadow-sm">
+        <div class="card-body">
 
-        <div class="item-row"
-             th:each="item, estado : *{items}">
+            <p class="mb-3">
+                Unidad de venta:
+                <strong th:text="${unidad.nombre}"></strong>
+            </p>
 
-            <label>Plato:</label>
+            <form th:action="@{/pedido/create}"
+                  th:object="${pedido}"
+                  method="post">
 
-            <select th:field="*{items[__${estado.index}__].idPlato}">
-                <option value="">Seleccione un plato</option>
+                <input type="hidden" th:field="*{idUnidadVenta}"/>
 
-                <option th:each="plato : ${platos}"
-                        th:value="${plato.idPlato}"
-                        th:text="${plato.nombre}">
-                </option>
-            </select>
+                <div th:if="${#fields.hasGlobalErrors()}"
+                     class="alert alert-danger">
 
-            <label>Cantidad:</label>
+                    <p class="mb-0"
+                       th:each="error : ${#fields.globalErrors()}"
+                       th:text="${error}">
+                    </p>
+                </div>
 
-            <input type="number"
-                   min="1"
-                   th:field="*{items[__${estado.index}__].cantidad}">
+                <h5 class="mb-3 border-top pt-3">
+                    Platos del pedido
+                </h5>
 
-            <button type="button"
-                    onclick="eliminarFila(this)">
-                Eliminar
-            </button>
+                <div id="items-container">
 
-            <small th:if="${#fields.hasErrors('items[' + estado.index + '].idPlato')}"
-                   th:errors="*{items[__${estado.index}__].idPlato}">
-            </small>
+                    <div class="item-row border rounded p-3 mb-3"
+                         th:each="item, estado : *{items}">
 
-            <small th:if="${#fields.hasErrors('items[' + estado.index + '].cantidad')}"
-                   th:errors="*{items[__${estado.index}__].cantidad}">
-            </small>
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-md-7">
+                                <label class="form-label">
+                                    Plato
+                                </label>
+
+                                <select class="form-select"
+                                        th:field="*{items[__${estado.index}__].idPlato}"
+                                        required>
+
+                                    <option value="">
+                                        -- Seleccione un plato --
+                                    </option>
+
+                                    <option th:each="plato : ${platos}"
+                                            th:value="${plato.idPlato}"
+                                            th:text="${plato.nombre}">
+                                    </option>
+                                </select>
+
+                                <div class="text-danger"
+                                     th:if="${#fields.hasErrors('items[' + estado.index + '].idPlato')}"
+                                     th:errors="*{items[__${estado.index}__].idPlato}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">
+                                    Cantidad
+                                </label>
+
+                                <input type="number"
+                                       class="form-control"
+                                       min="1"
+                                       th:field="*{items[__${estado.index}__].cantidad}"
+                                       required/>
+
+                                <div class="text-danger"
+                                     th:if="${#fields.hasErrors('items[' + estado.index + '].cantidad')}"
+                                     th:errors="*{items[__${estado.index}__].cantidad}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 text-end">
+                                <button type="button"
+                                        class="btn btn-outline-danger"
+                                        onclick="eliminarFila(this)">
+                                    Eliminar
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-danger mb-3"
+                     th:if="${#fields.hasErrors('items')}"
+                     th:errors="*{items}">
+                </div>
+
+                <button type="button"
+                        class="btn btn-outline-primary mb-4"
+                        onclick="agregarFila()">
+                    Agregar otro plato
+                </button>
+
+                <div class="pt-2 border-top">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar pedido
+                    </button>
+
+                    <a th:href="@{/pedido}"
+                       class="btn btn-secondary">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
         </div>
-
     </div>
 
-    <p th:if="${#fields.hasErrors('items')}"
-       th:errors="*{items}"></p>
+</main>
 
-    <button type="button" onclick="agregarFila()">
-        Agregar otro plato
-    </button>
+<footer th:replace="~{layout :: footer}"></footer>
 
-    <hr>
+<div th:replace="~{layout :: scripts}"></div>
 
-    <button type="submit">Guardar pedido</button>
-
-    <a th:href="@{/pedido}">Cancelar</a>
-
-</form>
-
-<!-- Plantilla para nuevas filas -->
 <template id="item-template">
-    <div class="item-row">
+    <div class="item-row border rounded p-3 mb-3">
 
-        <label>Plato:</label>
+        <div class="row g-3 align-items-end">
 
-        <select data-campo="idPlato">
-            <option value="">Seleccione un plato</option>
+            <div class="col-md-7">
+                <label class="form-label">
+                    Plato
+                </label>
 
-            <option th:each="plato : ${platos}"
-                    th:value="${plato.idPlato}"
-                    th:text="${plato.nombre}">
-            </option>
-        </select>
+                <select class="form-select"
+                        data-campo="idPlato"
+                        required>
 
-        <label>Cantidad:</label>
+                    <option value="">
+                        -- Seleccione un plato --
+                    </option>
 
-        <input type="number"
-               min="1"
-               data-campo="cantidad">
+                    <option th:each="plato : ${platos}"
+                            th:value="${plato.idPlato}"
+                            th:text="${plato.nombre}">
+                    </option>
+                </select>
+            </div>
 
-        <button type="button"
-                onclick="eliminarFila(this)">
-            Eliminar
-        </button>
+            <div class="col-md-3">
+                <label class="form-label">
+                    Cantidad
+                </label>
 
+                <input type="number"
+                       class="form-control"
+                       min="1"
+                       data-campo="cantidad"
+                       required/>
+            </div>
+
+            <div class="col-md-2 text-end">
+                <button type="button"
+                        class="btn btn-outline-danger"
+                        onclick="eliminarFila(this)">
+                    Eliminar
+                </button>
+            </div>
+
+        </div>
     </div>
 </template>
 
@@ -117,11 +196,7 @@
         );
 
         filas.forEach((fila, indice) => {
-            const campos = fila.querySelectorAll(
-                "select, input"
-            );
-
-            campos.forEach(campo => {
+            fila.querySelectorAll("select, input").forEach(campo => {
                 const propiedad = campo.dataset.campo
                     || campo.name.split(".").pop();
 
@@ -132,15 +207,11 @@
     }
 
     function agregarFila() {
-        const plantilla = document.getElementById(
-            "item-template"
-        );
-
+        const plantilla = document.getElementById("item-template");
         const nuevaFila = plantilla.content.cloneNode(true);
 
-        document.getElementById(
-            "items-container"
-        ).appendChild(nuevaFila);
+        document.getElementById("items-container")
+            .appendChild(nuevaFila);
 
         actualizarIndices();
     }

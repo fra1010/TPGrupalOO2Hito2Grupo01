@@ -153,6 +153,11 @@ public class PedidoService implements IPedidoService {
     }
 
     @Override
+    public List<Pedido> getByUnidad(Integer idUnidadVenta) {
+        return pedidoRepository.findByUnidadVentaIdUnidadVenta(idUnidadVenta);
+    }
+
+    @Override
     @Transactional
     public Pedido registrarPedido(
             PedidoDTO pedidoDTO,

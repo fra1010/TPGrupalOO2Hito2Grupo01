@@ -17,4 +17,6 @@ public interface IPedidoService {
     Pedido insertOrUpdate(Pedido pedido);
 
     Pedido registrarPedido(PedidoDTO pedidoDTO, UnidadVenta unidadVenta);
+
+    List<Pedido> getByUnidad(Integer idUnidadVenta);
 }

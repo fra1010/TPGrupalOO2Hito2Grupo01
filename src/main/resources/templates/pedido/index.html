@@ -1,35 +1,60 @@
-
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Pedidos</title>
+
+<head th:replace="~{layout :: head}">
 </head>
+
 <body>
 
-<h1>Listado de pedidos</h1>
+<nav th:replace="~{layout :: navbar}"></nav>
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Fecha</th>
-        <th>Unidad de venta</th>
-    </tr>
-    </thead>
+<main class="container py-4" style="max-width: 900px; margin-top: 70px;">
 
-    <tbody>
-    <tr th:each="pedido : ${pedidos}">
-        <td th:text="${pedido.idPedido}"></td>
-        <td th:text="${pedido.fecha}"></td>
-        <td th:text="${pedido.unidadVenta.idUnidadVenta}"></td>
-    </tr>
-    </tbody>
-</table>
+    <div class="page-header mb-3">
+        <h2>Pedidos</h2>
+        <p class="text-muted mb-0">
+            Unidad de venta:
+            <strong th:text="${unidad.nombre}"></strong>
+        </p>
+    </div>
 
-<p th:if="${#lists.isEmpty(pedidos)}">
-    Todavía no hay pedidos registrados.
-</p>
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <div th:if="${#lists.isEmpty(pedidos)}"
+                 class="alert alert-info mb-0">
+                Todavía no hay pedidos registrados para esta unidad de venta.
+            </div>
+
+            <div th:if="${!#lists.isEmpty(pedidos)}"
+                 class="table-responsive">
+
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Unidad de venta</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="pedido : ${pedidos}">
+                        <td th:text="${pedido.idPedido}"></td>
+                        <td th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${pedido.unidadVenta.nombre}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+
+<div th:replace="~{layout :: scripts}"></div>
 
 </body>
 </html>

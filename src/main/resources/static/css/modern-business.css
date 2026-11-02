@@ -45,12 +45,6 @@ main {
     border: none;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-.card:hover {
-    box-shadow: var(--shadow-hover);
-    transform: translateY(-2px);
 }
 
 .card-header {
@@ -129,7 +123,6 @@ main {
 .btn-primary:hover {
     background-color: var(--accent-hover);
     border-color: var(--accent-hover);
-    transform: translateY(-1px);
 }
 
 .btn-success {
@@ -285,4 +278,42 @@ footer {
     .table-responsive {
         font-size: 0.9rem;
     }
+}
+
+/* Nuevo pedido: misma altura para plato, cantidad y Eliminar */
+#items-container .item-row select.form-control,
+#items-container .item-row input.form-control,
+#items-container .item-row button.btn {
+    box-sizing: border-box;
+    height: 40px;
+    min-height: 40px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Centrar el texto del botón verticalmente */
+#items-container .item-row button.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Buscador de pedidos: misma altura para campo y botones */
+#buscador-pedidos .form-control,
+#buscador-pedidos .btn {
+    box-sizing: border-box;
+    height: 40px;
+    min-height: 40px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#buscador-pedidos .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }

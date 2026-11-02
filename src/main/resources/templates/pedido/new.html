@@ -8,7 +8,10 @@
 
 <nav th:replace="~{layout :: navbar}"></nav>
 
-<main class="container py-4" style="max-width: 800px; margin-top: 70px;">
+<main class="container py-4"
+      style="max-width: 800px; margin-top: 70px;">
+
+
 
     <div class="page-header mb-3">
         <h2>Nuevo Pedido</h2>
@@ -32,15 +35,18 @@
                   th:object="${pedido}"
                   method="post">
 
-                <input type="hidden" th:field="*{idUnidadVenta}"/>
+                <input type="hidden"
+                       th:field="*{idUnidadVenta}"/>
 
                 <div th:if="${#fields.hasGlobalErrors()}"
-                     class="alert alert-danger">
+                     class="alert alert-danger"
+                     role="alert">
 
                     <p class="mb-0"
                        th:each="error : ${#fields.globalErrors()}"
                        th:text="${error}">
                     </p>
+
                 </div>
 
                 <h5 class="mb-3 border-top pt-3">
@@ -52,15 +58,20 @@
                     <div class="item-row border rounded p-3 mb-3"
                          th:each="item, estado : *{items}">
 
-                        <div class="row g-3 align-items-end">
+                        <div class="form-row">
 
-                            <div class="col-md-7">
-                                <label class="form-label">
+                            <div class="col-12 col-md mb-3 mb-md-0"
+                                 style="min-width: 0;">
+
+                                <label data-label="idPlato"
+                                       th:for="|item-${estado.index}-idPlato|">
                                     Plato
                                 </label>
 
-                                <select class="form-select"
+                                <select class="form-control"
                                         th:field="*{items[__${estado.index}__].idPlato}"
+                                        th:id="|item-${estado.index}-idPlato|"
+                                        data-campo="idPlato"
                                         required>
 
                                     <option value="">
@@ -71,41 +82,59 @@
                                             th:value="${plato.idPlato}"
                                             th:text="${plato.nombre}">
                                     </option>
+
                                 </select>
 
-                                <div class="text-danger"
-                                     th:if="${#fields.hasErrors('items[' + estado.index + '].idPlato')}"
+                                <div class="text-danger small mt-1"
+                                     th:if="${#fields.hasErrors(
+                                         'items[' + estado.index + '].idPlato')}"
                                      th:errors="*{items[__${estado.index}__].idPlato}">
                                 </div>
+
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">
+                            <div class="col-6 col-md-3">
+
+                                <label data-label="cantidad"
+                                       th:for="|item-${estado.index}-cantidad|">
                                     Cantidad
                                 </label>
 
                                 <input type="number"
                                        class="form-control"
                                        min="1"
+                                       step="1"
                                        th:field="*{items[__${estado.index}__].cantidad}"
+                                       th:id="|item-${estado.index}-cantidad|"
+                                       data-campo="cantidad"
                                        required/>
 
-                                <div class="text-danger"
-                                     th:if="${#fields.hasErrors('items[' + estado.index + '].cantidad')}"
+                                <div class="text-danger small mt-1"
+                                     th:if="${#fields.hasErrors(
+                                         'items[' + estado.index + '].cantidad')}"
                                      th:errors="*{items[__${estado.index}__].cantidad}">
                                 </div>
+
                             </div>
 
-                            <div class="col-md-2 text-end">
+                            <div class="col-6 col-md-auto">
+
+                                <div aria-hidden="true"
+                                     style="height: 1.5rem; margin-bottom: .5rem;">
+                                </div>
+
                                 <button type="button"
                                         class="btn btn-outline-danger"
                                         onclick="eliminarFila(this)">
                                     Eliminar
                                 </button>
+
                             </div>
 
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="text-danger mb-3"
@@ -119,18 +148,22 @@
                     Agregar otro plato
                 </button>
 
-                <div class="pt-2 border-top">
-                    <button type="submit" class="btn btn-primary">
+                <div class="pt-3 border-top">
+
+                    <button type="submit"
+                            class="btn btn-primary mr-1 mb-2">
                         Guardar pedido
                     </button>
 
                     <a th:href="@{/pedido}"
-                       class="btn btn-secondary">
+                       class="btn btn-secondary mb-2">
                         Cancelar
                     </a>
+
                 </div>
 
             </form>
+
         </div>
     </div>
 
@@ -141,16 +174,19 @@
 <div th:replace="~{layout :: scripts}"></div>
 
 <template id="item-template">
+
     <div class="item-row border rounded p-3 mb-3">
 
-        <div class="row g-3 align-items-end">
+        <div class="form-row">
 
-            <div class="col-md-7">
-                <label class="form-label">
+            <div class="col-12 col-md mb-3 mb-md-0"
+                 style="min-width: 0;">
+
+                <label data-label="idPlato">
                     Plato
                 </label>
 
-                <select class="form-select"
+                <select class="form-control"
                         data-campo="idPlato"
                         required>
 
@@ -162,31 +198,44 @@
                             th:value="${plato.idPlato}"
                             th:text="${plato.nombre}">
                     </option>
+
                 </select>
+
             </div>
 
-            <div class="col-md-3">
-                <label class="form-label">
+            <div class="col-6 col-md-3">
+
+                <label data-label="cantidad">
                     Cantidad
                 </label>
 
                 <input type="number"
                        class="form-control"
                        min="1"
+                       step="1"
                        data-campo="cantidad"
                        required/>
+
             </div>
 
-            <div class="col-md-2 text-end">
+            <div class="col-6 col-md-auto">
+
+                <div aria-hidden="true"
+                     style="height: 1.5rem; margin-bottom: .5rem;">
+                </div>
+
                 <button type="button"
                         class="btn btn-outline-danger"
                         onclick="eliminarFila(this)">
                     Eliminar
                 </button>
+
             </div>
 
         </div>
+
     </div>
+
 </template>
 
 <script>
@@ -196,12 +245,15 @@
         );
 
         filas.forEach((fila, indice) => {
-            fila.querySelectorAll("select, input").forEach(campo => {
-                const propiedad = campo.dataset.campo
-                    || campo.name.split(".").pop();
+            fila.querySelectorAll("[data-campo]").forEach(campo => {
+                const propiedad = campo.dataset.campo;
 
                 campo.name = `items[${indice}].${propiedad}`;
-                campo.id = `items${indice}.${propiedad}`;
+                campo.id = `item-${indice}-${propiedad}`;
+            });
+
+            fila.querySelectorAll("[data-label]").forEach(label => {
+                label.htmlFor = `item-${indice}-${label.dataset.label}`;
             });
         });
     }
@@ -209,17 +261,25 @@
     function agregarFila() {
         const plantilla = document.getElementById("item-template");
         const nuevaFila = plantilla.content.cloneNode(true);
+        const contenedor = document.getElementById("items-container");
 
-        document.getElementById("items-container")
-            .appendChild(nuevaFila);
+        contenedor.appendChild(nuevaFila);
 
         actualizarIndices();
+
+        const ultimaFila = contenedor.lastElementChild;
+
+        if (ultimaFila) {
+            ultimaFila.querySelector("select").focus();
+        }
     }
 
     function eliminarFila(boton) {
         boton.closest(".item-row").remove();
         actualizarIndices();
     }
+
+    actualizarIndices();
 </script>
 
 </body>

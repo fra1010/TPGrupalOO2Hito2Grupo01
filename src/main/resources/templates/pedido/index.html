@@ -30,7 +30,6 @@
 
     </div>
 
-    <!-- Mensajes enviados desde el controller -->
     <div th:if="${exito != null}"
          class="alert alert-success"
          role="status">
@@ -45,12 +44,11 @@
 
     <div class="card shadow-sm">
 
-        <!-- Encabezado del listado -->
         <div class="card-header d-flex flex-wrap
                     justify-content-between align-items-center">
 
             <strong th:if="${!busqueda and fecha != null}"
-                    th:text="|Pedidos del ${#temporals.format(fecha, 'dd/MM/yyyy')}|">
+                    th:text="${'Pedidos del ' + #temporals.format(fecha, 'dd/MM/yyyy')}">
             </strong>
 
             <strong th:if="${!busqueda and fecha == null}">
@@ -58,19 +56,19 @@
             </strong>
 
             <strong th:if="${busqueda}"
-                    th:text="|Resultado de búsqueda: pedido #${numeroPedido}|">
+                    th:text="${'Resultado de búsqueda: pedido #' + numeroPedido}">
             </strong>
 
             <span th:if="${!busqueda and dias.totalPages > 0}"
                   class="text-muted small"
-                  th:text="|Día ${dias.number + 1} de ${dias.totalPages}|">
+                  th:text="${'Día ' + (dias.number + 1) + ' de ' + dias.totalPages}">
             </span>
 
         </div>
 
         <div class="card-body">
 
-            <!-- Buscador por número de pedido -->
+            <!-- Este formulario contiene solamente el buscador. -->
             <form id="buscador-pedidos"
                   th:action="@{/pedido}"
                   method="get"
@@ -112,15 +110,13 @@
 
                 </div>
 
-
             </form>
 
-            <!-- Lista vacía o búsqueda sin resultados -->
             <div th:if="${#lists.isEmpty(pedidos)}"
                  class="alert alert-info mb-0">
 
                 <span th:if="${busqueda}"
-                      th:text="|No se encontró el pedido #${numeroPedido} en tu unidad de venta.|">
+                      th:text="${'No se encontró el pedido #' + numeroPedido + ' en tu unidad de venta.'}">
                 </span>
 
                 <span th:unless="${busqueda}">
@@ -129,7 +125,6 @@
 
             </div>
 
-            <!-- Listado de pedidos -->
             <div th:if="${!#lists.isEmpty(pedidos)}"
                  class="accordion"
                  id="listaPedidos">
@@ -138,35 +133,29 @@
                      th:each="pedido : ${pedidos}">
 
                     <div class="card-header p-0"
-                         th:id="|encabezadoPedido${pedido.idPedido}|">
+                         th:id="${'encabezadoPedido' + pedido.idPedido}">
 
                         <h3 class="mb-0">
 
                             <button type="button"
-                                    class="btn btn-light btn-block text-left
-                                           p-3 collapsed"
+                                    class="btn btn-light btn-block text-left p-3 collapsed"
                                     style="white-space: normal;"
                                     data-toggle="collapse"
-                                    th:attr="
-                                        data-target=|#detallePedido${pedido.idPedido}|,
-                                        aria-controls=|detallePedido${pedido.idPedido}|"
+                                    th:attr="data-target=${'#detallePedido' + pedido.idPedido},
+                                             aria-controls=${'detallePedido' + pedido.idPedido}"
                                     aria-expanded="false">
 
-                                <span class="d-flex
-                                             justify-content-between
-                                             align-items-center">
+                                <span class="d-flex justify-content-between align-items-center">
 
                                     <span>
 
                                         <strong class="mr-3"
-                                                th:text="|Pedido #${pedido.idPedido}|">
+                                                th:text="${'Pedido #' + pedido.idPedido}">
                                         </strong>
 
                                         <span class="text-muted small"
-                                              th:text="${#temporals.format(
-                                                  pedido.fecha, 'dd/MM/yyyy')}">
+                                              th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy')}">
                                         </span>
-
 
                                     </span>
 
@@ -183,11 +172,9 @@
 
                     </div>
 
-                    <!-- Detalle desplegable del pedido -->
                     <div class="collapse"
-                         th:id="|detallePedido${pedido.idPedido}|"
-                         th:attr="
-                             aria-labelledby=|encabezadoPedido${pedido.idPedido}|"
+                         th:id="${'detallePedido' + pedido.idPedido}"
+                         th:attr="aria-labelledby=${'encabezadoPedido' + pedido.idPedido}"
                          data-parent="#listaPedidos">
 
                         <div class="card-body">
@@ -200,7 +187,7 @@
                                     </div>
 
                                     <div class="font-weight-bold"
-                                         th:text="|#${pedido.idPedido}|">
+                                         th:text="${'#' + pedido.idPedido}">
                                     </div>
                                 </div>
 
@@ -210,8 +197,7 @@
                                     </div>
 
                                     <div class="font-weight-bold"
-                                         th:text="${#temporals.format(
-                                             pedido.fecha, 'dd/MM/yyyy')}">
+                                         th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy')}">
                                     </div>
                                 </div>
 
@@ -270,9 +256,7 @@
                                         </td>
 
                                         <td class="text-right text-nowrap"
-                                            th:text="|$ ${#numbers.formatDecimal(
-                                                item.totalItem,
-                                                1, 'POINT', 2, 'COMMA')}|">
+                                            th:text="${'$ ' + #numbers.formatDecimal(item.totalItem, 1, 'POINT', 2, 'COMMA')}">
                                         </td>
 
                                     </tr>
@@ -286,12 +270,8 @@
                                             Total del pedido
                                         </th>
 
-                                        <td class="text-right text-nowrap
-                                                   font-weight-bold"
-                                            th:text="|$ ${#numbers.formatDecimal(
-                                                #aggregates.sum(
-                                                    pedido.itemsPedido.![totalItem]),
-                                                1, 'POINT', 2, 'COMMA')}|">
+                                        <td class="text-right text-nowrap font-weight-bold"
+                                            th:text="${'$ ' + #numbers.formatDecimal(#aggregates.sum(pedido.itemsPedido.![totalItem]), 1, 'POINT', 2, 'COMMA')}">
                                         </td>
                                     </tr>
                                     </tfoot>
@@ -310,7 +290,6 @@
 
         </div>
 
-        <!-- Paginación por días, oculta durante la búsqueda -->
         <div th:if="${!busqueda and dias.totalPages > 1}"
              class="card-footer">
 

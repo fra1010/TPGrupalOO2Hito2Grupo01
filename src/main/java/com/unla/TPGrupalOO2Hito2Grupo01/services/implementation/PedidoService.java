@@ -1,20 +1,26 @@
-
 package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
-import com.unla.TPGrupalOO2Hito2Grupo01.repositories.*;
-import com.unla.TPGrupalOO2Hito2Grupo01.services.IPedidoService;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PedidoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ItemPedidoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PedidoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.ItemPedido;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Pedido;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Plato;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IPedidoRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IPlatoRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IPedidoService;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service("pedidoService")
@@ -44,10 +50,44 @@ public class PedidoService implements IPedidoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Pedido> getByUnidad(Integer idUnidadVenta) {
+        return pedidoRepository
+                .findByUnidadVentaIdUnidadVenta(idUnidadVenta);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LocalDate> getFechasConPedidos(
+            Integer idUnidadVenta,
+            int pagina) {
+
+        // Se consulta una fecha distinta por página.
+        return pedidoRepository.findFechasConPedidos(
+                idUnidadVenta,
+                PageRequest.of(Math.max(pagina, 0), 1)
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Pedido> getByUnidadYFecha(
+            Integer idUnidadVenta,
+            LocalDate fecha) {
+
+        return pedidoRepository
+                .findByUnidadVentaIdUnidadVentaAndFechaOrderByIdPedidoDesc(
+                        idUnidadVenta,
+                        fecha
+                );
+    }
+
+    @Override
     @Transactional
     public Pedido insertOrUpdate(Pedido pedido) {
 
         validarPedido(pedido);
+
         if (pedido.getIdPedido() != null) {
             throw new IllegalArgumentException(
                     "Este método solamente permite registrar nuevos pedidos"
@@ -60,24 +100,29 @@ public class PedidoService implements IPedidoService {
                     item.getPlato().getIdPlato()
             ).orElseThrow(() ->
                     new IllegalArgumentException(
-                            "El plato no existe")
+                            "El plato no existe"
+                    )
             );
 
             if (!plato.isActivo()) {
                 throw new IllegalArgumentException(
-                        "El plato no está activo");
+                        "El plato no está activo"
+                );
             }
 
             if (plato.getUnidadVenta() == null ||
                     !plato.getUnidadVenta().getIdUnidadVenta()
                             .equals(pedido.getUnidadVenta().getIdUnidadVenta())) {
+
                 throw new IllegalArgumentException(
-                        "El plato no pertenece a la unidad de venta");
+                        "El plato no pertenece a la unidad de venta"
+                );
             }
 
             if (plato.getPrecioDeVenta() == null) {
                 throw new IllegalArgumentException(
-                        "El plato no tiene un precio de venta válido");
+                        "El plato no tiene un precio de venta válido"
+                );
             }
 
             BigDecimal total = plato.getPrecioDeVenta()
@@ -91,72 +136,6 @@ public class PedidoService implements IPedidoService {
         return pedidoRepository.save(pedido);
     }
 
-    private void validarPedido(Pedido pedido) {
-
-        if (pedido == null) {
-            throw new IllegalArgumentException(
-                    "El pedido no puede ser nulo");
-        }
-
-        if (pedido.getFecha() == null ||
-                !pedido.getFecha().equals(LocalDate.now())) {
-            throw new IllegalArgumentException(
-                    "La fecha del pedido debe ser la actual");
-        }
-
-        if (pedido.getUnidadVenta() == null ||
-                pedido.getUnidadVenta().getIdUnidadVenta() == null) {
-            throw new IllegalArgumentException(
-                    "Debe seleccionar una unidad de venta");
-        }
-
-        Festival festival = pedido.getUnidadVenta().getFestival();
-
-        if (festival == null ||
-                festival.getFechaInicio() == null ||
-                festival.getFechaFin() == null ||
-                pedido.getFecha().isBefore(festival.getFechaInicio()) ||
-                pedido.getFecha().isAfter(festival.getFechaFin())) {
-
-            throw new IllegalArgumentException(
-                    "La fecha del pedido debe estar dentro del período del festival");
-        }
-
-        if (pedido.getItemsPedido() == null ||
-                pedido.getItemsPedido().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "El pedido debe contener al menos un ítem");
-        }
-
-        Set<Integer> platosAgregados = new HashSet<>();
-
-        for (ItemPedido item : pedido.getItemsPedido()) {
-
-            if (item == null ||
-                    item.getPlato() == null ||
-                    item.getPlato().getIdPlato() == null) {
-                throw new IllegalArgumentException(
-                        "Cada ítem debe tener un plato válido");
-            }
-
-            if (item.getCantidad() == null ||
-                    item.getCantidad() <= 0) {
-                throw new IllegalArgumentException(
-                        "La cantidad debe ser mayor a cero");
-            }
-
-            if (!platosAgregados.add(item.getPlato().getIdPlato())) {
-                throw new IllegalArgumentException(
-                        "No se puede agregar dos veces el mismo plato");
-            }
-        }
-    }
-
-    @Override
-    public List<Pedido> getByUnidad(Integer idUnidadVenta) {
-        return pedidoRepository.findByUnidadVentaIdUnidadVenta(idUnidadVenta);
-    }
-
     @Override
     @Transactional
     public Pedido registrarPedido(
@@ -166,21 +145,27 @@ public class PedidoService implements IPedidoService {
         if (pedidoDTO == null ||
                 pedidoDTO.getItems() == null ||
                 pedidoDTO.getItems().isEmpty()) {
+
             throw new IllegalArgumentException(
-                    "El pedido debe contener al menos un plato");
+                    "El pedido debe contener al menos un plato"
+            );
         }
 
         if (unidadVenta == null ||
                 unidadVenta.getIdUnidadVenta() == null) {
+
             throw new IllegalArgumentException(
-                    "La unidad de venta no es válida");
+                    "La unidad de venta no es válida"
+            );
         }
 
         if (pedidoDTO.getIdUnidadVenta() == null ||
                 !pedidoDTO.getIdUnidadVenta()
                         .equals(unidadVenta.getIdUnidadVenta())) {
+
             throw new IllegalArgumentException(
-                    "La unidad indicada no coincide con la autorizada");
+                    "La unidad indicada no coincide con la autorizada"
+            );
         }
 
         Pedido pedido = new Pedido();
@@ -195,20 +180,25 @@ public class PedidoService implements IPedidoService {
                     itemDTO.getIdPlato() == null ||
                     itemDTO.getCantidad() == null ||
                     itemDTO.getCantidad() <= 0) {
+
                 throw new IllegalArgumentException(
-                        "Los datos del ítem no son válidos");
+                        "Los datos del ítem no son válidos"
+                );
             }
 
             if (!platosAgregados.add(itemDTO.getIdPlato())) {
                 throw new IllegalArgumentException(
-                        "No se puede agregar dos veces el mismo plato");
+                        "No se puede agregar dos veces el mismo plato"
+                );
             }
 
             Plato plato = platoRepository
                     .findById(itemDTO.getIdPlato())
                     .orElseThrow(() ->
                             new IllegalArgumentException(
-                                    "El plato no existe"));
+                                    "El plato no existe"
+                            )
+                    );
 
             ItemPedido item = new ItemPedido();
             item.setPlato(plato);
@@ -219,5 +209,92 @@ public class PedidoService implements IPedidoService {
         }
 
         return insertOrUpdate(pedido);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Pedido> buscarPorNumeroYUnidad(
+            Integer numeroPedido,
+            Integer idUnidadVenta) {
+
+        return pedidoRepository
+                .findByIdPedidoAndUnidadVentaIdUnidadVenta(
+                        numeroPedido,
+                        idUnidadVenta
+                );
+    }
+
+    private void validarPedido(Pedido pedido) {
+
+        if (pedido == null) {
+            throw new IllegalArgumentException(
+                    "El pedido no puede ser nulo"
+            );
+        }
+
+        if (pedido.getFecha() == null ||
+                !pedido.getFecha().equals(LocalDate.now())) {
+
+            throw new IllegalArgumentException(
+                    "La fecha del pedido debe ser la actual"
+            );
+        }
+
+        if (pedido.getUnidadVenta() == null ||
+                pedido.getUnidadVenta().getIdUnidadVenta() == null) {
+
+            throw new IllegalArgumentException(
+                    "Debe seleccionar una unidad de venta"
+            );
+        }
+
+        Festival festival = pedido.getUnidadVenta().getFestival();
+
+        if (festival == null ||
+                festival.getFechaInicio() == null ||
+                festival.getFechaFin() == null ||
+                pedido.getFecha().isBefore(festival.getFechaInicio()) ||
+                pedido.getFecha().isAfter(festival.getFechaFin())) {
+
+            throw new IllegalArgumentException(
+                    "La fecha del pedido debe estar dentro del período del festival"
+            );
+        }
+
+        if (pedido.getItemsPedido() == null ||
+                pedido.getItemsPedido().isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "El pedido debe contener al menos un ítem"
+            );
+        }
+
+        Set<Integer> platosAgregados = new HashSet<>();
+
+        for (ItemPedido item : pedido.getItemsPedido()) {
+
+            if (item == null ||
+                    item.getPlato() == null ||
+                    item.getPlato().getIdPlato() == null) {
+
+                throw new IllegalArgumentException(
+                        "Cada ítem debe tener un plato válido"
+                );
+            }
+
+            if (item.getCantidad() == null ||
+                    item.getCantidad() <= 0) {
+
+                throw new IllegalArgumentException(
+                        "La cantidad debe ser mayor a cero"
+                );
+            }
+
+            if (!platosAgregados.add(item.getPlato().getIdPlato())) {
+                throw new IllegalArgumentException(
+                        "No se puede agregar dos veces el mismo plato"
+                );
+            }
+        }
     }
 }

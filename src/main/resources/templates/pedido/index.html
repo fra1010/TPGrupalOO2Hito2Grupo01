@@ -271,7 +271,7 @@
                                         </th>
 
                                         <td class="text-right text-nowrap font-weight-bold"
-                                            th:text="${'$ ' + #numbers.formatDecimal(#aggregates.sum(pedido.itemsPedido.![totalItem]), 1, 'POINT', 2, 'COMMA')}">
+                                            th:text="${'$ ' + #numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">
                                         </td>
                                     </tr>
                                     </tfoot>

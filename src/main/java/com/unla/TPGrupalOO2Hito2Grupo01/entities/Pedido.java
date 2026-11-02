@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,4 +38,16 @@ public class Pedido {
             orphanRemoval = true
     )
     private Set<ItemPedido> itemsPedido = new HashSet<>();
+
+    public BigDecimal getTotal() {
+
+        if (itemsPedido == null || itemsPedido.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        return itemsPedido.stream()
+                .map(ItemPedido::getTotalItem)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

@@ -7,6 +7,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.FestivalDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Costo;
@@ -35,6 +39,37 @@ public class FestivalController {
     public String newFestival(Model model) {
         model.addAttribute("festival", new FestivalDTO());
         return "festival/new";
+    }
+
+    @GetMapping("/{idFestival}/ranking")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String rankingUnidades(
+            @PathVariable("idFestival") Integer idFestival,
+            Model model) {
+
+        Festival festival = festivalService.findById(idFestival)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró el festival indicado."
+                ));
+
+        model.addAttribute("festival", festival);
+
+        model.addAttribute(
+                "unidades",
+                festivalService.rankingUnidadesPorRecaudacion(
+                        idFestival
+                )
+        );
+
+        model.addAttribute(
+                "recaudaciones",
+                festivalService.recaudacionesPorFestival(
+                        idFestival
+                )
+        );
+
+        return "festival/ranking";
     }
 
     @PostMapping("/create")

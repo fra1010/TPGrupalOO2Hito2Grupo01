@@ -318,5 +318,34 @@ WHERE e.user.username = :username
     ORDER BY SUM(i.totalItem) DESC
 """)
     List<PlatoReporteDTO> detallePorPlato(@Param("unidad") UnidadVenta unidad);
+
+    @Query("""
+    SELECT uv.idUnidadVenta
+    FROM UnidadVenta uv
+    LEFT JOIN uv.pedidos p
+    LEFT JOIN p.itemsPedido item
+    WHERE uv.festival.idFestival = :idFestival
+    GROUP BY uv.idUnidadVenta, uv.nombre
+    ORDER BY COALESCE(SUM(item.totalItem), 0) DESC,
+             uv.nombre ASC,
+             uv.idUnidadVenta ASC
+    """)
+    List<Integer> rankingIdsPorRecaudacion(
+            @Param("idFestival") Integer idFestival
+    );
+
+    @Query("""
+    SELECT uv.idUnidadVenta,
+           COALESCE(SUM(item.totalItem), 0BD)
+    FROM UnidadVenta uv
+    LEFT JOIN uv.pedidos p
+    LEFT JOIN p.itemsPedido item
+    WHERE uv.festival.idFestival = :idFestival
+    GROUP BY uv.idUnidadVenta
+    """)
+    List<Object[]> recaudacionesPorFestival(
+            @Param("idFestival") Integer idFestival
+    );
+
 }
 

@@ -18,4 +18,6 @@ public interface IUnidadVenta {
     public ReciboDetalladoEmpleadoDTO sueldoEmpleado(String username);
     public UnidadVenta findByCajeroUsername(String username);
     public ReporteUnidadDTO reporteUnidadVenta(String username);
+    List<ReporteMayoresCanonDTO> unidadesConMayorCanon(Integer idFestival, int x);
+    List<UnidadVentaDTO> traerUnidadesPorFestival(Integer idFestival);
 }

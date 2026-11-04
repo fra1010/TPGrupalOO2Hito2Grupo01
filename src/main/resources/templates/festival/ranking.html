@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{layout :: head}">
-</head>
+<head th:replace="~{layout :: head}"></head>
 
 <body>
 
@@ -23,9 +22,9 @@
             </p>
         </div>
 
-        <a th:href="@{/festival}"
+        <a th:href="@{/}"
            class="btn btn-outline-secondary mb-2">
-            Volver a festivales
+            Volver al inicio
         </a>
 
     </div>
@@ -50,8 +49,7 @@
 
                     <thead class="thead-dark">
                     <tr>
-                        <th scope="col"
-                            class="text-center">
+                        <th scope="col" class="text-center">
                             Posición
                         </th>
 
@@ -63,8 +61,7 @@
                             Código
                         </th>
 
-                        <th scope="col"
-                            class="text-right">
+                        <th scope="col" class="text-right">
                             Recaudación
                         </th>
                     </tr>

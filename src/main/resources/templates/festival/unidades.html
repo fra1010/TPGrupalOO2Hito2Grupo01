@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"></head>
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4">
+
+    <h1 class="h3 mb-4 text-center"
+        th:text="${festival.nombre}">
+        Festival
+    </h1>
+
+    <!-- Tabs: el cambio de pestaña lo maneja el script de abajo -->
+    <ul class="nav nav-tabs justify-content-center"
+        id="festivalTab"
+        role="tablist">
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="unidades-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="unidades-pane"
+                    aria-selected="true"
+                    th:attr="data-url=@{/festival/{id}/unidades/lista(id=${festival.idFestival})}">
+                Unidades
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="ranking-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="ranking-pane"
+                    aria-selected="false"
+                    th:attr="data-url=@{/festival/{id}/ranking(id=${festival.idFestival})}">
+                Ranking
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="canon-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="canon-pane"
+                    aria-selected="false"
+                    th:attr="data-url=@{/festival/{id}/mayores-canon(id=${festival.idFestival}, x=${x})}">
+                Mayor canon
+            </button>
+        </li>
+
+    </ul>
+
+    <!-- Contenido de cada tab -->
+    <div class="tab-content border border-top-0 rounded-bottom p-3"
+         id="festivalTabContent">
+
+        <div class="tab-pane active"
+             id="unidades-pane"
+             role="tabpanel"
+             aria-labelledby="unidades-tab"
+             tabindex="0"></div>
+
+        <div class="tab-pane"
+             id="ranking-pane"
+             role="tabpanel"
+             aria-labelledby="ranking-tab"
+             tabindex="0"></div>
+
+        <div class="tab-pane"
+             id="canon-pane"
+             role="tabpanel"
+             aria-labelledby="canon-tab"
+             tabindex="0"></div>
+
+    </div>
+
+    <!-- Estados de carga y error -->
+    <template id="tpl-cargando">
+        <div class="text-center text-muted py-5">
+            <div class="spinner-border" role="status"></div>
+            <p class="mt-3 mb-0">Cargando…</p>
+        </div>
+    </template>
+
+    <template id="tpl-error">
+        <div class="alert alert-warning mb-0">
+            No se pudo cargar esta sección.
+            <a class="alert-link" target="_blank" rel="noopener">
+                Abrirla en otra pestaña
+            </a>
+        </div>
+    </template>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+
+<div th:replace="~{layout :: scripts}"></div>
+
+<script>
+    (function () {
+        var tabs = Array.from(
+            document.querySelectorAll('#festivalTab [data-url]')
+        );
+
+        function paneDe(tab) {
+            return document.getElementById(tab.getAttribute('aria-controls'));
+        }
+
+        function plantilla(id) {
+            return document.getElementById(id).content.cloneNode(true);
+        }
+
+        function activarScripts(contenedor) {
+            contenedor.querySelectorAll('script').forEach(function (vieja) {
+                var nueva = document.createElement('script');
+                Array.from(vieja.attributes).forEach(function (a) {
+                    nueva.setAttribute(a.name, a.value);
+                });
+                nueva.textContent = vieja.textContent;
+                vieja.replaceWith(nueva);
+            });
+        }
+
+        async function pedir(tab, url, opciones) {
+            var pane = paneDe(tab);
+            pane.replaceChildren(plantilla('tpl-cargando'));
+
+            try {
+                var res = await fetch(
+                    url,
+                    Object.assign({ credentials: 'same-origin' }, opciones)
+                );
+
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+
+                var doc = new DOMParser().parseFromString(
+                    await res.text(),
+                    'text/html'
+                );
+
+                var main = doc.querySelector('main');
+
+                if (!main) {
+                    throw new Error('La página no tiene <main>');
+                }
+
+                pane.innerHTML = main.innerHTML;
+                pane.dataset.urlActual = res.url;
+                activarScripts(pane);
+
+            } catch (e) {
+                delete tab.dataset.loaded;
+
+                var error = plantilla('tpl-error');
+                error.querySelector('a').href = tab.dataset.url;
+
+                pane.replaceChildren(error);
+            }
+        }
+
+        function cargar(tab) {
+            if (tab.dataset.loaded) {
+                return;
+            }
+
+            tab.dataset.loaded = 'true';
+            return pedir(tab, tab.dataset.url);
+        }
+
+        document.getElementById('festivalTabContent')
+            .addEventListener('submit', function (e) {
+
+                var form = e.target;
+                var pane = form.closest('.tab-pane');
+
+                if (!pane || (form.target && form.target !== '_self')) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                var tab = document.getElementById(
+                    pane.getAttribute('aria-labelledby')
+                );
+
+                var base = new URL(
+                    pane.dataset.urlActual || tab.dataset.url,
+                    location.href
+                );
+
+                var destino = new URL(
+                    form.getAttribute('action') || base.href,
+                    base
+                );
+
+                var datos = new FormData(form, e.submitter);
+                var opciones = {};
+
+                if (form.method === 'get') {
+                    destino.search = new URLSearchParams(datos).toString();
+                } else {
+                    opciones.method = form.method.toUpperCase();
+                    opciones.body = new URLSearchParams(datos);
+                }
+
+                pedir(tab, destino.href, opciones);
+            });
+
+        function mostrar(tab) {
+            tabs.forEach(function (t) {
+                var activa = (t === tab);
+
+                t.classList.toggle('active', activa);
+                t.setAttribute('aria-selected', activa ? 'true' : 'false');
+                paneDe(t).classList.toggle('active', activa);
+            });
+
+            cargar(tab);
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                mostrar(tab);
+            });
+        });
+
+        cargar(tabs[0]);
+    })();
+</script>
+
+</body>
+</html>

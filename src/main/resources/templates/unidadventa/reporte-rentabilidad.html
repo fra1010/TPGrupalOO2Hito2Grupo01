@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head}"></head>
+
+<body>
+
+<nav th:replace="~{layout :: navbarResponsable}"></nav>
+
+<main class="container py-4">
+
+    <h2 class="h4 mb-3">Rentabilidad neta</h2>
+
+    <p class="text-muted">
+        Calculá la rentabilidad de todo el festival o de un período.
+        Las fechas vacías utilizan el inicio y el fin del festival.
+    </p>
+
+    <form method="get"
+          th:action="@{/responsable/rentabilidad}"
+          class="mb-4">
+
+        <div class="form-row align-items-end">
+
+            <div class="form-group col-md-4">
+                <label for="rentabilidad-desde">Desde</label>
+
+                <input type="date"
+                       id="rentabilidad-desde"
+                       name="desde"
+                       class="form-control"
+                       th:value="${desde}">
+            </div>
+
+            <div class="form-group col-md-4">
+                <label for="rentabilidad-hasta">Hasta</label>
+
+                <input type="date"
+                       id="rentabilidad-hasta"
+                       name="hasta"
+                       class="form-control"
+                       th:value="${hasta}">
+            </div>
+
+            <div class="form-group col-md-4">
+                <button type="submit" class="btn btn-primary">
+                    Calcular
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+    <form method="get"
+          th:action="@{/responsable/rentabilidad}"
+          class="mb-4">
+
+        <button type="submit"
+                class="btn btn-outline-secondary btn-sm">
+            Ver todo el festival
+        </button>
+
+    </form>
+
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
+    </div>
+
+    <div th:if="${reporte != null}">
+
+        <div class="card shadow-sm mb-3">
+
+            <div class="card-header">
+                <strong th:text="${reporte.nombreUnidad}">
+                    Unidad de venta
+                </strong>
+            </div>
+
+            <div class="card-body">
+
+                <p>
+                    <strong>Festival:</strong>
+                    <span th:text="${reporte.nombreFestival}"></span>
+                </p>
+
+                <p>
+                    <strong>Período calculado:</strong>
+
+                    <span th:text="${#temporals.format(
+                        reporte.desde, 'dd/MM/yyyy')}"></span>
+
+                    <span> al </span>
+
+                    <span th:text="${#temporals.format(
+                        reporte.hasta, 'dd/MM/yyyy')}"></span>
+                </p>
+
+                <p class="mb-0">
+                    <strong>Días incluidos:</strong>
+
+                    <span th:text="${reporte.diasPeriodo}"></span>
+
+                    <span> de </span>
+
+                    <span th:text="${reporte.diasFestival}"></span>
+
+                    <span> días del festival.</span>
+                </p>
+
+            </div>
+
+        </div>
+
+        <div th:if="${proyeccion}"
+             class="alert alert-info"
+             role="status">
+
+            El período incluye días futuros.
+            Los ingresos corresponden a pedidos registrados;
+            los sueldos y el canon incluyen el período completo indicado.
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered mb-3">
+
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">Concepto</th>
+                    <th scope="col" class="text-right">Importe</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr>
+                    <th scope="row">Ingresos por pedidos</th>
+
+                    <td class="text-right text-nowrap"
+                        th:text="${'$ ' + #numbers.formatDecimal(
+                            reporte.ingresosPedidos,
+                            1, 'POINT', 2, 'COMMA')}">
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Costos de platos vendidos</th>
+
+                    <td class="text-right text-nowrap"
+                        th:text="${'− $ ' + #numbers.formatDecimal(
+                            reporte.costosPlatos,
+                            1, 'POINT', 2, 'COMMA')}">
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Sueldos del período</th>
+
+                    <td class="text-right text-nowrap"
+                        th:text="${'− $ ' + #numbers.formatDecimal(
+                            reporte.sueldos,
+                            1, 'POINT', 2, 'COMMA')}">
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Canon del período</th>
+
+                    <td class="text-right text-nowrap"
+                        th:text="${'− $ ' + #numbers.formatDecimal(
+                            reporte.canonPeriodo,
+                            1, 'POINT', 2, 'COMMA')}">
+                    </td>
+                </tr>
+
+                </tbody>
+
+                <tfoot>
+                <tr th:classappend="${reporte.rentabilidadNeta.signum() < 0
+                        ? 'table-danger' : 'table-success'}">
+
+                    <th scope="row">Rentabilidad neta</th>
+
+                    <td class="text-right text-nowrap">
+                        <strong th:text="${'$ ' + #numbers.formatDecimal(
+                            reporte.rentabilidadNeta,
+                            1, 'POINT', 2, 'COMMA')}">
+                        </strong>
+                    </td>
+
+                </tr>
+                </tfoot>
+
+            </table>
+
+        </div>
+
+        <p class="small text-muted">
+            Canon total del festival:
+
+            <span th:text="${'$ ' + #numbers.formatDecimal(
+                reporte.canonTotal,
+                1, 'POINT', 2, 'COMMA')}"></span>.
+
+            El canon del período se calcula proporcionalmente
+            a los días incluidos.
+        </p>
+
+        <p class="small text-muted mb-0">
+            Rentabilidad neta = ingresos por pedidos
+            − costos de platos vendidos
+            − sueldos del período
+            − canon del período.
+        </p>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+
+</body>
+</html>

@@ -7,6 +7,11 @@ import java.util.Map;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Plato;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO;
+
+
 
 public interface IFestivalService {
 
@@ -25,4 +30,7 @@ public interface IFestivalService {
     Map<Integer, BigDecimal> recaudacionesPorFestival(
             Integer idFestival
     );
+
+    PlatoReporteDTO obtenerPlatoEstrella(Integer idFestival, Integer idUnidad);
+
 }

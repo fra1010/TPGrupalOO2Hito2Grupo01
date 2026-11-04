@@ -17,9 +17,12 @@
         model.addAttribute("festivales", List<FestivalDTO>);   // para mostrar el nombre del festival
 
     ESTRUCTURA DE CADA CARD:
-        - Encabezado: nombre de la unidad + etiqueta con el tipo
-        - Cuerpo:     atributos comunes (clase padre UnidadVentaDTO)
-        - Pie:        atributos propios de cada tipo (clases hijas)
+- Encabezado: nombre de la unidad + etiqueta con el tipo
+
+- Cuerpo:     atributos comunes (clase padre UnidadVentaDTO)
+
+- Pie:        atributos propios de cada tipo (clases hijas)
+
 -->
 
 <!-- Fragmento "head" del layout: meta, title, CSS de Bootstrap y estilos propios -->
@@ -126,27 +129,13 @@
                 </div>
 
                 <!-- ===================== PIE DE LA CARD: DATOS PROPIOS DE CADA TIPO ===================== -->
-                <!--
-                    Solo se muestra si la unidad es de alguno de los dos tipos conocidos.
-                    Thymeleaf resuelve las propiedades segun la clase REAL del objeto, por eso
-                    se puede escribir unidad.patente aunque la lista sea de UnidadVentaDTO.
-                    Cada bloque solo se evalua dentro de su th:if, donde el atributo existe.
-                -->
                 <div class="card-footer" th:if="${esFoodTruck or esPuesto}">
 
                     <!-- Atributos de FoodTruckDTO: patente y conexion -->
                     <div th:if="${esFoodTruck}">
-
-                        <!-- Atributo de FoodTruckDTO: patente -->
                         <div class="mb-3">
                             <strong>Patente:</strong> <span th:text="${unidad.patente}">AAA 123</span>
                         </div>
-
-                        <!--
-                            Atributo de FoodTruckDTO: conexion (boolean).
-                            th:classappend agrega una clase de color segun el valor:
-                            verde si tiene conexion, gris si no. El texto es Si / No.
-                        -->
                         <div class="mb-0">
                             <strong>Conexion:</strong>
                             <span class="badge text-white"
@@ -157,18 +146,22 @@
 
                     <!-- Atributos de PuestoDesarmableDTO: cantidadCarpas y tiempo -->
                     <div th:if="${esPuesto}">
-
-                        <!-- Atributo de PuestoDesarmableDTO: cantidadCarpas -->
                         <div class="mb-3">
                             <strong>Carpas:</strong> <span th:text="${unidad.cantidadCarpas}">2</span>
                         </div>
-
-                        <!-- Atributo de PuestoDesarmableDTO: tiempo (el DTO no aclara la unidad; agregarla aca si corresponde) -->
                         <div class="mb-0">
                             <strong>Tiempo:</strong> <span th:text="${unidad.tiempo}">30</span>
                         </div>
                     </div>
 
+                </div>
+
+                <!-- ===================== NUEVO: BOTÓN PLATO ESTRELLA ===================== -->
+                <div class="card-footer bg-white border-top-0 pt-0 pb-3 text-center">
+                    <a th:href="@{/unidadVenta/festival/{idFestival}/unidades/{idUnId}/plato-estrella(idFestival=${unidad.idFestival}, idUnId=${unidad.idUnidadVenta})}"
+                       class="btn btn-outline-success btn-sm w-100">
+                        ⭐ Ver Plato Estrella
+                    </a>
                 </div>
 
             </div>

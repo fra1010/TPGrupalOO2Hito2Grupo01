@@ -1,11 +1,14 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.repositories;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Plato;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Pedido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO;
+
 
 import java.util.Optional;
 import java.time.LocalDate;
@@ -32,4 +35,23 @@ public interface IPedidoRepository extends JpaRepository<Pedido, Integer> {
             Integer idPedido,
             Integer idUnidadVenta
     );
+
+    @Query("SELECT new com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO(" +
+            "item.plato.idPlato, " +
+            "item.plato.nombre, " +
+            "SUM(item.cantidad), " +
+            "item.plato.precioDeVenta, " +
+            "item.plato.costoDePlato) " +
+            "FROM Pedido p " +
+            "JOIN p.itemsPedido item " +
+            "WHERE p.unidadVenta.idUnidadVenta = :idUnidad " +
+            "AND p.unidadVenta.festival.idFestival = :idFestival " +
+            "GROUP BY item.plato.idPlato, item.plato.nombre, item.plato.precioDeVenta, item.plato.costoDePlato " +
+            "ORDER BY SUM(item.cantidad) DESC")
+    List<PlatoReporteDTO> findPlatoEstrellaByFestivalAndUnidad(
+            @Param("idFestival") Integer idFestival,
+            @Param("idUnidad") Integer idUnidad,
+            Pageable pageable
+    );
+
 }

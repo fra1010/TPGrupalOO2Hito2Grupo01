@@ -9,13 +9,20 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Plato;
+import java.util.List;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IFestivalRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IPedidoRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IFestivalService;
 
 @Service("festivalService")
@@ -23,13 +30,15 @@ public class FestivalService implements IFestivalService {
 
     private final IFestivalRepository festivalRepository;
     private final IUnidadVentaRepository unidadVentaRepository;
+    private final IPedidoRepository pedidoRepository;
 
     public FestivalService(
             IFestivalRepository festivalRepository,
-            IUnidadVentaRepository unidadVentaRepository) {
+            IUnidadVentaRepository unidadVentaRepository, IPedidoRepository pedidoRepository) {
 
         this.festivalRepository = festivalRepository;
         this.unidadVentaRepository = unidadVentaRepository;
+        this.pedidoRepository = pedidoRepository;
     }
 
     @Override
@@ -150,4 +159,20 @@ public class FestivalService implements IFestivalService {
             );
         }
     }
+
+    @Override
+    public PlatoReporteDTO obtenerPlatoEstrella(Integer idFestival, Integer idUnidad) {
+        List<PlatoReporteDTO> platos = pedidoRepository.findPlatoEstrellaByFestivalAndUnidad(
+                idFestival,
+                idUnidad,
+                PageRequest.of(0, 1)
+        );
+
+        if (platos.isEmpty()) {
+            return null; // Devuelve null para que el controlador lo reciba y la vista muestre el mensaje
+        }
+
+        return platos.getFirst();
+    }
+
 }

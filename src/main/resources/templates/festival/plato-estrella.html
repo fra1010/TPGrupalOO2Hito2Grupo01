@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head}"></head>
+
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h4 mb-1">Plato Estrella</h2>
+            <p class="text-muted mb-0">
+                Festival: <strong th:text="${festival.nombre}"></strong>
+            </p>
+        </div>
+
+        <a th:href="@{/festival/{id}/unidades(id=${festival.idFestival})}"
+           class="btn btn-outline-secondary btn-sm">
+            Volver a unidades
+        </a>
+    </div>
+
+    <!-- Si no se encontrara el plato por algún motivo -->
+    <div th:if="${platoEstrella == null}" class="alert alert-info mb-0">
+        No se registraron pedidos para esta unidad en el festival indicado.
+    </div>
+
+    <!-- Si existe el plato estrella -->
+    <div class="row justify-content-center" th:if="${platoEstrella != null}">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100 border-success">
+
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"> Plato más vendido</h5>
+                    <span class="badge bg-light text-success fw-bold">Top 1</span>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3 text-center py-2">
+                        <h3 class="text-dark fw-bold" th:text="${platoEstrella.plato}">Nombre del Plato</h3>
+                    </div>
+
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Cantidad de Pedidos / Unidades:</strong>
+                            <span class="badge bg-primary rounded-pill fs-6" th:text="${platoEstrella.cantidad}">0</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Precio de Venta:</strong>
+                            <span class="text-success fw-bold" th:text="${'$' + platoEstrella.precioDeVenta}">$0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Total Recaudado:</strong>
+                            <span class="text-secondary" th:text="${'$' + platoEstrella.totalRecaudado}">$0.00</span>
+                        </li>
+                    </ul>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+
+<div th:replace="~{layout :: scripts}"></div>
+
+</body>
+</html>

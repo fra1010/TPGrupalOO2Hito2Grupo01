@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,11 +19,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.util.MultiValueMap;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteRentabilidadDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 
@@ -301,4 +297,21 @@ public class ResponsableController {
         mav.addObject("error", mensaje);
         return mav;
     }
+
+    @GetMapping("/plato-estrella")
+    public ModelAndView obtenerPlatoEstrellaResponsable(
+            @AuthenticationPrincipal User user) {
+
+        ModelAndView mV = new ModelAndView("unidadventa/plato-estrella");
+
+        try {
+            PlatoReporteDTO platoEstrella = unidadVentaService.obtenerPlatoEstrella(user.getUsername());
+            mV.addObject("platoEstrella", platoEstrella);
+        } catch (Exception e) {
+            mV.addObject("error", e.getMessage());
+        }
+
+        return mV;
+    }
+
 }

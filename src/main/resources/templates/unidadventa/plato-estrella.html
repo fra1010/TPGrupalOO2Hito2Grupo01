@@ -9,23 +9,27 @@
 
 <main class="container py-4">
 
+    <!-- Encabezado de la vista del Responsable -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="h4 mb-1">Plato Estrella</h2>
+            <h2 class="h4 mb-1">Reportes - Plato Estrella</h2>
             <p class="text-muted mb-0">
-                Festival: <strong th:text="${festival.nombre}"></strong>
+                Visualización del plato más vendido en tu unidad de venta.
             </p>
         </div>
-
-        <a th:href="@{/festival/{id}/unidades(id=${festival.idFestival})}"
-           class="btn btn-outline-secondary btn-sm">
-            Volver a unidades
-        </a>
     </div>
 
-    <!-- Si no se encontrara el plato por algún motivo -->
-    <div th:if="${platoEstrella == null}" class="alert alert-info mb-0">
-        No se registraron pedidos para esta unidad en el festival indicado.
+    <!-- Si ocurre algún error desde el controlador -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}">Ha ocurrido un error.</span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <!-- Si no se registraron pedidos / no hay plato estrella -->
+    <div th:if="${platoEstrella == null and error == null}" class="alert alert-info mb-0">
+        No se registraron pedidos para esta unidad de venta en el festival actual.
     </div>
 
     <!-- Si existe el plato estrella -->
@@ -34,28 +38,28 @@
             <div class="card shadow-sm h-100 border-success">
 
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"> Plato más vendido</h5>
-                    <span class="badge bg-light text-success fw-bold">Top 1</span>
+                    <h5 class="mb-0"><i class="fas fa-star mr-2"></i> Plato más vendido</h5>
+                    <span class="badge badge-light text-success font-weight-bold">Top 1</span>
                 </div>
 
                 <div class="card-body">
 
                     <div class="mb-3 text-center py-2">
-                        <h3 class="text-dark fw-bold" th:text="${platoEstrella.plato}">Nombre del Plato</h3>
+                        <h3 class="text-dark font-weight-bold" th:text="${platoEstrella.plato}">Nombre del Plato</h3>
                     </div>
 
                     <ul class="list-group list-group-flush mb-3">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Cantidad de Pedidos / Unidades:</strong>
-                            <span class="badge bg-primary rounded-pill fs-6" th:text="${platoEstrella.cantidad}">0</span>
+                            <strong>Cantidad de Unidades Vendidas:</strong>
+                            <span class="badge badge-primary badge-pill font-weight-bold" th:text="${platoEstrella.cantidad}">0</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Precio de Venta:</strong>
-                            <span class="text-success fw-bold" th:text="${'$' + platoEstrella.precioDeVenta}">$0.00</span>
+                            <span class="text-success font-weight-bold" th:text="${'$' + platoEstrella.precioDeVenta}">$0.00</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Total Recaudado:</strong>
-                            <span class="text-secondary" th:text="${'$' + platoEstrella.totalRecaudado}">$0.00</span>
+                            <span class="text-secondary font-weight-bold" th:text="${'$' + platoEstrella.totalRecaudado}">$0.00</span>
                         </li>
                     </ul>
 

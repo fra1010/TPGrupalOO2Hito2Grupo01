@@ -18,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.util.MultiValueMap;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.UnidadVentaDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
@@ -57,17 +60,67 @@ public class ResponsableController {
 
     @GetMapping("/empleados")
     public ModelAndView empleadosUnidad(
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal User user,
+            @RequestParam MultiValueMap<String, String> parametros) {
 
-        ModelAndView mV = new ModelAndView();
+        ModelAndView mV = new ModelAndView(
+                "unidadventa/unidad-venta-empleados"
+        );
 
         UnidadVentaDTO unidad =
                 unidadVentaService.traerUnidadVentaConEmpleados(
                         user.getUsername()
                 );
 
+        List<String> campos = parametros.get("campo");
+        List<String> valores = parametros.get("valor");
+
+        boolean buscar = Boolean.parseBoolean(
+                parametros.getFirst("buscar")
+        );
+
+        boolean estructuraValida =
+                campos != null
+                        && valores != null
+                        && !campos.isEmpty()
+                        && campos.size() == valores.size();
+
+        mV.addObject(
+                "camposFiltro",
+                estructuraValida ? campos : List.of("nombre")
+        );
+
+        mV.addObject(
+                "valoresFiltro",
+                estructuraValida ? valores : List.of("")
+        );
+
+        if (buscar) {
+            try {
+                if (!estructuraValida) {
+                    throw new IllegalArgumentException(
+                            "Los criterios de búsqueda no son válidos."
+                    );
+                }
+
+                unidad.setEmpleados(
+                        unidadVentaService.filtrarEmpleados(
+                                user.getUsername(),
+                                campos,
+                                valores
+                        )
+                );
+
+            } catch (IllegalArgumentException e) {
+                unidad.setEmpleados(List.of());
+                mV.addObject("error", e.getMessage());
+            }
+        }
+
         mV.addObject("unidad", unidad);
-        mV.setViewName("unidadventa/unidad-venta-empleados");
+        mV.addObject("busquedaAplicada", buscar);
+        mV.addObject("turnos", Turno.values());
+        mV.addObject("categorias", CategoriaCocina.values());
 
         return mV;
     }

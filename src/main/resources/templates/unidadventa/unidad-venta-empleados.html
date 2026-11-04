@@ -9,7 +9,139 @@
 
 <nav th:replace="~{layout :: navbarResponsable}"></nav>
 
-<!-- Mensajes flotantes: no desplazan el contenido de la página -->
+<style>
+    #panel-empleados .encabezado-empleados {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    #panel-empleados .titulo-empleados {
+        flex: 0 0 auto;
+        padding-top: 9px;
+    }
+
+    #panel-empleados .formulario-filtros {
+        flex: 1 1 420px;
+        min-width: 0;
+        margin-bottom: 0;
+    }
+
+    #panel-empleados .nuevo-empleado {
+        flex: 0 0 auto;
+        margin-left: auto;
+        white-space: nowrap;
+    }
+
+    #panel-empleados .fila-filtro {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    #panel-empleados .grupo-valor {
+        display: flex;
+        flex: 1 1 190px;
+        min-width: 0;
+        height: 38px;
+    }
+
+    #panel-empleados .icono-busqueda {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 36px;
+        height: 38px;
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-right: 0;
+        border-radius: 4px 0 0 4px;
+        color: #6c757d;
+    }
+
+    #panel-empleados .contenedor-valor {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    #panel-empleados .contenedor-valor > input,
+    #panel-empleados .contenedor-valor > select,
+    #panel-empleados .campo-filtro {
+        box-sizing: border-box;
+        height: 38px !important;
+        min-height: 38px !important;
+        margin: 0 !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        font-size: 14px;
+        line-height: 24px;
+    }
+
+    #panel-empleados .contenedor-valor > input,
+    #panel-empleados .contenedor-valor > select {
+        width: 100%;
+        min-width: 0;
+        border-radius: 0 4px 4px 0;
+    }
+
+    #panel-empleados .campo-filtro {
+        flex: 0 0 165px;
+        width: 165px;
+    }
+
+    #panel-empleados .boton-criterio {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+    }
+
+    #resultados-empleados {
+        transition: opacity 0.15s;
+    }
+
+    #resultados-empleados.cargando {
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
+    @media (max-width: 767.98px) {
+        #panel-empleados .titulo-empleados {
+            order: 1;
+        }
+
+        #panel-empleados .nuevo-empleado {
+            order: 2;
+        }
+
+        #panel-empleados .formulario-filtros {
+            order: 3;
+            flex-basis: 100%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        #panel-empleados .fila-filtro {
+            flex-wrap: wrap;
+        }
+
+        #panel-empleados .grupo-valor {
+            flex-basis: 100%;
+        }
+
+        #panel-empleados .campo-filtro {
+            flex: 1 1 165px;
+        }
+    }
+</style>
+
+<!-- Mensajes flotantes -->
 <div style="position: fixed;
             top: 75px;
             right: 20px;
@@ -18,24 +150,23 @@
             max-width: 500px;"
      aria-live="polite">
 
-    <!-- Mensaje de operación exitosa -->
     <div th:if="${exito != null}"
          class="alert alert-success shadow"
          role="status"
          th:text="${exito}">
     </div>
 
-    <!-- Mensaje de error -->
-    <div th:if="${error != null}"
+    <div id="error-operacion"
+         th:if="${error != null}"
          class="alert alert-danger shadow"
          role="alert"
          th:text="${error}">
     </div>
+
 </div>
 
 <main class="container py-4">
 
-    <!-- Encabezado -->
     <div class="page-header mb-3">
         <h2 th:text="${unidad.nombre}">
             Nombre de la unidad
@@ -52,7 +183,6 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -64,179 +194,356 @@
 
                     <tbody>
                     <tr>
-                        <td th:text="${unidad.idUnidadVenta}">
-                            1
-                        </td>
-
-                        <td th:text="${unidad.codigo}">
-                            COD-001
-                        </td>
+                        <td th:text="${unidad.idUnidadVenta}"></td>
+                        <td th:text="${unidad.codigo}"></td>
 
                         <td th:text="${unidad.nombreFestival != null
-              ? unidad.nombreFestival : '—'}">
-                            Festival
+                                      ? unidad.nombreFestival : '—'}">
                         </td>
+
                         <td th:text="${unidad.responsable != null
                                       ? unidad.responsable.username : '—'}">
-                            usuario
                         </td>
                     </tr>
                     </tbody>
-
                 </table>
             </div>
         </div>
+
     </div>
 
-    <!-- Empleados de la unidad -->
-    <div class="card shadow-sm">
+    <!-- Empleados -->
+    <div class="card shadow-sm" id="panel-empleados">
 
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>
-                Empleados de la unidad
-                (<span th:text="${unidad.empleados != null
-                                  ? #lists.size(unidad.empleados) : 0}">
-                    0
-                </span>)
-            </strong>
+        <div class="card-header">
+            <div class="encabezado-empleados">
 
-            <!-- Alta disponible únicamente para responsables -->
-            <a class="btn btn-sm btn-success"
-               th:href="@{/empleado/new}"
-               sec:authorize="hasRole('RESPONSABLE')">
-                Nuevo Empleado
-            </a>
+                <strong class="titulo-empleados">
+                    Empleados de la unidad
+                    (<span id="cantidad-empleados"
+                           th:text="${unidad.empleados != null
+                                      ? #lists.size(unidad.empleados) : 0}">
+                        0
+                    </span>)
+                </strong>
+
+                <form id="formulario-filtros"
+                      method="get"
+                      th:action="@{/responsable/empleados}"
+                      class="formulario-filtros">
+
+                    <input type="hidden" name="buscar" value="true">
+
+                    <div id="criterios-empleados">
+
+                        <div class="fila-filtro"
+                             th:each="campo, estado : ${camposFiltro}"
+                             th:attr="data-valor=${valoresFiltro[estado.index]}">
+
+                            <div class="grupo-valor">
+
+                                <span class="icono-busqueda"
+                                      aria-hidden="true">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         width="14"
+                                         height="14"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round">
+                                        <circle cx="10.5"
+                                                cy="10.5"
+                                                r="7.5"></circle>
+                                        <path d="M16 16l5 5"></path>
+                                    </svg>
+                                </span>
+
+                                <div class="contenedor-valor"></div>
+
+                            </div>
+
+                            <select name="campo"
+                                    class="campo-filtro custom-select"
+                                    aria-label="Atributo del empleado">
+
+                                <option value="nombre"
+                                        th:selected="${campo == 'nombre'}">
+                                    Nombre
+                                </option>
+                                <option value="apellido"
+                                        th:selected="${campo == 'apellido'}">
+                                    Apellido
+                                </option>
+                                <option value="dni"
+                                        th:selected="${campo == 'dni'}">
+                                    DNI
+                                </option>
+                                <option value="edadExacta"
+                                        th:selected="${campo == 'edadExacta'}">
+                                    Edad exacta
+                                </option>
+                                <option value="edadMinima"
+                                        th:selected="${campo == 'edadMinima'}">
+                                    Edad mínima
+                                </option>
+                                <option value="edadMaxima"
+                                        th:selected="${campo == 'edadMaxima'}">
+                                    Edad máxima
+                                </option>
+                                <option value="fechaNacimiento"
+                                        th:selected="${campo == 'fechaNacimiento'}">
+                                    Fecha de nacimiento
+                                </option>
+                                <option value="ingreso"
+                                        th:selected="${campo == 'ingreso'}">
+                                    Fecha de ingreso
+                                </option>
+                                <option value="tipoEmpleado"
+                                        th:selected="${campo == 'tipoEmpleado'}">
+                                    Tipo de empleado
+                                </option>
+                                <option value="turno"
+                                        th:selected="${campo == 'turno'}">
+                                    Turno
+                                </option>
+                                <option value="categoria"
+                                        th:selected="${campo == 'categoria'}">
+                                    Categoría
+                                </option>
+                                <option value="tareaEspecial"
+                                        th:selected="${campo == 'tareaEspecial'}">
+                                    Tarea especial
+                                </option>
+
+                            </select>
+
+                            <button type="button"
+                                    class="btn btn-outline-primary boton-criterio agregar-filtro"
+                                    aria-label="Agregar otro filtro"
+                                    title="Agregar otro filtro">
+                                +
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-outline-danger boton-criterio quitar-filtro"
+                                    aria-label="Quitar este filtro"
+                                    title="Quitar este filtro">
+                                −
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center">
+
+                        <button type="submit"
+                                class="btn btn-primary btn-sm mr-2">
+                            Buscar
+                        </button>
+
+                        <a id="limpiar-filtros"
+                           th:href="@{/responsable/empleados}"
+                           class="btn btn-outline-secondary btn-sm">
+                            Limpiar
+                        </a>
+
+                        <span id="estado-busqueda"
+                              class="small text-muted ml-2"
+                              role="status"
+                              aria-live="polite">
+                        </span>
+
+                    </div>
+
+                </form>
+
+                <a class="btn btn-sm btn-success nuevo-empleado"
+                   th:href="@{/empleado/new}"
+                   sec:authorize="hasRole('RESPONSABLE')">
+                    Nuevo Empleado
+                </a>
+
+            </div>
         </div>
 
         <div class="card-body">
 
-            <div class="table-responsive"
-                 th:unless="${#lists.isEmpty(unidad.empleados)}">
-
-                <table class="table table-striped table-hover mb-0">
-
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre Completo</th>
-                        <th>DNI</th>
-                        <th>Fecha Ingreso</th>
-                        <th>Rol / Puesto</th>
-                        <th>Detalle Específico</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <tr th:each="emp : ${unidad.empleados}">
-
-                        <td th:text="${emp.idEmpleado}"></td>
-
-                        <td th:text="${emp.apellido + ', ' + emp.nombre}">
-                        </td>
-
-                        <td th:text="${emp.dni}"></td>
-
-                        <td class="text-nowrap"
-                            th:text="${emp.ingreso}">
-                        </td>
-
-                        <!-- Tipo de empleado -->
-                        <td>
-                            <span th:if="${#strings.equalsIgnoreCase(
-                                              emp.tipoEmpleado, 'CAJERO')}"
-                                  class="badge badge-primary">
-                                Cajero
-                            </span>
-
-                            <span th:if="${#strings.equalsIgnoreCase(
-                                              emp.tipoEmpleado, 'COCINERO')}"
-                                  class="badge badge-info">
-                                Cocinero
-                            </span>
-                        </td>
-
-                        <!-- Datos específicos según el tipo -->
-                        <td>
-                            <span th:if="${#strings.equalsIgnoreCase(
-                                              emp.tipoEmpleado, 'CAJERO')}"
-                                  th:text="${'Turno: ' +
-                                      (emp.turno != null
-                                          ? #strings.toLowerCase(emp.turno)
-                                          : 'sin asignar')}">
-                            </span>
-
-                            <div th:if="${#strings.equalsIgnoreCase(
-                                             emp.tipoEmpleado, 'COCINERO')}">
-
-                                <span th:text="${emp.categoria != null
-                                          ? #strings.toLowerCase(emp.categoria)
-                                          : 'sin categoría'}">
-                                </span>
-
-                                <span th:if="${not #strings.isEmpty(
-                                                  emp.tareaEspecial)}"
-                                      th:text="${' (' + emp.tareaEspecial + ')'}">
-                                </span>
-                            </div>
-                        </td>
-
-                        <!-- Consultar y modificar el estado -->
-                        <td class="text-nowrap">
-                            <form th:action="@{/responsable/empleados/estado/{id}(id=${emp.idEmpleado})}"
-                                  method="post"
-                                  class="mb-0"
-                                  sec:authorize="hasRole('RESPONSABLE')">
-
-                                <div class="form-check">
-                                    <input type="checkbox"
-                                           class="form-check-input"
-                                           th:id="${'activo-' + emp.idEmpleado}"
-                                           name="activo"
-                                           value="true"
-                                           th:checked="${emp.activo}"
-                                           onchange="confirmarCambioEstado(this)"/>
-
-                                    <label class="form-check-label"
-                                           th:for="${'activo-' + emp.idEmpleado}"
-                                           th:text="${emp.activo
-                                                     ? 'Activo' : 'Inactivo'}">
-                                        Activo
-                                    </label>
-                                </div>
-                            </form>
-                        </td>
-
-                        <!-- Acciones disponibles -->
-                        <td class="text-nowrap"
-                            sec:authorize="hasRole('RESPONSABLE')">
-
-                            <!-- Editar empleados activos e inactivos -->
-                            <a class="btn btn-sm btn-warning"
-                               th:href="@{/empleado/edit/{id}(id=${emp.idEmpleado})}">
-                                Actualizar
-                            </a>
-                        </td>
-                    </tr>
-                    </tbody>
-
-                </table>
+            <div id="error-busqueda"
+                 class="alert alert-danger d-none"
+                 role="alert">
             </div>
 
-            <!-- Mensaje cuando no hay empleados -->
-            <div th:if="${#lists.isEmpty(unidad.empleados)}"
-                 class="text-center text-muted py-4">
-                Esta unidad no tiene empleados asignados.
+            <div id="resultados-empleados" aria-busy="false">
+
+                <div class="table-responsive"
+                     th:unless="${#lists.isEmpty(unidad.empleados)}">
+
+                    <table class="table table-striped table-hover mb-0">
+
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>DNI</th>
+                            <th class="text-center">Edad</th>
+                            <th>Fecha Ingreso</th>
+                            <th>Rol / Puesto</th>
+                            <th>Detalle Específico</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="emp : ${unidad.empleados}">
+
+                            <td th:text="${emp.idEmpleado}"></td>
+
+                            <td th:text="${emp.apellido + ', ' + emp.nombre}">
+                            </td>
+
+                            <td th:text="${emp.dni}"></td>
+
+                            <td class="text-center text-nowrap"
+                                th:text="${emp.edad != null ? emp.edad : '—'}">
+                            </td>
+                            <td class="text-nowrap"
+                                th:text="${emp.ingreso}">
+                            </td>
+
+                            <td>
+                                <span th:if="${#strings.equalsIgnoreCase(
+                                                  emp.tipoEmpleado, 'CAJERO')}"
+                                      class="badge badge-primary">
+                                    Cajero
+                                </span>
+
+                                <span th:if="${#strings.equalsIgnoreCase(
+                                                  emp.tipoEmpleado, 'COCINERO')}"
+                                      class="badge badge-info">
+                                    Cocinero
+                                </span>
+                            </td>
+
+                            <td>
+                                <span th:if="${#strings.equalsIgnoreCase(
+                                                  emp.tipoEmpleado, 'CAJERO')}"
+                                      th:text="${'Turno: ' +
+                                          (emp.turno != null
+                                              ? #strings.toLowerCase(emp.turno)
+                                              : 'sin asignar')}">
+                                </span>
+
+                                <div th:if="${#strings.equalsIgnoreCase(
+                                                 emp.tipoEmpleado, 'COCINERO')}">
+
+                                    <span th:text="${emp.categoria != null
+                                              ? #strings.toLowerCase(emp.categoria)
+                                              : 'sin categoría'}">
+                                    </span>
+
+                                    <span th:if="${not #strings.isEmpty(
+                                                      emp.tareaEspecial)}"
+                                          th:text="${' (' + emp.tareaEspecial + ')'}">
+                                    </span>
+
+                                </div>
+                            </td>
+
+                            <td class="text-nowrap">
+                                <form th:action="@{/responsable/empleados/estado/{id}(id=${emp.idEmpleado})}"
+                                      method="post"
+                                      class="mb-0"
+                                      sec:authorize="hasRole('RESPONSABLE')">
+
+                                    <div class="form-check">
+
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               th:id="${'activo-' + emp.idEmpleado}"
+                                               name="activo"
+                                               value="true"
+                                               th:checked="${emp.activo}"
+                                               onchange="confirmarCambioEstado(this)">
+
+                                        <label class="form-check-label"
+                                               th:for="${'activo-' + emp.idEmpleado}"
+                                               th:text="${emp.activo
+                                                         ? 'Activo' : 'Inactivo'}">
+                                        </label>
+
+                                    </div>
+
+                                </form>
+                            </td>
+
+                            <td class="text-nowrap"
+                                sec:authorize="hasRole('RESPONSABLE')">
+
+                                <a class="btn btn-sm btn-warning"
+                                   th:href="@{/empleado/edit/{id}(id=${emp.idEmpleado})}">
+                                    Actualizar
+                                </a>
+
+                            </td>
+
+                        </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div th:if="${#lists.isEmpty(unidad.empleados)}"
+                     class="text-center text-muted py-4">
+
+                    <span th:if="${busquedaAplicada}">
+                        No se encontraron empleados activos con los filtros indicados.
+                    </span>
+
+                    <span th:unless="${busquedaAplicada}">
+                        Esta unidad no tiene empleados asignados.
+                    </span>
+
+                </div>
+
             </div>
 
         </div>
+
     </div>
+
+    <template id="opciones-turno">
+        <option value="">Seleccioná un turno</option>
+        <option th:each="turno : ${turnos}"
+                th:value="${turno.name()}"
+                th:text="${turno.name() == 'MANANA' ? 'Mañana' : 'Noche'}">
+        </option>
+    </template>
+
+    <template id="opciones-categoria">
+        <option value="">Seleccioná una categoría</option>
+        <option th:each="categoria : ${categorias}"
+                th:value="${categoria.name()}"
+                th:text="${categoria.name() == 'COCINERO'
+                    ? 'Cocinero'
+                    : (categoria.name() == 'COCINERO_AYUDANTE'
+                        ? 'Cocinero ayudante' : 'Lavaplatos')}">
+        </option>
+    </template>
+
+    <template id="opciones-tipo">
+        <option value="">Seleccioná un tipo</option>
+        <option value="CAJERO">Cajero</option>
+        <option value="COCINERO">Cocinero</option>
+    </template>
 
 </main>
 
 <footer th:replace="~{layout :: footer}"></footer>
-
 <div th:replace="~{layout :: scripts}"></div>
 
 <script>
@@ -252,7 +559,6 @@
             return;
         }
 
-        // Guardar la posición antes de enviar el formulario.
         sessionStorage.setItem(
             claveScrollEmpleados,
             String(window.scrollY)
@@ -261,11 +567,8 @@
         checkbox.form.requestSubmit();
     }
 
-    // Recuperar la posición después del POST y la redirección.
     window.addEventListener("load", function () {
-        const posicion = sessionStorage.getItem(
-            claveScrollEmpleados
-        );
+        const posicion = sessionStorage.getItem(claveScrollEmpleados);
 
         if (posicion !== null) {
             sessionStorage.removeItem(claveScrollEmpleados);
@@ -277,6 +580,305 @@
             });
         }
     });
+
+    (function () {
+        const formulario = document.getElementById("formulario-filtros");
+        const contenedor = document.getElementById("criterios-empleados");
+        const resultados = document.getElementById("resultados-empleados");
+        const cantidad = document.getElementById("cantidad-empleados");
+        const estado = document.getElementById("estado-busqueda");
+        const error = document.getElementById("error-busqueda");
+
+        let temporizador = null;
+        let controlador = null;
+        let version = 0;
+
+        function crearControlValor(fila, valorInicial) {
+            const campo = fila.querySelector(".campo-filtro").value;
+            const destino = fila.querySelector(".contenedor-valor");
+            let control;
+
+            const plantillas = {
+                turno: "opciones-turno",
+                categoria: "opciones-categoria",
+                tipoEmpleado: "opciones-tipo"
+            };
+
+            const placeholdersEdad = {
+                edadExacta: "Edad en años",
+                edadMinima: "Desde esta edad",
+                edadMaxima: "Hasta esta edad"
+            };
+
+            if (plantillas[campo]) {
+                control = document.createElement("select");
+                control.className = "custom-select";
+
+                control.appendChild(
+                    document.getElementById(plantillas[campo])
+                        .content.cloneNode(true)
+                );
+            } else {
+                control = document.createElement("input");
+                control.className = "form-control";
+
+                if (campo === "fechaNacimiento" || campo === "ingreso") {
+                    control.type = "date";
+
+                } else if (campo === "dni") {
+                    control.type = "number";
+                    control.min = "1";
+                    control.step = "1";
+                    control.placeholder = "El DNI empieza con…";
+
+                } else if (placeholdersEdad[campo]) {
+                    control.type = "number";
+                    control.min = "0";
+                    control.step = "1";
+                    control.placeholder = placeholdersEdad[campo];
+
+                } else {
+                    control.type = "text";
+                    control.placeholder = "Escribí un valor…";
+                }
+            }
+
+            control.name = "valor";
+            control.setAttribute("aria-label", "Valor del filtro");
+            control.value = valorInicial || "";
+
+            destino.replaceChildren(control);
+        }
+
+        function actualizarBotones() {
+            const filas = contenedor.querySelectorAll(".fila-filtro");
+
+            filas.forEach(function (fila, indice) {
+                fila.querySelector(".agregar-filtro")
+                    .classList.toggle("d-none", indice !== 0);
+
+                fila.querySelector(".quitar-filtro")
+                    .classList.toggle("d-none", indice === 0);
+            });
+        }
+
+        function mostrarError(mensaje) {
+            error.textContent = mensaje;
+            error.classList.remove("d-none");
+        }
+
+        function cambiarCarga(cargando) {
+            resultados.classList.toggle("cargando", cargando);
+            resultados.setAttribute(
+                "aria-busy",
+                cargando ? "true" : "false"
+            );
+
+            estado.textContent = "";
+        }
+
+        function construirUrl() {
+            const url = new URL(formulario.action, window.location.href);
+
+            url.search = new URLSearchParams(
+                new FormData(formulario)
+            ).toString();
+
+            return url;
+        }
+
+        async function buscar(versionActual) {
+            if (versionActual !== version) {
+                return;
+            }
+
+            if (!formulario.checkValidity()) {
+                cambiarCarga(false);
+                estado.textContent = "Revisá los valores ingresados.";
+                return;
+            }
+
+            const url = construirUrl();
+            const peticion = new AbortController();
+            controlador = peticion;
+
+            cambiarCarga(true);
+            error.classList.add("d-none");
+
+            try {
+                const respuesta = await fetch(url.href, {
+                    credentials: "same-origin",
+                    signal: peticion.signal
+                });
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        "No se pudo actualizar la búsqueda."
+                    );
+                }
+
+                const html = await respuesta.text();
+
+                if (versionActual !== version) {
+                    return;
+                }
+
+                const documento = new DOMParser().parseFromString(
+                    html,
+                    "text/html"
+                );
+
+                const nuevosResultados = documento.getElementById(
+                    "resultados-empleados"
+                );
+
+                const nuevaCantidad = documento.getElementById(
+                    "cantidad-empleados"
+                );
+
+                if (!nuevosResultados || !nuevaCantidad) {
+                    throw new Error(
+                        "No se pudo cargar el listado. " +
+                        "Recargá la página y verificá tu sesión."
+                    );
+                }
+
+                const errorServidor = documento.getElementById(
+                    "error-operacion"
+                );
+
+                if (errorServidor) {
+                    throw new Error(
+                        errorServidor.textContent.trim()
+                    );
+                }
+
+                resultados.innerHTML = nuevosResultados.innerHTML;
+                cantidad.textContent = nuevaCantidad.textContent.trim();
+
+                window.history.replaceState(
+                    null,
+                    "",
+                    url.pathname + url.search
+                );
+
+            } catch (e) {
+                if (e.name === "AbortError"
+                    || versionActual !== version) {
+                    return;
+                }
+
+                mostrarError(
+                    e.message || "No se pudo actualizar la búsqueda."
+                );
+
+            } finally {
+                if (versionActual === version) {
+                    cambiarCarga(false);
+                    controlador = null;
+                }
+            }
+        }
+
+        function programarBusqueda(demora) {
+            clearTimeout(temporizador);
+            version++;
+
+            if (controlador) {
+                controlador.abort();
+                controlador = null;
+            }
+
+            cambiarCarga(false);
+            error.classList.add("d-none");
+
+            const versionActual = version;
+
+            temporizador = setTimeout(function () {
+                buscar(versionActual);
+            }, demora);
+        }
+
+        contenedor.querySelectorAll(".fila-filtro").forEach(function (fila) {
+            crearControlValor(fila, fila.dataset.valor);
+        });
+
+        actualizarBotones();
+
+        formulario.addEventListener("submit", function (evento) {
+            evento.preventDefault();
+            programarBusqueda(0);
+        });
+
+        contenedor.addEventListener("input", function (evento) {
+            if (evento.isComposing) {
+                return;
+            }
+
+            if (evento.target.matches('input[name="valor"]')) {
+                programarBusqueda(300);
+            }
+        });
+
+        contenedor.addEventListener("compositionend", function (evento) {
+            if (evento.target.matches('input[name="valor"]')) {
+                programarBusqueda(300);
+            }
+        });
+
+        contenedor.addEventListener("change", function (evento) {
+            if (evento.target.matches(".campo-filtro")) {
+                crearControlValor(
+                    evento.target.closest(".fila-filtro"),
+                    ""
+                );
+
+                programarBusqueda(0);
+                return;
+            }
+
+            if (evento.target.matches('select[name="valor"]')
+                || evento.target.matches('input[type="date"]')) {
+                programarBusqueda(0);
+            }
+        });
+
+        contenedor.addEventListener("click", function (evento) {
+            const agregar = evento.target.closest(".agregar-filtro");
+            const quitar = evento.target.closest(".quitar-filtro");
+
+            if (agregar) {
+                const nuevaFila = contenedor
+                    .querySelector(".fila-filtro")
+                    .cloneNode(true);
+
+                nuevaFila.dataset.valor = "";
+                nuevaFila.querySelector(".campo-filtro").value = "nombre";
+
+                crearControlValor(nuevaFila, "");
+                contenedor.appendChild(nuevaFila);
+                actualizarBotones();
+
+                nuevaFila.querySelector('[name="valor"]').focus();
+            }
+
+            if (quitar) {
+                quitar.closest(".fila-filtro").remove();
+                actualizarBotones();
+                programarBusqueda(0);
+            }
+        });
+
+        document.getElementById("limpiar-filtros")
+            .addEventListener("click", function () {
+                clearTimeout(temporizador);
+                version++;
+
+                if (controlador) {
+                    controlador.abort();
+                }
+            });
+    })();
 </script>
 
 </body>

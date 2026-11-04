@@ -408,10 +408,10 @@ public class UnidadVentaService implements IUnidadVenta {
         }
 
         switch (campo) {
-            case "nombre", "apellido", "dni", "fechaNacimiento",
-                 "ingreso", "tipoEmpleado", "turno", "categoria",
-                 "tareaEspecial", "edadExacta", "edadMinima",
-                 "edadMaxima" -> {
+            case "nombreCompleto", "nombre", "apellido", "dni",
+                 "fechaNacimiento", "ingreso", "tipoEmpleado", "turno",
+                 "categoria", "tareaEspecial", "edadExacta",
+                 "edadMinima", "edadMaxima" -> {
             }
 
             default -> throw new IllegalArgumentException(
@@ -486,6 +486,12 @@ public class UnidadVentaService implements IUnidadVenta {
             String valor) {
 
         return switch (campo) {
+
+            case "nombreCompleto" ->
+                    normalizar(
+                            empleado.getNombre() + " " + empleado.getApellido()
+                    ).contains(normalizar(valor));
+
             case "nombre" ->
                     contieneTextoEmpleado(empleado.getNombre(), valor);
 

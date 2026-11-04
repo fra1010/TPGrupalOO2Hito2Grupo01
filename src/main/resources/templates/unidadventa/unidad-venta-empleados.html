@@ -268,50 +268,66 @@
                                     class="campo-filtro custom-select"
                                     aria-label="Atributo del empleado">
 
+                                <option value="nombreCompleto"
+                                        th:selected="${campo == 'nombreCompleto'}">
+                                    Nombre completo
+                                </option>
+
                                 <option value="nombre"
                                         th:selected="${campo == 'nombre'}">
                                     Nombre
                                 </option>
+
                                 <option value="apellido"
                                         th:selected="${campo == 'apellido'}">
                                     Apellido
                                 </option>
+
                                 <option value="dni"
                                         th:selected="${campo == 'dni'}">
                                     DNI
                                 </option>
+
                                 <option value="edadExacta"
                                         th:selected="${campo == 'edadExacta'}">
                                     Edad exacta
                                 </option>
+
                                 <option value="edadMinima"
                                         th:selected="${campo == 'edadMinima'}">
                                     Edad mínima
                                 </option>
+
                                 <option value="edadMaxima"
                                         th:selected="${campo == 'edadMaxima'}">
                                     Edad máxima
                                 </option>
+
                                 <option value="fechaNacimiento"
                                         th:selected="${campo == 'fechaNacimiento'}">
                                     Fecha de nacimiento
                                 </option>
+
                                 <option value="ingreso"
                                         th:selected="${campo == 'ingreso'}">
                                     Fecha de ingreso
                                 </option>
+
                                 <option value="tipoEmpleado"
                                         th:selected="${campo == 'tipoEmpleado'}">
                                     Tipo de empleado
                                 </option>
+
                                 <option value="turno"
                                         th:selected="${campo == 'turno'}">
                                     Turno
                                 </option>
+
                                 <option value="categoria"
                                         th:selected="${campo == 'categoria'}">
                                     Categoría
                                 </option>
+
                                 <option value="tareaEspecial"
                                         th:selected="${campo == 'tareaEspecial'}">
                                     Tarea especial
@@ -410,6 +426,7 @@
                             <td class="text-center text-nowrap"
                                 th:text="${emp.edad != null ? emp.edad : '—'}">
                             </td>
+
                             <td class="text-nowrap"
                                 th:text="${emp.ingreso}">
                             </td>
@@ -637,6 +654,10 @@
                     control.step = "1";
                     control.placeholder = placeholdersEdad[campo];
 
+                } else if (campo === "nombreCompleto") {
+                    control.type = "text";
+                    control.placeholder = "Buscar por nombre y apellido…";
+
                 } else {
                     control.type = "text";
                     control.placeholder = "Escribí un valor…";
@@ -853,7 +874,8 @@
                     .cloneNode(true);
 
                 nuevaFila.dataset.valor = "";
-                nuevaFila.querySelector(".campo-filtro").value = "nombre";
+                nuevaFila.querySelector(".campo-filtro").value =
+                    "nombreCompleto";
 
                 crearControlValor(nuevaFila, "");
                 contenedor.appendChild(nuevaFila);

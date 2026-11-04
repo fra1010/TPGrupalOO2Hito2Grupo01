@@ -87,7 +87,7 @@ public class ResponsableController {
 
         mV.addObject(
                 "camposFiltro",
-                estructuraValida ? campos : List.of("nombre")
+                estructuraValida ? campos : List.of("nombreCompleto")
         );
 
         mV.addObject(

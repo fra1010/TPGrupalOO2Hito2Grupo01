@@ -57,6 +57,13 @@
                     </a>
                 </li>
 
+                <li class="nav-item"
+                    sec:authorize="hasAuthority('CAJERO')">
+                    <a class="nav-link" th:href="@{/empleado/cierre-caja}">
+                        Cierre de caja
+                    </a>
+                </li>
+
                 <!-- Liquidación de sueldo: empleados -->
                 <li class="nav-item"
                     sec:authorize="hasRole('EMPLEADO')">

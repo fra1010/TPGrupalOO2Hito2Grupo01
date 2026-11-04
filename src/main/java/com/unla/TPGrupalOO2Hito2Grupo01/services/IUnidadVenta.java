@@ -23,6 +23,7 @@ public interface IUnidadVenta {
     List<EmpleadoDTO> filtrarEmpleados(String username, List<String> campos, List<String> valores);
     ReporteRentabilidadDTO calcularRentabilidad(String username, LocalDate desde, LocalDate hasta);
     PlatoReporteDTO obtenerPlatoEstrella(String username);
+    CierreDeCajaDTO obtenerCierreDeCaja(String username, LocalDate fecha);
 
 
 }

@@ -6,6 +6,7 @@ import com.unla.TPGrupalOO2Hito2Grupo01.utilidades.ReciboPdfService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import java.time.LocalDate;
+
 import org.springframework.security.core.Authentication;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
@@ -26,6 +29,9 @@ import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.CierreDeCajaDTO;
+
+
 
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.ModelAndView;
@@ -251,6 +257,30 @@ public class EmpleadoController {
         }
 
         return ViewRouteHelper.EMPLEADO_MI_INFORMACION;
+    }
+
+    @PreAuthorize("hasAuthority('CAJERO') or hasAuthority('ROLE_CAJERO') or hasRole('CAJERO')")
+    @GetMapping("/cierre-caja")
+    public String verCierreDeCaja(
+            @AuthenticationPrincipal User user,
+            @RequestParam(value = "fecha", required = false)
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate fecha,
+            Model model) {
+
+        // Si no se especifica una fecha en la URL, tomamos la fecha actual por defecto
+        if (fecha == null) {
+            fecha = LocalDate.now();
+        }
+
+        try {
+            CierreDeCajaDTO cierre = unidadVentaService.obtenerCierreDeCaja(user.getUsername(), fecha);
+            model.addAttribute("cierre", cierre);
+            model.addAttribute("fechaSeleccionada", fecha);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+        }
+
+        return "unidadventa/cierre-caja";
     }
 
 }

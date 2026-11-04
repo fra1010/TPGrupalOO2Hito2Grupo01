@@ -3,10 +3,13 @@ package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IPedidoService;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.CierreDeCajaDTO;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -721,6 +724,39 @@ public class UnidadVentaService implements IUnidadVenta {
         }
 
         return null;
+    }
+
+    @Autowired
+    private IPedidoService pedidoService; // Asegurate de inyectarlo si no lo tienes
+
+    @Override
+    public CierreDeCajaDTO obtenerCierreDeCaja(String username, LocalDate fecha) {
+        // 1. Buscamos la unidad de venta asociada al cajero logueado
+        UnidadVenta unidad = findByCajeroUsername(username);
+
+        if (unidad == null) {
+            throw new IllegalArgumentException("No se encontró una unidad de venta asociada al cajero: " + username);
+        }
+
+        // 2. Traemos los pedidos de esa unidad para la fecha indicada
+        List<Pedido> pedidosDelDia = pedidoService.getByUnidadYFecha(unidad.getIdUnidadVenta(), fecha);
+
+        // 3. Calculamos los totales
+        BigDecimal totalRecaudado = pedidosDelDia.stream()
+                .map(Pedido::getTotal) // Asumiendo que Pedido tiene un método getTotal() que retorna BigDecimal
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int cantidadPedidos = pedidosDelDia.size();
+
+        // 4. Armamos y retornamos el DTO de cierre de caja (ajustá los setters según los nombres de tu DTO)
+        CierreDeCajaDTO cierreDTO = new CierreDeCajaDTO();
+        cierreDTO.setFecha(fecha);
+        cierreDTO.setNombreUnidad(unidad.getNombre()); // O el identificador que tengas
+        cierreDTO.setTotalRecaudado(totalRecaudado);
+        cierreDTO.setCantidadPedidos(cantidadPedidos);
+        // Si tu DTO guarda la lista de pedidos o ítems, podés mapearla acá también
+
+        return cierreDTO;
     }
 
 }

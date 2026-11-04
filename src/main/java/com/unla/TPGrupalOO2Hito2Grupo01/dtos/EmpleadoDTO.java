@@ -13,6 +13,7 @@ import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.Period;
 
 @Getter
 @Setter
@@ -56,6 +57,17 @@ public class EmpleadoDTO
 
     private String tareaEspecial; // Se usará si tipoEmpleado es "COCINERO"
 
+    public Integer getEdad() {
+        LocalDate hoy = LocalDate.now();
+
+        if (fechaNacimiento == null || fechaNacimiento.isAfter(hoy)) {
+            return null;
+        }
+
+        return Period.between(fechaNacimiento, hoy).getYears();
+    }
+
+
     @AssertTrue(message = "El empleado debe tener al menos 18 años cumplidos")
     public boolean isMayorDeEdad() {
         if (fechaNacimiento == null) {
@@ -82,7 +94,6 @@ public class EmpleadoDTO
         this.categoria = categoria;
         this.tareaEspecial = tareaEspecial;
     }
-
 
 
 }

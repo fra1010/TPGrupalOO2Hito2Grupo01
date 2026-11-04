@@ -20,4 +20,6 @@ public interface IUnidadVenta {
     public ReporteUnidadDTO reporteUnidadVenta(String username);
     List<ReporteMayoresCanonDTO> unidadesConMayorCanon(Integer idFestival, int x);
     List<UnidadVentaDTO> traerUnidadesPorFestival(Integer idFestival);
+    List<EmpleadoDTO> filtrarEmpleados(String username, List<String> campos, List<String> valores
+    );
 }

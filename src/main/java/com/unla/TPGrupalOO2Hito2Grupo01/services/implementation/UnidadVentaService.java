@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.temporal.ChronoUnit;
 import jakarta.transaction.Transactional;
 import java.text.Normalizer;
 import java.time.Period;
@@ -105,7 +106,7 @@ public class UnidadVentaService implements IUnidadVenta {
 
             tiempoMontaje = BigDecimal.valueOf(puestoDesarmable.getTiempo());
             costoMontaje = tiempoMontaje.multiply(costo.getCostoMontaje());
-            canon = canon.add(costoMontaje);
+            canon = canon.subtract(costoMontaje);
         }
 
         return new ReporteCanonDTO(
@@ -348,8 +349,11 @@ public class UnidadVentaService implements IUnidadVenta {
         } else if (u instanceof PuestoDesarmable puestoDesarmable) {
             tipoUnidad = "PUESTO_DESARMABLE";
 
-            canon = canon.add(BigDecimal.valueOf(puestoDesarmable.getTiempo())
-                    .multiply(costo.getCostoMontaje()));
+            BigDecimal costoMontaje =
+                    BigDecimal.valueOf(puestoDesarmable.getTiempo())
+                            .multiply(costo.getCostoMontaje());
+
+            canon = canon.subtract(costoMontaje);
         }
 
         return new ReporteMayoresCanonDTO(
@@ -570,6 +574,132 @@ public class UnidadVentaService implements IUnidadVenta {
                 .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
                 .toLowerCase()
                 .trim();
+    }
+
+    @Override
+    @Transactional
+    public ReporteRentabilidadDTO calcularRentabilidad(
+            String username,
+            LocalDate desde,
+            LocalDate hasta) {
+
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaConFestival(username);
+
+        if (unidad == null) {
+            throw new IllegalArgumentException(
+                    "El responsable no tiene una unidad de venta asignada."
+            );
+        }
+
+        Festival festival = unidad.getFestival();
+
+        if (festival == null || festival.getCosto() == null) {
+            throw new IllegalArgumentException(
+                    "La unidad debe tener un festival con costos configurados."
+            );
+        }
+
+        LocalDate inicioFestival = festival.getFechaInicio();
+        LocalDate finFestival = festival.getFechaFin();
+
+        if (inicioFestival == null || finFestival == null
+                || inicioFestival.isAfter(finFestival)) {
+            throw new IllegalArgumentException(
+                    "Las fechas del festival no son válidas."
+            );
+        }
+
+        LocalDate desdeSolicitado =
+                desde != null ? desde : inicioFestival;
+
+        LocalDate hastaSolicitado =
+                hasta != null ? hasta : finFestival;
+
+        if (desdeSolicitado.isAfter(hastaSolicitado)) {
+            throw new IllegalArgumentException(
+                    "La fecha 'Desde' no puede ser posterior a 'Hasta'."
+            );
+        }
+
+        LocalDate desdeEfectivo = desdeSolicitado.isBefore(inicioFestival)
+                ? inicioFestival
+                : desdeSolicitado;
+
+        LocalDate hastaEfectivo = hastaSolicitado.isAfter(finFestival)
+                ? finFestival
+                : hastaSolicitado;
+
+        if (desdeEfectivo.isAfter(hastaEfectivo)) {
+            throw new IllegalArgumentException(
+                    "El período indicado no coincide con las fechas del festival."
+            );
+        }
+
+        long diasFestival =
+                ChronoUnit.DAYS.between(inicioFestival, finFestival) + 1;
+
+        long diasPeriodo =
+                ChronoUnit.DAYS.between(desdeEfectivo, hastaEfectivo) + 1;
+
+        BigDecimal ingresos =
+                unidadVentaRepository.ingresosRentabilidad(
+                        unidad,
+                        desdeEfectivo,
+                        hastaEfectivo
+                ).setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal costosPlatos =
+                unidadVentaRepository.costosPlatosRentabilidad(
+                        unidad,
+                        desdeEfectivo,
+                        hastaEfectivo
+                ).setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal sueldos =
+                unidadVentaRepository.traerSueldoPorEmpleado(
+                                unidad,
+                                desdeEfectivo,
+                                hastaEfectivo
+                        )
+                        .stream()
+                        .map(ReciboDetalladoDTO::getTotalAPagar)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal canonTotal = armarReporteCanon(unidad)
+                .getCanon()
+                .setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal canonPeriodo = canonTotal
+                .multiply(BigDecimal.valueOf(diasPeriodo))
+                .divide(
+                        BigDecimal.valueOf(diasFestival),
+                        2,
+                        RoundingMode.HALF_UP
+                );
+
+        BigDecimal rentabilidad = ingresos
+                .subtract(costosPlatos)
+                .subtract(sueldos)
+                .subtract(canonPeriodo)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        return new ReporteRentabilidadDTO(
+                unidad.getIdUnidadVenta(),
+                unidad.getNombre(),
+                festival.getNombre(),
+                desdeEfectivo,
+                hastaEfectivo,
+                diasPeriodo,
+                diasFestival,
+                ingresos,
+                costosPlatos,
+                sueldos,
+                canonTotal,
+                canonPeriodo,
+                rentabilidad
+        );
     }
 
 }

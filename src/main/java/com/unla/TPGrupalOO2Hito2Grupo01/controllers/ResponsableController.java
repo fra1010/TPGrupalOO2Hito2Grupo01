@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.util.MultiValueMap;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteRentabilidadDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.SueldoEmpleadoDTO;
@@ -121,6 +122,45 @@ public class ResponsableController {
         mV.addObject("busquedaAplicada", buscar);
         mV.addObject("turnos", Turno.values());
         mV.addObject("categorias", CategoriaCocina.values());
+
+        return mV;
+    }
+
+    @GetMapping("/rentabilidad")
+    public ModelAndView obtenerRentabilidad(
+            @AuthenticationPrincipal User user,
+            @RequestParam(name = "desde", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate desde,
+            @RequestParam(name = "hasta", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate hasta) {
+
+        ModelAndView mV = new ModelAndView(
+                "unidadventa/reporte-rentabilidad"
+        );
+
+        mV.addObject("desde", desde);
+        mV.addObject("hasta", hasta);
+
+        try {
+            ReporteRentabilidadDTO reporte =
+                    unidadVentaService.calcularRentabilidad(
+                            user.getUsername(),
+                            desde,
+                            hasta
+                    );
+
+            mV.addObject("reporte", reporte);
+
+            mV.addObject(
+                    "proyeccion",
+                    reporte.getHasta().isAfter(LocalDate.now())
+            );
+
+        } catch (IllegalArgumentException e) {
+            mV.addObject("error", e.getMessage());
+        }
 
         return mV;
     }

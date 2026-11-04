@@ -18,53 +18,15 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
     UnidadVenta traerUnidadVentaResponsable(@Param("username") String username);
 
     @Query("""
-    SELECT new com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReporteCanonDTO(
-        u.id,
-        CASE WHEN TYPE(u) = FoodTruck THEN 'FOOD_TRUCK'
-             WHEN TYPE(u) = PuestoDesarmable THEN 'PUESTO_DESARMABLE'
-             ELSE 'OTRO' END,
-        u.nombre,
-        f.nombre,
-        CAST(u.superficie AS BigDecimal),
-        c.costoSuperficies,
-        (CAST(u.superficie AS BigDecimal) * c.costoSuperficies),
-
-        CASE WHEN TYPE(u) = FoodTruck THEN
-                (CASE WHEN TREAT(u AS FoodTruck).conexion = true THEN 1 ELSE 0 END)
-             ELSE 0 END,
-
-        CASE WHEN TYPE(u) = FoodTruck THEN
-                (CASE WHEN TREAT(u AS FoodTruck).conexion = true
-                      THEN c.plusElectricidad ELSE cast(0 as BigDecimal) END)
-             ELSE cast(0 as BigDecimal) END,
-
-        CASE WHEN TYPE(u) = PuestoDesarmable
-             THEN CAST(TREAT(u AS PuestoDesarmable).tiempo AS BigDecimal)
-             ELSE cast(0 as BigDecimal) END,
-
-        c.costoMontaje,
-
-        CASE WHEN TYPE(u) = PuestoDesarmable
-             THEN (TREAT(u AS PuestoDesarmable).tiempo * c.costoMontaje)
-             ELSE cast(0 as BigDecimal) END,
-
-        CASE
-            WHEN TYPE(u) = FoodTruck THEN
-                (CAST(u.superficie AS BigDecimal) * c.costoSuperficies)
-                + (CASE WHEN TREAT(u AS FoodTruck).conexion = true
-                        THEN c.plusElectricidad ELSE cast(0 as BigDecimal) END)
-            WHEN TYPE(u) = PuestoDesarmable THEN
-                (CAST(u.superficie AS BigDecimal) * c.costoSuperficies)
-                + (TREAT(u AS PuestoDesarmable).tiempo * c.costoMontaje)
-            ELSE cast(0 as BigDecimal)
-        END
-    )
+    SELECT u
     FROM UnidadVenta u
-    JOIN u.festival f
-    JOIN f.costo c
+    JOIN FETCH u.festival f
+    JOIN FETCH f.costo
     WHERE u.responsable.username = :username
     """)
-    ReporteCanonDTO calcularCanonReporte(@Param("username") String username);
+    UnidadVenta traerUnidadVentaConCostoPorResponsable(
+            @Param("username") String username
+    );
 
     @Query("SELECT u FROM UnidadVenta u LEFT JOIN FETCH u.empleados LEFT JOIN FETCH u.festival WHERE u = :unidadVenta")
     UnidadVenta traerUnidadVentaConEmpleados(@Param("unidadVenta") UnidadVenta unidadVenta);
@@ -320,4 +282,13 @@ public interface IUnidadVentaRepository extends JpaRepository<UnidadVenta, Integ
     List<Object[]> recaudacionesPorFestival(
             @Param("idFestival") Integer idFestival
     );
+
+    @Query("""
+    SELECT u
+    FROM UnidadVenta u
+    JOIN FETCH u.festival f
+    JOIN FETCH f.costo
+    WHERE f.idFestival = :idFestival
+    """)
+    List<UnidadVenta> traerUnidadesConCostoPorFestival(@Param("idFestival") Integer idFestival);
 }

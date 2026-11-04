@@ -40,11 +40,15 @@ public class HomeController {
 			principal = authentication.getPrincipal();
 		}
 
+		boolean esAdmin = false;
+
 		if (principal instanceof User user) {
 			Set<String> roles =
 					AuthorityUtils.authorityListToSet(
 							user.getAuthorities()
 					);
+
+			esAdmin = roles.contains("ROLE_ADMIN");
 
 			if (roles.contains("ROLE_RESPONSABLE")) {
 				modelAndView.setViewName("responsable/index");
@@ -60,6 +64,15 @@ public class HomeController {
 				"festivales",
 				festivalService.getAllActive()
 		);
+
+		if (esAdmin) {
+			modelAndView.addObject(
+					"festivalesFinalizados",
+					festivalService.getAll().stream()
+							.filter(festival -> !festival.isActivo())
+							.toList()
+			);
+		}
 
 		return modelAndView;
 	}

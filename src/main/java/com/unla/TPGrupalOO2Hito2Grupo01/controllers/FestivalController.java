@@ -11,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.FestivalDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Costo;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
@@ -24,21 +26,56 @@ import jakarta.validation.Valid;
 public class FestivalController {
 
     private final IFestivalService festivalService;
+    private final IUnidadVenta unidadVentaService;
 
-    public FestivalController(IFestivalService festivalService) {
+    public FestivalController(IFestivalService festivalService,
+                              IUnidadVenta unidadVentaService) {
         this.festivalService = festivalService;
-    }
-
-    @GetMapping
-    public String listFestivals(Model model) {
-        model.addAttribute("festivales", festivalService.getAllActive());
-        return "festival/index";
+        this.unidadVentaService = unidadVentaService;
     }
 
     @GetMapping("/new")
     public String newFestival(Model model) {
         model.addAttribute("festival", new FestivalDTO());
         return "festival/new";
+    }
+
+    @GetMapping("/{idFestival}/unidades")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String unidadesDeFestival(
+            @PathVariable("idFestival") Integer idFestival,
+            @RequestParam(name = "x", defaultValue = "3") int x,
+            Model model) {
+
+        Festival festival = festivalService.findById(idFestival)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró el festival indicado."
+                ));
+
+        model.addAttribute("festival", festival);
+        model.addAttribute("x", x);
+
+        return "festival/unidades";
+    }
+
+    @GetMapping("/{idFestival}/unidades/lista")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String unidadesLista(
+            @PathVariable("idFestival") Integer idFestival,
+            Model model) {
+
+        Festival festival = festivalService.findById(idFestival)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró el festival indicado."
+                ));
+
+        model.addAttribute("festival", festival);
+        model.addAttribute("unidades",
+                unidadVentaService.traerUnidadesPorFestival(idFestival));
+
+        return "festival/unidades-lista";
     }
 
     @GetMapping("/{idFestival}/ranking")
@@ -54,22 +91,33 @@ public class FestivalController {
                 ));
 
         model.addAttribute("festival", festival);
-
-        model.addAttribute(
-                "unidades",
-                festivalService.rankingUnidadesPorRecaudacion(
-                        idFestival
-                )
-        );
-
-        model.addAttribute(
-                "recaudaciones",
-                festivalService.recaudacionesPorFestival(
-                        idFestival
-                )
-        );
+        model.addAttribute("unidades",
+                festivalService.rankingUnidadesPorRecaudacion(idFestival));
+        model.addAttribute("recaudaciones",
+                festivalService.recaudacionesPorFestival(idFestival));
 
         return "festival/ranking";
+    }
+
+    @GetMapping("/{idFestival}/mayores-canon")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String mayoresCanon(
+            @PathVariable("idFestival") Integer idFestival,
+            @RequestParam(name = "x", defaultValue = "3") int x,
+            Model model) {
+
+        Festival festival = festivalService.findById(idFestival)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró el festival indicado."
+                ));
+
+        model.addAttribute("festival", festival);
+        model.addAttribute("x", x);
+        model.addAttribute("reporte",
+                unidadVentaService.unidadesConMayorCanon(idFestival, x));
+
+        return "festival/mayores-canon";
     }
 
     @PostMapping("/create")
@@ -103,7 +151,7 @@ public class FestivalController {
 
             festivalService.insertOrUpdate(festival);
 
-            return "redirect:/festival";
+            return "redirect:/";
 
         } catch (IllegalArgumentException exception) {
             bindingResult.reject("festival", exception.getMessage());

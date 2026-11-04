@@ -41,23 +41,6 @@
                     </a>
                 </li>
 
-                <!-- Unidades de venta: visible solo para el administrador -->
-                <li class="nav-item"
-                    sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" th:href="@{/unidadVenta/unidades}">
-                        Unidades de venta
-                    </a>
-                </li>
-
-                <!-- Ranking de unidades: administradores -->
-                <li class="nav-item"
-                    sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" th:href="@{/festival}">
-                        Ranking de unidades
-                    </a>
-                </li>
-
-
                 <!-- Nuevo pedido: cajeros -->
                 <li class="nav-item"
                     sec:authorize="hasAuthority('CAJERO')">

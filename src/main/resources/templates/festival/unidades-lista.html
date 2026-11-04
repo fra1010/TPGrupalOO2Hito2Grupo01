@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head}"></head>
+
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between
+                align-items-center mb-3">
+
+        <h2 class="h4 mb-0">Unidades de venta</h2>
+
+        <a th:href="@{/}"
+           class="btn btn-outline-secondary btn-sm">
+            Volver al inicio
+        </a>
+
+    </div>
+
+    <div th:if="${#lists.isEmpty(unidades)}"
+         class="alert alert-info mb-0">
+        Este festival no tiene unidades de venta registradas.
+    </div>
+
+    <div class="row" th:if="${!#lists.isEmpty(unidades)}">
+
+        <div class="col-md-4 mb-4"
+             th:each="unidad : ${unidades}"
+             th:with="esFoodTruck=${unidad instanceof T(com.unla.TPGrupalOO2Hito2Grupo01.dtos.FoodTruckDTO)},
+                          esPuesto=${unidad instanceof T(com.unla.TPGrupalOO2Hito2Grupo01.dtos.PuestoDesarmableDTO)}">
+
+            <div class="card h-100">
+
+                <div class="card-header bg-dark text-white
+                            d-flex justify-content-between align-items-center">
+
+                    <h5 class="mb-0" th:text="${unidad.nombre}"></h5>
+
+                    <span class="badge bg-warning text-dark"
+                          th:if="${esFoodTruck}">
+                        Food truck
+                    </span>
+
+                    <span class="badge bg-info text-dark"
+                          th:if="${esPuesto}">
+                        Puesto desarmable
+                    </span>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Código:</strong>
+                        <span th:text="${unidad.codigo}"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Superficie:</strong>
+                        <span th:text="${#numbers.formatDecimal(unidad.superficie, 1, 2)}"></span>
+                    </div>
+
+                    <div class="mb-0">
+                        <strong>Responsable:</strong>
+                        <span th:text="${unidad.responsable?.username} ?: '-'"></span>
+                    </div>
+
+                </div>
+
+                <div class="card-footer"
+                     th:if="${esFoodTruck or esPuesto}">
+
+                    <div th:if="${esFoodTruck}">
+                        <div class="mb-3">
+                            <strong>Patente:</strong>
+                            <span th:text="${unidad.patente}"></span>
+                        </div>
+
+                        <div class="mb-0">
+                            <strong>Conexión:</strong>
+                            <span class="badge text-white"
+                                  th:classappend="${unidad.conexion} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${unidad.conexion} ? 'Sí' : 'No'">
+                            </span>
+                        </div>
+                    </div>
+
+                    <div th:if="${esPuesto}">
+                        <div class="mb-3">
+                            <strong>Carpas:</strong>
+                            <span th:text="${unidad.cantidadCarpas}"></span>
+                        </div>
+
+                        <div class="mb-0">
+                            <strong>Tiempo:</strong>
+                            <span th:text="${unidad.tiempo}"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+
+<div th:replace="~{layout :: scripts}"></div>
+
+</body>
+</html>

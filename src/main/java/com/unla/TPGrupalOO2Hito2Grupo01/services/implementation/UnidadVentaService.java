@@ -67,19 +67,61 @@ public class UnidadVentaService implements IUnidadVenta {
 
     @Override
     public ReporteCanonDTO calcularCanon(String username) {
-        ReporteCanonDTO reporte = unidadVentaRepository.calcularCanonReporte(username);
 
-        if (reporte == null) {
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaConCostoPorResponsable(username);
+
+        if (unidad == null) {
             throw new EntityNotFoundException(
-                    "No se encontró una unidad de venta con festival y costos para: " + username);
-        }
-        if ("OTRO".equals(reporte.getTipo())) {
-            throw new IllegalArgumentException("Tipo de unidad sin cálculo de canon.");
+                    "No se encontró una unidad de venta para: " + username);
         }
 
-        return reporte;
+        Costo costo = unidad.getFestival().getCosto();
+
+        BigDecimal superficie = BigDecimal.valueOf(unidad.getSuperficie());
+        BigDecimal costoSuperficie =
+                superficie.multiply(costo.getCostoSuperficies());
+
+        String tipoUnidad = "OTRO";
+        Integer conexionElectrica = 0;
+        BigDecimal plusElectricidad = BigDecimal.ZERO;
+        BigDecimal tiempoMontaje = BigDecimal.ZERO;
+        BigDecimal costoMontaje = BigDecimal.ZERO;
+        BigDecimal canon = costoSuperficie;
+
+        if (unidad instanceof FoodTruck foodTruck) {
+            tipoUnidad = "FOOD_TRUCK";
+
+            if (foodTruck.isConexion()) {
+                conexionElectrica = 1;
+                plusElectricidad = costo.getPlusElectricidad();
+                canon = canon.add(plusElectricidad);
+            }
+
+        } else if (unidad instanceof PuestoDesarmable puestoDesarmable) {
+            tipoUnidad = "PUESTO_DESARMABLE";
+
+            tiempoMontaje = BigDecimal.valueOf(puestoDesarmable.getTiempo());
+            costoMontaje = tiempoMontaje.multiply(costo.getCostoMontaje());
+            canon = canon.add(costoMontaje);
+        }
+
+        return new ReporteCanonDTO(
+                unidad.getIdUnidadVenta(),
+                tipoUnidad,
+                unidad.getNombre(),
+                unidad.getFestival().getNombre(),
+                superficie,
+                costo.getCostoSuperficies(),
+                costoSuperficie,
+                conexionElectrica,
+                plusElectricidad,
+                tiempoMontaje,
+                costo.getCostoMontaje(),
+                costoMontaje,
+                canon
+        );
     }
-
     @Override
     @Transactional
     public UnidadVentaDTO traerUnidadVentaConEmpleados(
@@ -257,6 +299,65 @@ public class UnidadVentaService implements IUnidadVenta {
 
         return sb.toString().toUpperCase();
     }
+
+    @Override
+    public List<UnidadVentaDTO> traerUnidadesPorFestival(Integer idFestival) {
+        return unidadVentaRepository.traerUnidadesConCostoPorFestival(idFestival).stream()
+                .map(unidad -> {
+                    if (unidad instanceof FoodTruck foodTruck) {
+                        return (UnidadVentaDTO) modelMapper.map(
+                                foodTruck, FoodTruckDTO.class);
+                    }
+                    return (UnidadVentaDTO) modelMapper.map(
+                            unidad, PuestoDesarmableDTO.class);
+                })
+                .toList();
     }
+
+    @Override
+    public List<ReporteMayoresCanonDTO> unidadesConMayorCanon(Integer idFestival, int x) {
+        if (x <= 0) {
+            throw new IllegalArgumentException("x debe ser mayor a 0");
+        }
+
+        return unidadVentaRepository.traerUnidadesConCostoPorFestival(idFestival).stream()
+                .map(this::armarReporteCanon)
+                .sorted(Comparator
+                        .comparing(ReporteMayoresCanonDTO::getCanon).reversed()
+                        .thenComparing(ReporteMayoresCanonDTO::getNombreComercial))
+                .limit(x)
+                .toList();
+    }
+
+    private ReporteMayoresCanonDTO armarReporteCanon(UnidadVenta u) {
+        Costo costo = u.getFestival().getCosto();
+
+        BigDecimal canon = BigDecimal.valueOf(u.getSuperficie())
+                .multiply(costo.getCostoSuperficies());
+
+        String tipoUnidad = "OTRO";
+
+        if (u instanceof FoodTruck foodTruck) {
+            tipoUnidad = "FOOD_TRUCK";
+
+            if (foodTruck.isConexion()) {
+                canon = canon.add(costo.getPlusElectricidad());
+            }
+        } else if (u instanceof PuestoDesarmable puestoDesarmable) {
+            tipoUnidad = "PUESTO_DESARMABLE";
+
+            canon = canon.add(BigDecimal.valueOf(puestoDesarmable.getTiempo())
+                    .multiply(costo.getCostoMontaje()));
+        }
+
+        return new ReporteMayoresCanonDTO(
+                u.getNombre(),
+                u.getCodigo(),
+                tipoUnidad,
+                canon
+        );
+    }
+
+}
 
 

@@ -1,11 +1,15 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoEmpleadoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 import com.unla.TPGrupalOO2Hito2Grupo01.utilidades.ReciboPdfService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -17,20 +21,23 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import org.springframework.security.core.Authentication;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.CierreDeCajaDTO;
+
+
 
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/empleado")
@@ -251,6 +258,38 @@ public class EmpleadoController {
         }
 
         return ViewRouteHelper.EMPLEADO_MI_INFORMACION;
+    }
+
+    @PreAuthorize("hasAuthority('CAJERO')")
+    @GetMapping("/cierre-caja")
+    public String verCierreDeCaja(
+            @AuthenticationPrincipal User user,
+            @RequestParam(value = "fecha", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fecha,
+            Model model) {
+
+        if (fecha == null) {
+            fecha = LocalDate.now();
+        }
+
+        model.addAttribute("fechaSeleccionada", fecha);
+        model.addAttribute("fechaActual", LocalDate.now());
+
+        try {
+            CierreDeCajaDTO cierre =
+                    unidadVentaService.obtenerCierreDeCaja(
+                            user.getUsername(),
+                            fecha
+                    );
+
+            model.addAttribute("cierre", cierre);
+
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+        }
+
+        return "unidadventa/cierre-caja";
     }
 
 }

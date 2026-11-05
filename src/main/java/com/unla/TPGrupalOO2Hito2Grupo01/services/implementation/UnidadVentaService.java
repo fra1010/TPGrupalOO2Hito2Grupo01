@@ -3,42 +3,48 @@ package com.unla.TPGrupalOO2Hito2Grupo01.services.implementation;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
+import com.unla.TPGrupalOO2Hito2Grupo01.services.IPedidoService;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.temporal.ChronoUnit;
-import jakarta.transaction.Transactional;
-import java.text.Normalizer;
-import java.time.Period;
-import java.time.format.DateTimeParseException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
+import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class UnidadVentaService implements IUnidadVenta {
 
     private final IUnidadVentaRepository unidadVentaRepository;
     private final ModelMapper modelMapper;
+    private final IPedidoService pedidoService;
 
     private final BCryptPasswordEncoder pe =
             new BCryptPasswordEncoder();
 
     public UnidadVentaService(
-            @Qualifier("modelMapperUnidadVenta") ModelMapper modelMapper,
-            IUnidadVentaRepository unidadVentaRepository) {
+            @Qualifier("modelMapperUnidadVenta")
+            ModelMapper modelMapper,
+            IUnidadVentaRepository unidadVentaRepository,
+            IPedidoService pedidoService) {
 
         this.modelMapper = modelMapper;
         this.unidadVentaRepository = unidadVentaRepository;
+        this.pedidoService = pedidoService;
     }
 
     @Override
@@ -740,6 +746,99 @@ public class UnidadVentaService implements IUnidadVenta {
                 .orElse(null);
     }
 
-}
+    @Override
+    @Transactional
+    public CierreDeCajaDTO obtenerCierreDeCaja(
+            String username,
+            LocalDate fecha) {
 
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException(
+                    "No se pudo identificar al usuario."
+            );
+        }
+
+        if (fecha == null) {
+            throw new IllegalArgumentException(
+                    "Debe indicar una fecha para consultar el cierre."
+            );
+        }
+
+        if (fecha.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException(
+                    "No se puede consultar el cierre de una fecha futura."
+            );
+        }
+
+        UnidadVenta unidad = findByCajeroUsername(username);
+
+        if (unidad == null) {
+            throw new IllegalArgumentException(
+                    "No tenés una unidad de venta asignada como cajero activo."
+            );
+        }
+
+        List<Pedido> pedidosDelDia =
+                pedidoService.getByUnidadYFecha(
+                        unidad.getIdUnidadVenta(),
+                        fecha
+                );
+
+        BigDecimal totalRecaudado = BigDecimal.ZERO;
+
+        List<PedidoCierreDTO> pedidosDTO = new ArrayList<>();
+
+        for (Pedido pedido : pedidosDelDia) {
+
+            BigDecimal totalPedido = pedido.getTotal();
+
+            totalRecaudado = totalRecaudado.add(totalPedido);
+
+            PedidoCierreDTO pedidoDTO = new PedidoCierreDTO();
+
+            if (pedido.getIdPedido() != null) {
+                pedidoDTO.setIdPedido(
+                        pedido.getIdPedido().longValue()
+                );
+            }
+
+            pedidoDTO.setFecha(pedido.getFecha());
+            pedidoDTO.setTotal(totalPedido);
+
+            pedidosDTO.add(pedidoDTO);
+        }
+
+        int cantidadPedidos = pedidosDTO.size();
+
+        BigDecimal ticketPromedio =
+                BigDecimal.ZERO.setScale(2);
+
+        if (cantidadPedidos > 0) {
+            ticketPromedio = totalRecaudado.divide(
+                    BigDecimal.valueOf(cantidadPedidos),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+        }
+
+        CierreDeCajaDTO cierreDTO = new CierreDeCajaDTO();
+
+        cierreDTO.setFecha(fecha);
+        cierreDTO.setNombreUnidad(unidad.getNombre());
+
+        cierreDTO.setTotalRecaudado(
+                totalRecaudado.setScale(
+                        2,
+                        RoundingMode.HALF_UP
+                )
+        );
+
+        cierreDTO.setCantidadPedidos(cantidadPedidos);
+        cierreDTO.setTicketPromedio(ticketPromedio);
+        cierreDTO.setPedidosDelDia(pedidosDTO);
+
+        return cierreDTO;
+    }
+
+}
 

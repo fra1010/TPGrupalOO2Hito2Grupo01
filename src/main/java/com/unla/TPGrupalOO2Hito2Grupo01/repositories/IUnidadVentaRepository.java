@@ -517,12 +517,13 @@ public interface IUnidadVentaRepository
     );
 
     @Query("""
-        SELECT u
-        FROM UnidadVenta u
-        JOIN u.empleados e
-        WHERE e.user.username = :username
-          AND TYPE(e) = Cajero
-        """)
+    SELECT u
+    FROM UnidadVenta u
+    JOIN u.empleados e
+    WHERE e.user.username = :username
+      AND TYPE(e) = Cajero
+      AND e.activo = true
+    """)
     UnidadVenta findByCajeroUsername(
             @Param("username") String username
     );

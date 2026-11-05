@@ -260,22 +260,31 @@ public class EmpleadoController {
         return ViewRouteHelper.EMPLEADO_MI_INFORMACION;
     }
 
-    @PreAuthorize("hasAnyRole('EMPLEADO', 'ADMIN', 'RESPONSABLE')") // <-- Cambiado de CAJERO a EMPLEADO
+    @PreAuthorize("hasAuthority('CAJERO')")
     @GetMapping("/cierre-caja")
     public String verCierreDeCaja(
             @AuthenticationPrincipal User user,
             @RequestParam(value = "fecha", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fecha,
             Model model) {
 
         if (fecha == null) {
             fecha = LocalDate.now();
         }
 
+        model.addAttribute("fechaSeleccionada", fecha);
+        model.addAttribute("fechaActual", LocalDate.now());
+
         try {
-            CierreDeCajaDTO cierre = unidadVentaService.obtenerCierreDeCaja(user.getUsername(), fecha);
+            CierreDeCajaDTO cierre =
+                    unidadVentaService.obtenerCierreDeCaja(
+                            user.getUsername(),
+                            fecha
+                    );
+
             model.addAttribute("cierre", cierre);
-            model.addAttribute("fechaSeleccionada", fecha);
+
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
         }

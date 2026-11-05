@@ -1,108 +1,303 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{layout :: head}"></head>
+
 <body>
-<!--  navbarCajero o navbarResponsable según tu layout -->
+
 <nav th:replace="~{layout :: navbar}"></nav>
 
 <main class="container py-4">
+
+    <!-- ===================== ENCABEZADO ===================== -->
     <div class="page-header mb-3">
-        <h2 class="text-center" th:text="${cierre.nombreUnidad}">Nombre de la unidad de venta</h2>
-        <p class="text-muted mb-0 text-center">Cierre de caja diario</p>
+
+        <h2 class="text-center"
+            th:text="${cierre != null
+                ? cierre.nombreUnidad
+                : 'Unidad de venta'}">
+            Nombre de la unidad de venta
+        </h2>
+
+        <p class="text-muted mb-0 text-center">
+            Cierre de caja diario
+        </p>
+
     </div>
 
-    <!-- Alerta de error si ocurre algún inconveniente -->
-    <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">
+    <!-- ===================== ERROR ===================== -->
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
         Mensaje de error
     </div>
 
-    <!-- Formulario para seleccionar la fecha a consultar (Adaptado a Bootstrap 4) -->
-    <form method="get" th:action="@{/empleado/cierre-caja}" class="form-row justify-content-center align-items-end mb-4">
-        <div class="col-auto mb-2 mb-md-0">
-            <label for="fecha" class="font-weight-bold">Fecha del Cierre:</label>
-            <input type="date" id="fecha" name="fecha" class="form-control" th:value="${fechaSeleccionada}">
+    <!-- ===================== FILTRO ===================== -->
+    <form method="get"
+          th:action="@{/empleado/cierre-caja}"
+          class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <strong>Fecha de consulta</strong>
         </div>
-        <div class="col-auto mb-2 mb-md-0">
-            <button type="submit" class="btn btn-primary">Consultar</button>
+
+        <div class="card-body">
+
+            <div class="row align-items-end">
+
+                <div class="col-md-4 mb-3">
+
+                    <label for="cierre-fecha">
+                        Fecha
+                    </label>
+
+                    <input type="date"
+                           id="cierre-fecha"
+                           name="fecha"
+                           class="form-control"
+                           required
+                           th:value="${fechaSeleccionada}"
+                           th:max="${fechaActual}">
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Consultar
+                    </button>
+
+                </div>
+
+            </div>
+
         </div>
+
     </form>
 
-    <!-- Tabla de resumen de cierre -->
-    <div class="card shadow-sm border-0 mb-4" th:if="${cierre != null}">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead>
-                <tr>
-                    <th>Concepto</th>
-                    <th class="text-right">Detalle / Cantidad</th>
-                    <th class="text-right">Subtotal</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>Fecha consultada</td>
-                    <td class="text-right" th:text="${cierre.fecha}">YYYY-MM-DD</td>
-                    <td class="text-right">-</td>
-                </tr>
-                <tr>
-                    <td>Total de pedidos realizados</td>
-                    <td class="text-right" th:text="${cierre.cantidadPedidos}">0</td>
-                    <td class="text-right">-</td>
-                </tr>
-                <!-- Fila de Ticket Promedio corregida y segura contra nulos -->
-                <tr>
-                    <td>Ticket promedio por pedido</td>
-                    <td class="text-right">-</td>
-                    <td class="text-right">
-                        <span th:if="${cierre.ticketPromedio != null}"
-                              th:text="'$ ' + ${#numbers.formatDecimal(cierre.ticketPromedio, 1, 'POINT', 2, 'COMMA')}">
-                        </span>
-                        <span th:if="${cierre.ticketPromedio == null}">$ 0,00</span>
-                    </td>
-                </tr>
-                </tbody>
-                <tfoot>
-                <tr>
-                    <th colspan="2" class="text-right">Total recaudado</th>
-                    <th class="text-right text-success" th:text="'$ ' + ${#numbers.formatDecimal(cierre.totalRecaudado, 1, 'POINT', 2, 'COMMA')}"></th>
-                </tr>
-                </tfoot>
-            </table>
+    <!-- ===================== RESULTADO ===================== -->
+    <div th:if="${cierre != null}">
+
+        <!-- Día sin pedidos -->
+        <div th:if="${cierre.cantidadPedidos == 0}"
+             class="alert alert-info"
+             role="status">
+
+            No se registraron pedidos para esta unidad de venta
+            en la fecha seleccionada.
+
         </div>
+
+        <!-- Resumen -->
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+                <strong>Resumen del día</strong>
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead>
+                        <tr>
+
+                            <th scope="col"
+                                class="px-3">
+                                Concepto
+                            </th>
+
+                            <th scope="col"
+                                class="text-right px-3">
+                                Detalle / Cantidad
+                            </th>
+
+                            <th scope="col"
+                                class="text-right px-3">
+                                Importe
+                            </th>
+
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr>
+
+                            <th scope="row"
+                                class="px-3 py-3">
+                                Fecha consultada
+                            </th>
+
+                            <td class="text-right text-nowrap px-3 py-3"
+                                th:text="${#temporals.format(
+                                    cierre.fecha, 'dd/MM/yyyy')}">
+                                01/11/2026
+                            </td>
+
+                            <td class="text-right px-3 py-3">
+                                -
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th scope="row"
+                                class="px-3 py-3">
+                                Total de pedidos
+                            </th>
+
+                            <td class="text-right px-3 py-3"
+                                th:text="${cierre.cantidadPedidos}">
+                                0
+                            </td>
+
+                            <td class="text-right px-3 py-3">
+                                -
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th scope="row"
+                                class="px-3 py-3">
+                                Ticket promedio por pedido
+                            </th>
+
+                            <td class="text-right px-3 py-3">
+                                -
+                            </td>
+
+                            <td class="text-right text-nowrap px-3 py-3"
+                                style="font-variant-numeric: tabular-nums;"
+                                th:text="${'$ ' + #numbers.formatDecimal(
+                                    cierre.ticketPromedio,
+                                    1, 'POINT', 2, 'COMMA')}">
+                                $ 0,00
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                        <tfoot>
+                        <tr>
+
+                            <th colspan="2"
+                                class="text-right px-3 py-3">
+                                Total recaudado
+                            </th>
+
+                            <th class="text-right text-nowrap px-3 py-3"
+                                style="font-variant-numeric: tabular-nums;"
+                                th:text="${'$ ' + #numbers.formatDecimal(
+                                    cierre.totalRecaudado,
+                                    1, 'POINT', 2, 'COMMA')}">
+                                $ 0,00
+                            </th>
+
+                        </tr>
+                        </tfoot>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Detalle de pedidos -->
+        <div class="card shadow-sm mb-4"
+             th:if="${cierre.pedidosDelDia != null
+                and !cierre.pedidosDelDia.isEmpty()}">
+
+            <div class="card-header">
+                <strong>Pedidos del día</strong>
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead>
+                        <tr>
+
+                            <th scope="col"
+                                class="px-3">
+                                Número de pedido
+                            </th>
+
+                            <th scope="col"
+                                class="px-3">
+                                Fecha
+                            </th>
+
+                            <th scope="col"
+                                class="text-right px-3">
+                                Total
+                            </th>
+
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="pedido : ${cierre.pedidosDelDia}">
+
+                            <td class="px-3 py-3"
+                                th:text="${pedido.idPedido}">
+                                1
+                            </td>
+
+                            <td class="text-nowrap px-3 py-3"
+                                th:text="${#temporals.format(
+                                    pedido.fecha, 'dd/MM/yyyy')}">
+                                01/11/2026
+                            </td>
+
+                            <td class="text-right text-nowrap px-3 py-3"
+                                style="font-variant-numeric: tabular-nums;"
+                                th:text="${'$ ' + #numbers.formatDecimal(
+                                    pedido.total,
+                                    1, 'POINT', 2, 'COMMA')}">
+                                $ 0,00
+                            </td>
+
+                        </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <!-- Sección de Detalle de Pedidos del Día -->
-    <div class="card shadow-sm border-0 mb-4" th:if="${cierre != null and cierre.pedidosDelDia != null and !cierre.pedidosDelDia.isEmpty()}">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">Listado de Pedidos del Día</h5>
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-striped mb-0">
-                <thead>
-                <tr>
-                    <th>ID Pedido</th>
-                    <th>Fecha / Hora</th>
-                    <th class="text-right">Total del Pedido</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="pedido : ${cierre.pedidosDelDia}">
-                    <td th:text="${pedido.idPedido}">1</td>
-                    <td th:text="${pedido.fecha}">2026-11-04</td>
-                    <td class="text-right" th:text="'$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Botón de navegación para volver -->
+    <!-- ===================== VOLVER ===================== -->
     <div class="d-flex justify-content-start mt-3">
-        <a th:href="@{/empleado/mi-informacion}" class="btn btn-secondary">Volver</a>
+
+        <a th:href="@{/empleado/mi-informacion}"
+           class="btn btn-secondary">
+            Volver
+        </a>
+
     </div>
+
 </main>
 
 <footer th:replace="~{layout :: footer}"></footer>
 <div th:replace="~{layout :: scripts}"></div>
+
 </body>
 </html>

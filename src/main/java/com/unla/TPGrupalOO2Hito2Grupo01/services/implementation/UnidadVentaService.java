@@ -702,25 +702,42 @@ public class UnidadVentaService implements IUnidadVenta {
         );
     }
 
-
     @Override
+    @Transactional
     public PlatoReporteDTO obtenerPlatoEstrella(String username) {
-        // 1. Usamos el método exacto que ya existe en tu IUnidadVentaRepository
-        UnidadVenta unidad = unidadVentaRepository.traerUnidadVentaResponsable(username);
+
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaResponsable(username);
 
         if (unidad == null) {
-            throw new IllegalArgumentException("No se encontró una unidad de venta para el responsable indicado.");
+            throw new IllegalArgumentException(
+                    "No se encontró una unidad de venta para el responsable indicado."
+            );
         }
 
-        // 2. Obtenemos el detalle de platos ordenados por venta que también tienes en tu repositorio
-        List<PlatoReporteDTO> platos = unidadVentaRepository.detallePorPlato(unidad);
-
-        // 3. Devolvemos el primero (el plato estrella) si existe
-        if (platos != null && !platos.isEmpty()) {
-            return platos.get(0);
+        if (unidad.getFestival() == null) {
+            throw new IllegalArgumentException(
+                    "La unidad de venta no tiene un festival asignado."
+            );
         }
 
-        return null;
+        List<PlatoReporteDTO> platos =
+                unidadVentaRepository.detallePorPlato(unidad);
+
+        return platos.stream()
+                .sorted(
+                        Comparator.comparing(
+                                        PlatoReporteDTO::getCantidad,
+                                        Comparator.reverseOrder()
+                                )
+                                .thenComparing(
+                                        PlatoReporteDTO::getPlato,
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                                .thenComparing(PlatoReporteDTO::getIdPlato)
+                )
+                .findFirst()
+                .orElse(null);
     }
 
 }

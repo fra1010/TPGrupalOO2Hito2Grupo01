@@ -1,17 +1,12 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.services;
 
-import java.util.List;
-import java.util.Optional;
-import java.math.BigDecimal;
-import java.util.Map;
-
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Festival;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Plato;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO;
 
-
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public interface IFestivalService {
 
@@ -30,7 +25,4 @@ public interface IFestivalService {
     Map<Integer, BigDecimal> recaudacionesPorFestival(
             Integer idFestival
     );
-
-    PlatoReporteDTO obtenerPlatoEstrella(Integer idFestival, Integer idUnidad);
-
 }

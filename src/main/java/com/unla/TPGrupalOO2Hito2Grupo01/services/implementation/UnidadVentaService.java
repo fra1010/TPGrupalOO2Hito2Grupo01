@@ -26,22 +26,25 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Service
 public class UnidadVentaService implements IUnidadVenta {
 
     private final IUnidadVentaRepository unidadVentaRepository;
     private final ModelMapper modelMapper;
+    private IPedidoService pedidoService; //
 
     private final BCryptPasswordEncoder pe =
             new BCryptPasswordEncoder();
 
     public UnidadVentaService(
             @Qualifier("modelMapperUnidadVenta") ModelMapper modelMapper,
-            IUnidadVentaRepository unidadVentaRepository) {
+            IUnidadVentaRepository unidadVentaRepository,IPedidoService pedidoService) {
 
         this.modelMapper = modelMapper;
         this.unidadVentaRepository = unidadVentaRepository;
+        this.pedidoService = pedidoService;
     }
 
     @Override
@@ -726,9 +729,6 @@ public class UnidadVentaService implements IUnidadVenta {
         return null;
     }
 
-    @Autowired
-    private IPedidoService pedidoService; // Asegurate de inyectarlo si no lo tienes
-
     @Override
     public CierreDeCajaDTO obtenerCierreDeCaja(String username, LocalDate fecha) {
         // 1. Buscamos la unidad de venta asociada al cajero logueado
@@ -743,18 +743,39 @@ public class UnidadVentaService implements IUnidadVenta {
 
         // 3. Calculamos los totales
         BigDecimal totalRecaudado = pedidosDelDia.stream()
-                .map(Pedido::getTotal) // Asumiendo que Pedido tiene un método getTotal() que retorna BigDecimal
+                .map(Pedido::getTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         int cantidadPedidos = pedidosDelDia.size();
 
-        // 4. Armamos y retornamos el DTO de cierre de caja (ajustá los setters según los nombres de tu DTO)
+        // 4. Calculamos el Ticket Promedio de manera segura
+        BigDecimal ticketPromedio = BigDecimal.ZERO;
+        if (cantidadPedidos > 0 && totalRecaudado != null) {
+            ticketPromedio = totalRecaudado.divide(
+                    BigDecimal.valueOf(cantidadPedidos),
+                    2,
+                    java.math.RoundingMode.HALF_UP
+            );
+        }
+
+        // 5. Mapeamos los pedidos a PedidoCierreDTO para la tabla de la vista
+        List<PedidoCierreDTO> pedidosDTO = pedidosDelDia.stream().map(p -> {
+            PedidoCierreDTO dto = new PedidoCierreDTO();
+            // Convertimos el Integer a Long de forma segura
+            dto.setIdPedido(p.getIdPedido() != null ? p.getIdPedido().longValue() : null);
+            dto.setFecha(p.getFecha());
+            dto.setTotal(p.getTotal());
+            return dto;
+        }).collect(Collectors.toList());
+
+        // 6. Armamos y retornamos el DTO de cierre de caja
         CierreDeCajaDTO cierreDTO = new CierreDeCajaDTO();
         cierreDTO.setFecha(fecha);
-        cierreDTO.setNombreUnidad(unidad.getNombre()); // O el identificador que tengas
+        cierreDTO.setNombreUnidad(unidad.getNombre());
         cierreDTO.setTotalRecaudado(totalRecaudado);
         cierreDTO.setCantidadPedidos(cantidadPedidos);
-        // Si tu DTO guarda la lista de pedidos o ítems, podés mapearla acá también
+        cierreDTO.setTicketPromedio(ticketPromedio);
+        cierreDTO.setPedidosDelDia(pedidosDTO); // Asignamos la lista con el DTO correcto
 
         return cierreDTO;
     }

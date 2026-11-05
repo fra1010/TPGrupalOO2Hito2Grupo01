@@ -1,9 +1,12 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.ReciboDetalladoEmpleadoDTO;
+import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 import com.unla.TPGrupalOO2Hito2Grupo01.utilidades.ReciboPdfService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,15 +21,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.security.core.Authentication;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.EmpleadoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cajero;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Cocinero;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Empleado;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Turno;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.CategoriaCocina;
 import com.unla.TPGrupalOO2Hito2Grupo01.helpers.ViewRouteHelper;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IEmpleadoService;
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.CierreDeCajaDTO;
@@ -37,6 +37,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/empleado")
@@ -259,15 +260,14 @@ public class EmpleadoController {
         return ViewRouteHelper.EMPLEADO_MI_INFORMACION;
     }
 
-    @PreAuthorize("hasAuthority('CAJERO') or hasAuthority('ROLE_CAJERO') or hasRole('CAJERO')")
+    @PreAuthorize("hasAnyRole('EMPLEADO', 'ADMIN', 'RESPONSABLE')") // <-- Cambiado de CAJERO a EMPLEADO
     @GetMapping("/cierre-caja")
     public String verCierreDeCaja(
             @AuthenticationPrincipal User user,
             @RequestParam(value = "fecha", required = false)
-            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             Model model) {
 
-        // Si no se especifica una fecha en la URL, tomamos la fecha actual por defecto
         if (fecha == null) {
             fecha = LocalDate.now();
         }

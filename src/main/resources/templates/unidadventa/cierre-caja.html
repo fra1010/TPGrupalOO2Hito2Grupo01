@@ -16,46 +16,82 @@
         Mensaje de error
     </div>
 
-    <!-- Formulario para seleccionar la fecha a consultar (alineado al estilo limpio del sistema) -->
-    <form method="get" th:action="@{/empleado/cierre-caja}" class="row g-3 mb-4 justify-content-center align-items-end">
-        <div class="col-auto">
-            <label for="fecha" class="form-label fw-bold">Fecha del Cierre:</label>
+    <!-- Formulario para seleccionar la fecha a consultar (Adaptado a Bootstrap 4) -->
+    <form method="get" th:action="@{/empleado/cierre-caja}" class="form-row justify-content-center align-items-end mb-4">
+        <div class="col-auto mb-2 mb-md-0">
+            <label for="fecha" class="font-weight-bold">Fecha del Cierre:</label>
             <input type="date" id="fecha" name="fecha" class="form-control" th:value="${fechaSeleccionada}">
         </div>
-        <div class="col-auto">
+        <div class="col-auto mb-2 mb-md-0">
             <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
     </form>
 
-    <!-- Tabla de resumen de cierre (armonizada con la tabla de costos) -->
+    <!-- Tabla de resumen de cierre -->
     <div class="card shadow-sm border-0 mb-4" th:if="${cierre != null}">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
                 <thead>
                 <tr>
                     <th>Concepto</th>
-                    <th class="text-end">Detalle / Cantidad</th>
-                    <th class="text-end">Subtotal</th>
+                    <th class="text-right">Detalle / Cantidad</th>
+                    <th class="text-right">Subtotal</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
                     <td>Fecha consultada</td>
-                    <td class="text-end" th:text="${cierre.fecha}">YYYY-MM-DD</td>
-                    <td class="text-end">-</td>
+                    <td class="text-right" th:text="${cierre.fecha}">YYYY-MM-DD</td>
+                    <td class="text-right">-</td>
                 </tr>
                 <tr>
                     <td>Total de pedidos realizados</td>
-                    <td class="text-end" th:text="${cierre.cantidadPedidos}">0</td>
-                    <td class="text-end">-</td>
+                    <td class="text-right" th:text="${cierre.cantidadPedidos}">0</td>
+                    <td class="text-right">-</td>
+                </tr>
+                <!-- Fila de Ticket Promedio corregida y segura contra nulos -->
+                <tr>
+                    <td>Ticket promedio por pedido</td>
+                    <td class="text-right">-</td>
+                    <td class="text-right">
+                        <span th:if="${cierre.ticketPromedio != null}"
+                              th:text="'$ ' + ${#numbers.formatDecimal(cierre.ticketPromedio, 1, 'POINT', 2, 'COMMA')}">
+                        </span>
+                        <span th:if="${cierre.ticketPromedio == null}">$ 0,00</span>
+                    </td>
                 </tr>
                 </tbody>
                 <tfoot>
                 <tr>
-                    <th colspan="2" class="text-end">Total recaudado</th>
-                    <th class="text-end text-success" th:text="'$ ' + ${#numbers.formatDecimal(cierre.totalRecaudado,1,'POINT',2,'COMMA')}"></th>
+                    <th colspan="2" class="text-right">Total recaudado</th>
+                    <th class="text-right text-success" th:text="'$ ' + ${#numbers.formatDecimal(cierre.totalRecaudado, 1, 'POINT', 2, 'COMMA')}"></th>
                 </tr>
                 </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sección de Detalle de Pedidos del Día -->
+    <div class="card shadow-sm border-0 mb-4" th:if="${cierre != null and cierre.pedidosDelDia != null and !cierre.pedidosDelDia.isEmpty()}">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Listado de Pedidos del Día</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Fecha / Hora</th>
+                    <th class="text-right">Total del Pedido</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="pedido : ${cierre.pedidosDelDia}">
+                    <td th:text="${pedido.idPedido}">1</td>
+                    <td th:text="${pedido.fecha}">2026-11-04</td>
+                    <td class="text-right" th:text="'$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+                </tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -70,5 +106,3 @@
 <div th:replace="~{layout :: scripts}"></div>
 </body>
 </html>
-
-

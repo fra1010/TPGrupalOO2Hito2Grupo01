@@ -730,56 +730,98 @@ public class UnidadVentaService implements IUnidadVenta {
     }
 
     @Override
-    public CierreDeCajaDTO obtenerCierreDeCaja(String username, LocalDate fecha) {
-        // 1. Buscamos la unidad de venta asociada al cajero logueado
-        UnidadVenta unidad = findByCajeroUsername(username);
+    @Transactional
+    public CierreDeCajaDTO obtenerCierreDeCaja(
+            String username,
+            LocalDate fecha) {
 
-        if (unidad == null) {
-            throw new IllegalArgumentException("No se encontró una unidad de venta asociada al cajero: " + username);
-        }
-
-        // 2. Traemos los pedidos de esa unidad para la fecha indicada
-        List<Pedido> pedidosDelDia = pedidoService.getByUnidadYFecha(unidad.getIdUnidadVenta(), fecha);
-
-        // 3. Calculamos los totales
-        BigDecimal totalRecaudado = pedidosDelDia.stream()
-                .map(Pedido::getTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        int cantidadPedidos = pedidosDelDia.size();
-
-        // 4. Calculamos el Ticket Promedio de manera segura
-        BigDecimal ticketPromedio = BigDecimal.ZERO;
-        if (cantidadPedidos > 0 && totalRecaudado != null) {
-            ticketPromedio = totalRecaudado.divide(
-                    BigDecimal.valueOf(cantidadPedidos),
-                    2,
-                    java.math.RoundingMode.HALF_UP
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException(
+                    "No se pudo identificar al usuario."
             );
         }
 
-        // 5. Mapeamos los pedidos a PedidoCierreDTO para la tabla de la vista
-        List<PedidoCierreDTO> pedidosDTO = pedidosDelDia.stream().map(p -> {
-            PedidoCierreDTO dto = new PedidoCierreDTO();
-            // Convertimos el Integer a Long de forma segura
-            dto.setIdPedido(p.getIdPedido() != null ? p.getIdPedido().longValue() : null);
-            dto.setFecha(p.getFecha());
-            dto.setTotal(p.getTotal());
-            return dto;
-        }).collect(Collectors.toList());
+        if (fecha == null) {
+            throw new IllegalArgumentException(
+                    "Debe indicar una fecha para consultar el cierre."
+            );
+        }
 
-        // 6. Armamos y retornamos el DTO de cierre de caja
+        if (fecha.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException(
+                    "No se puede consultar el cierre de una fecha futura."
+            );
+        }
+
+        UnidadVenta unidad = findByCajeroUsername(username);
+
+        if (unidad == null) {
+            throw new IllegalArgumentException(
+                    "No tenés una unidad de venta asignada como cajero activo."
+            );
+        }
+
+        List<Pedido> pedidosDelDia =
+                pedidoService.getByUnidadYFecha(
+                        unidad.getIdUnidadVenta(),
+                        fecha
+                );
+
+        BigDecimal totalRecaudado = BigDecimal.ZERO;
+
+        List<PedidoCierreDTO> pedidosDTO = new ArrayList<>();
+
+        for (Pedido pedido : pedidosDelDia) {
+
+            BigDecimal totalPedido = pedido.getTotal();
+
+            totalRecaudado = totalRecaudado.add(totalPedido);
+
+            PedidoCierreDTO pedidoDTO = new PedidoCierreDTO();
+
+            if (pedido.getIdPedido() != null) {
+                pedidoDTO.setIdPedido(
+                        pedido.getIdPedido().longValue()
+                );
+            }
+
+            pedidoDTO.setFecha(pedido.getFecha());
+            pedidoDTO.setTotal(totalPedido);
+
+            pedidosDTO.add(pedidoDTO);
+        }
+
+        int cantidadPedidos = pedidosDTO.size();
+
+        BigDecimal ticketPromedio =
+                BigDecimal.ZERO.setScale(2);
+
+        if (cantidadPedidos > 0) {
+            ticketPromedio = totalRecaudado.divide(
+                    BigDecimal.valueOf(cantidadPedidos),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+        }
+
         CierreDeCajaDTO cierreDTO = new CierreDeCajaDTO();
+
         cierreDTO.setFecha(fecha);
         cierreDTO.setNombreUnidad(unidad.getNombre());
-        cierreDTO.setTotalRecaudado(totalRecaudado);
+
+        cierreDTO.setTotalRecaudado(
+                totalRecaudado.setScale(
+                        2,
+                        RoundingMode.HALF_UP
+                )
+        );
+
         cierreDTO.setCantidadPedidos(cantidadPedidos);
         cierreDTO.setTicketPromedio(ticketPromedio);
-        cierreDTO.setPedidosDelDia(pedidosDTO); // Asignamos la lista con el DTO correcto
+        cierreDTO.setPedidosDelDia(pedidosDTO);
 
         return cierreDTO;
     }
-
 }
 
 

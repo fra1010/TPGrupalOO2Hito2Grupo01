@@ -17,11 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import java.util.List;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoReporteDTO;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.bind.annotation.PathVariable;
-
 
 @Controller
 @RequestMapping("/unidadVenta")
@@ -82,27 +77,4 @@ public class UnidadVentaController {
         }
         return "redirect:/index";
     }
-
-    @GetMapping("/festival/{idFestival}/unidades/{idUnidad}/plato-estrella")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String platoEstrella(
-            @PathVariable("idFestival") Integer idFestival,
-            @PathVariable("idUnidad") Integer idUnidad,
-            Model model) {
-
-        Festival festival = festivalService.findById(idFestival)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "No se encontró el festival indicado."
-                ));
-
-        PlatoReporteDTO platoEstrella = festivalService.obtenerPlatoEstrella(idFestival, idUnidad);
-
-        model.addAttribute("festival", festival);
-        model.addAttribute("idUnidad", idUnidad);
-        model.addAttribute("platoEstrella", platoEstrella);
-
-        return "festival/plato-estrella";
-    }
-
 }

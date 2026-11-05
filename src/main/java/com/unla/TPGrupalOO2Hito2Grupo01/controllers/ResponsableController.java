@@ -1,6 +1,5 @@
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -302,16 +301,35 @@ public class ResponsableController {
     public ModelAndView obtenerPlatoEstrellaResponsable(
             @AuthenticationPrincipal User user) {
 
-        ModelAndView mV = new ModelAndView("unidadventa/plato-estrella");
+        ModelAndView mV = new ModelAndView(
+                "unidadventa/plato-estrella"
+        );
 
         try {
-            PlatoReporteDTO platoEstrella = unidadVentaService.obtenerPlatoEstrella(user.getUsername());
+            UnidadVentaDTO unidad =
+                    unidadVentaService.traerUnidadVentaResponsable(
+                            user.getUsername()
+                    );
+
+            if (unidad == null) {
+                throw new IllegalArgumentException(
+                        "No tenés una unidad de venta asignada."
+                );
+            }
+
+            mV.addObject("nombreUnidad", unidad.getNombre());
+
+            PlatoReporteDTO platoEstrella =
+                    unidadVentaService.obtenerPlatoEstrella(
+                            user.getUsername()
+                    );
+
             mV.addObject("platoEstrella", platoEstrella);
-        } catch (Exception e) {
+
+        } catch (IllegalArgumentException e) {
             mV.addObject("error", e.getMessage());
         }
 
         return mV;
     }
-
 }

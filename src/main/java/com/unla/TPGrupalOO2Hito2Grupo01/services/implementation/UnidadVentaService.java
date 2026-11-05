@@ -5,42 +5,42 @@ import com.unla.TPGrupalOO2Hito2Grupo01.entities.*;
 import com.unla.TPGrupalOO2Hito2Grupo01.repositories.IUnidadVentaRepository;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IPedidoService;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.CierreDeCajaDTO;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.temporal.ChronoUnit;
-import jakarta.transaction.Transactional;
-import java.text.Normalizer;
-import java.time.Period;
-import java.time.format.DateTimeParseException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
+import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Comparator;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 public class UnidadVentaService implements IUnidadVenta {
 
     private final IUnidadVentaRepository unidadVentaRepository;
     private final ModelMapper modelMapper;
-    private IPedidoService pedidoService; //
+    private final IPedidoService pedidoService;
 
     private final BCryptPasswordEncoder pe =
             new BCryptPasswordEncoder();
 
     public UnidadVentaService(
-            @Qualifier("modelMapperUnidadVenta") ModelMapper modelMapper,
-            IUnidadVentaRepository unidadVentaRepository,IPedidoService pedidoService) {
+            @Qualifier("modelMapperUnidadVenta")
+            ModelMapper modelMapper,
+            IUnidadVentaRepository unidadVentaRepository,
+            IPedidoService pedidoService) {
 
         this.modelMapper = modelMapper;
         this.unidadVentaRepository = unidadVentaRepository;
@@ -708,25 +708,42 @@ public class UnidadVentaService implements IUnidadVenta {
         );
     }
 
-
     @Override
+    @Transactional
     public PlatoReporteDTO obtenerPlatoEstrella(String username) {
-        // 1. Usamos el método exacto que ya existe en tu IUnidadVentaRepository
-        UnidadVenta unidad = unidadVentaRepository.traerUnidadVentaResponsable(username);
+
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaResponsable(username);
 
         if (unidad == null) {
-            throw new IllegalArgumentException("No se encontró una unidad de venta para el responsable indicado.");
+            throw new IllegalArgumentException(
+                    "No se encontró una unidad de venta para el responsable indicado."
+            );
         }
 
-        // 2. Obtenemos el detalle de platos ordenados por venta que también tienes en tu repositorio
-        List<PlatoReporteDTO> platos = unidadVentaRepository.detallePorPlato(unidad);
-
-        // 3. Devolvemos el primero (el plato estrella) si existe
-        if (platos != null && !platos.isEmpty()) {
-            return platos.get(0);
+        if (unidad.getFestival() == null) {
+            throw new IllegalArgumentException(
+                    "La unidad de venta no tiene un festival asignado."
+            );
         }
 
-        return null;
+        List<PlatoReporteDTO> platos =
+                unidadVentaRepository.detallePorPlato(unidad);
+
+        return platos.stream()
+                .sorted(
+                        Comparator.comparing(
+                                        PlatoReporteDTO::getCantidad,
+                                        Comparator.reverseOrder()
+                                )
+                                .thenComparing(
+                                        PlatoReporteDTO::getPlato,
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                                .thenComparing(PlatoReporteDTO::getIdPlato)
+                )
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -822,6 +839,6 @@ public class UnidadVentaService implements IUnidadVenta {
 
         return cierreDTO;
     }
-}
 
+}
 

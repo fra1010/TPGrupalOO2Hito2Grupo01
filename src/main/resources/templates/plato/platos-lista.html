@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head}"></head>
+
+<body>
+
+<nav th:replace="~{layout :: navbarResponsable}"></nav>
+
+<main class="container py-4">
+
+    <!-- ===================== ENCABEZADO ===================== -->
+    <div class="page-header mb-3">
+
+        <h2 class="text-center"
+            th:text="${nombreUnidad} ?: 'Unidad de venta'">
+            Nombre de la unidad de venta
+        </h2>
+
+        <p class="text-muted mb-0 text-center">
+            Platos disponibles
+        </p>
+
+    </div>
+
+    <!-- ===================== MENSAJES ===================== -->
+    <div th:if="${exito != null}"
+         class="alert alert-success"
+         role="status"
+         th:text="${exito}">
+        El plato fue registrado correctamente.
+    </div>
+
+    <div th:if="${error != null}"
+         class="alert alert-danger"
+         role="alert"
+         th:text="${error}">
+        Ha ocurrido un error.
+    </div>
+
+    <!-- ===================== ACCIONES ===================== -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <a th:href="@{/responsable/empleados}"
+           class="btn btn-outline-secondary">
+            Volver
+        </a>
+
+        <a th:if="${error == null}"
+           th:href="@{/responsable/platos/nuevo}"
+           class="btn btn-primary">
+            Nuevo plato
+        </a>
+
+    </div>
+
+    <!-- ===================== LISTA VACÍA ===================== -->
+    <div th:if="${error == null
+            and (platos == null or #lists.isEmpty(platos))}"
+         class="alert alert-info"
+         role="status">
+        No hay platos activos registrados para esta unidad de venta.
+    </div>
+
+    <!-- ===================== LISTADO ===================== -->
+    <div class="card shadow-sm"
+         th:if="${platos != null and !#lists.isEmpty(platos)}">
+
+        <div class="card-header">
+            <strong>Platos activos</strong>
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover mb-0">
+
+                    <thead>
+                    <tr>
+                        <th scope="col" class="px-3">
+                            Nombre
+                        </th>
+
+                        <th scope="col"
+                            class="text-right px-3">
+                            Precio de venta
+                        </th>
+
+                        <th scope="col"
+                            class="text-right px-3">
+                            Costo de producción
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="plato : ${platos}">
+
+                        <td class="px-3 py-3"
+                            th:text="${plato.nombre}">
+                            Nombre del plato
+                        </td>
+
+                        <td class="text-right text-nowrap px-3 py-3"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="${'$ ' + #numbers.formatDecimal(
+                                plato.precioDeVenta,
+                                1, 'POINT', 2, 'COMMA')}">
+                            $ 0,00
+                        </td>
+
+                        <td class="text-right text-nowrap px-3 py-3"
+                            style="font-variant-numeric: tabular-nums;"
+                            th:text="${'$ ' + #numbers.formatDecimal(
+                                plato.costoDePlato,
+                                1, 'POINT', 2, 'COMMA')}">
+                            $ 0,00
+                        </td>
+
+                    </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<div th:replace="~{layout :: scripts}"></div>
+
+</body>
+</html>

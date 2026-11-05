@@ -1,6 +1,6 @@
-
 package com.unla.TPGrupalOO2Hito2Grupo01.services;
 
+import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PlatoFormDTO;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.Plato;
 
 import java.util.List;
@@ -17,4 +17,11 @@ public interface IPlatoService {
     Plato insertOrUpdate(Plato plato);
 
     List<Plato> getActivosByUnidad(Integer idUnidadVenta);
+
+    List<Plato> getActivosDelResponsable(String username);
+
+    Plato registrarPlato(
+            PlatoFormDTO formulario,
+            String username
+    );
 }

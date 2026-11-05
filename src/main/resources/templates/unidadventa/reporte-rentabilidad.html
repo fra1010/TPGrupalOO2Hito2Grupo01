@@ -9,13 +9,23 @@
 
 <main class="container py-4">
 
-    <h2 class="h4 mb-3">Rentabilidad neta</h2>
+    <!-- ===================== ENCABEZADO ===================== -->
+    <div class="page-header mb-3">
 
-    <p class="text-muted">
-        Calculá la rentabilidad de todo el festival o de un período.
-        Las fechas vacías utilizan el inicio y el fin del festival.
-    </p>
+        <h2 class="text-center"
+            th:text="${reporte != null
+                ? reporte.nombreUnidad
+                : 'Unidad de venta'}">
+            Nombre de la unidad de venta
+        </h2>
 
+        <p class="text-muted mb-0 text-center">
+            Reporte de rentabilidad
+        </p>
+
+    </div>
+
+    <!-- ===================== FILTROS ===================== -->
     <form method="get"
           th:action="@{/responsable/rentabilidad}"
           class="mb-4">
@@ -63,20 +73,20 @@
 
     </form>
 
+    <!-- ===================== ERROR ===================== -->
     <div th:if="${error != null}"
          class="alert alert-danger"
          role="alert"
          th:text="${error}">
     </div>
 
+    <!-- ===================== RESULTADO ===================== -->
     <div th:if="${reporte != null}">
 
         <div class="card shadow-sm mb-3">
 
             <div class="card-header">
-                <strong th:text="${reporte.nombreUnidad}">
-                    Unidad de venta
-                </strong>
+                <strong>Detalle del período</strong>
             </div>
 
             <div class="card-body">

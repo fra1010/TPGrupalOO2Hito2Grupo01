@@ -702,6 +702,44 @@ public class UnidadVentaService implements IUnidadVenta {
         );
     }
 
+    @Override
+    @Transactional
+    public PlatoReporteDTO obtenerPlatoEstrella(String username) {
+
+        UnidadVenta unidad =
+                unidadVentaRepository.traerUnidadVentaResponsable(username);
+
+        if (unidad == null) {
+            throw new IllegalArgumentException(
+                    "No se encontró una unidad de venta para el responsable indicado."
+            );
+        }
+
+        if (unidad.getFestival() == null) {
+            throw new IllegalArgumentException(
+                    "La unidad de venta no tiene un festival asignado."
+            );
+        }
+
+        List<PlatoReporteDTO> platos =
+                unidadVentaRepository.detallePorPlato(unidad);
+
+        return platos.stream()
+                .sorted(
+                        Comparator.comparing(
+                                        PlatoReporteDTO::getCantidad,
+                                        Comparator.reverseOrder()
+                                )
+                                .thenComparing(
+                                        PlatoReporteDTO::getPlato,
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                                .thenComparing(PlatoReporteDTO::getIdPlato)
+                )
+                .findFirst()
+                .orElse(null);
+    }
+
 }
 
 

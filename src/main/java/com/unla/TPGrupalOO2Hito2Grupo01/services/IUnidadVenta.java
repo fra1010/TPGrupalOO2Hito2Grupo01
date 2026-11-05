@@ -22,4 +22,7 @@ public interface IUnidadVenta {
     List<UnidadVentaDTO> traerUnidadesPorFestival(Integer idFestival);
     List<EmpleadoDTO> filtrarEmpleados(String username, List<String> campos, List<String> valores);
     ReporteRentabilidadDTO calcularRentabilidad(String username, LocalDate desde, LocalDate hasta);
+    PlatoReporteDTO obtenerPlatoEstrella(String username);
+
+
 }

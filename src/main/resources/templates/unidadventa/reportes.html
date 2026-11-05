@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{layout :: head}"></head>
+
 <body>
 
 <nav th:replace="~{layout :: navbarResponsable}"></nav>
@@ -10,22 +12,46 @@
     <h1 class="h3 mb-4 text-center">Reportes</h1>
 
     <!-- Tabs: el cambio de pestaña lo maneja el script de abajo, no Bootstrap -->
-    <ul class="nav nav-tabs justify-content-center" id="reportesTab" role="tablist">
+    <ul class="nav nav-tabs justify-content-center"
+        id="reportesTab"
+        role="tablist">
+
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="canon-tab" type="button" role="tab"
-                    aria-controls="canon-pane" aria-selected="true"
-                    th:attr="data-url=@{/responsable/canon}">Canon</button>
+            <button class="nav-link active"
+                    id="canon-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="canon-pane"
+                    aria-selected="true"
+                    th:attr="data-url=@{/responsable/canon}">
+                Canon
+            </button>
         </li>
+
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="haberes-tab" type="button" role="tab"
-                    aria-controls="haberes-pane" aria-selected="false"
-                    th:attr="data-url=@{/responsable/haberes}">Haberes</button>
+            <button class="nav-link"
+                    id="haberes-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="haberes-pane"
+                    aria-selected="false"
+                    th:attr="data-url=@{/responsable/haberes}">
+                Haberes
+            </button>
         </li>
+
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="recaudacion-tab" type="button" role="tab"
-                    aria-controls="recaudacion-pane" aria-selected="false"
-                    th:attr="data-url=@{/responsable/recaudacion}">Recaudación</button>
+            <button class="nav-link"
+                    id="recaudacion-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="recaudacion-pane"
+                    aria-selected="false"
+                    th:attr="data-url=@{/responsable/recaudacion}">
+                Recaudación
+            </button>
         </li>
+
         <li class="nav-item" role="presentation">
             <button class="nav-link"
                     id="rentabilidad-tab"
@@ -38,20 +64,59 @@
             </button>
         </li>
 
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="plato-estrella-tab"
+                    type="button"
+                    role="tab"
+                    aria-controls="plato-estrella-pane"
+                    aria-selected="false"
+                    th:attr="data-url=@{/responsable/plato-estrella}">
+                Plato Estrella
+            </button>
+        </li>
+
     </ul>
 
     <!-- Contenido de cada tab (se carga la primera vez que se abre) -->
-    <div class="tab-content border border-top-0 rounded-bottom p-3" id="reportesTabContent">
-        <div class="tab-pane active" id="canon-pane" role="tabpanel"
-             aria-labelledby="canon-tab" tabindex="0"></div>
-        <div class="tab-pane" id="haberes-pane" role="tabpanel"
-             aria-labelledby="haberes-tab" tabindex="0"></div>
-        <div class="tab-pane" id="recaudacion-pane" role="tabpanel"
-             aria-labelledby="recaudacion-tab" tabindex="0"></div>
-        <div class="tab-pane" id="rentabilidad-pane" role="tabpanel"
-             aria-labelledby="rentabilidad-tab" tabindex="0"></div>
-        <div class="tab-pane" id="pedido-pane" role="tabpanel"
-             aria-labelledby="pedido-tab" tabindex="0"></div>
+    <div class="tab-content border border-top-0 rounded-bottom p-3"
+         id="reportesTabContent">
+
+        <div class="tab-pane active"
+             id="canon-pane"
+             role="tabpanel"
+             aria-labelledby="canon-tab"
+             tabindex="0">
+        </div>
+
+        <div class="tab-pane"
+             id="haberes-pane"
+             role="tabpanel"
+             aria-labelledby="haberes-tab"
+             tabindex="0">
+        </div>
+
+        <div class="tab-pane"
+             id="recaudacion-pane"
+             role="tabpanel"
+             aria-labelledby="recaudacion-tab"
+             tabindex="0">
+        </div>
+
+        <div class="tab-pane"
+             id="rentabilidad-pane"
+             role="tabpanel"
+             aria-labelledby="rentabilidad-tab"
+             tabindex="0">
+        </div>
+
+        <div class="tab-pane"
+             id="plato-estrella-pane"
+             role="tabpanel"
+             aria-labelledby="plato-estrella-tab"
+             tabindex="0">
+        </div>
+
     </div>
 
     <!-- Estados de carga y error -->
@@ -65,7 +130,11 @@
     <template id="tpl-error">
         <div class="alert alert-warning mb-0">
             No se pudo cargar este reporte.
-            <a class="alert-link" target="_blank" rel="noopener">Abrirlo en otra pestaña</a>
+            <a class="alert-link"
+               target="_blank"
+               rel="noopener">
+                Abrirlo en otra pestaña
+            </a>
         </div>
     </template>
 
@@ -76,23 +145,31 @@
 
 <script>
     (function () {
-        var tabs = Array.from(document.querySelectorAll('#reportesTab [data-url]'));
+        var tabs = Array.from(
+            document.querySelectorAll('#reportesTab [data-url]')
+        );
 
         function paneDe(tab) {
-            return document.getElementById(tab.getAttribute('aria-controls'));
+            return document.getElementById(
+                tab.getAttribute('aria-controls')
+            );
         }
 
         function plantilla(id) {
-            return document.getElementById(id).content.cloneNode(true);
+            return document.getElementById(id)
+                .content.cloneNode(true);
         }
 
-        // Los scripts insertados con innerHTML no se ejecutan: se recrean para que corran.
+        // Los scripts insertados con innerHTML no se ejecutan:
+        // se recrean para que corran.
         function activarScripts(contenedor) {
             contenedor.querySelectorAll('script').forEach(function (vieja) {
                 var nueva = document.createElement('script');
+
                 Array.from(vieja.attributes).forEach(function (a) {
                     nueva.setAttribute(a.name, a.value);
                 });
+
                 nueva.textContent = vieja.textContent;
                 vieja.replaceWith(nueva);
             });
@@ -103,18 +180,40 @@
             pane.replaceChildren(plantilla('tpl-cargando'));
 
             try {
-                var res = await fetch(url, Object.assign({ credentials: 'same-origin' }, opciones));
-                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var res = await fetch(
+                    url,
+                    Object.assign(
+                        { credentials: 'same-origin' },
+                        opciones
+                    )
+                );
 
-                var doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+
+                var doc = new DOMParser().parseFromString(
+                    await res.text(),
+                    'text/html'
+                );
+
                 var main = doc.querySelector('main');
-                if (!main) throw new Error('La página no tiene <main>');
+
+                if (!main) {
+                    throw new Error('La página no tiene <main>');
+                }
 
                 pane.innerHTML = main.innerHTML;
-                pane.dataset.urlActual = res.url; // base para formularios sin action
+
+                // Base para formularios sin action.
+                pane.dataset.urlActual = res.url;
+
                 activarScripts(pane);
+
             } catch (e) {
-                delete tab.dataset.loaded; // permite reintentar al volver a la pestaña
+                // Permite reintentar al volver a la pestaña.
+                delete tab.dataset.loaded;
+
                 var error = plantilla('tpl-error');
                 error.querySelector('a').href = tab.dataset.url;
                 pane.replaceChildren(error);
@@ -122,46 +221,81 @@
         }
 
         function cargar(tab) {
-            if (tab.dataset.loaded) return;
+            if (tab.dataset.loaded) {
+                return;
+            }
+
             tab.dataset.loaded = 'true';
             return pedir(tab, tab.dataset.url);
         }
 
-        // Los formularios de cada reporte se envían por fetch y el resultado queda en el mismo tab
-        document.getElementById('reportesTabContent').addEventListener('submit', function (e) {
-            var form = e.target;
-            var pane = form.closest('.tab-pane');
-            if (!pane || (form.target && form.target !== '_self')) return;
+        // Los formularios de cada reporte se envían por fetch
+        // y el resultado queda en el mismo tab.
+        document.getElementById('reportesTabContent')
+            .addEventListener('submit', function (e) {
 
-            e.preventDefault();
-            var tab = document.getElementById(pane.getAttribute('aria-labelledby'));
-            var base = new URL(pane.dataset.urlActual || tab.dataset.url, location.href);
-            var destino = new URL(form.getAttribute('action') || base.href, base);
-            var datos = new FormData(form, e.submitter);
-            var opciones = {};
+                var form = e.target;
+                var pane = form.closest('.tab-pane');
 
-            if (form.method === 'get') {
-                destino.search = new URLSearchParams(datos).toString();
-            } else {
-                opciones.method = form.method.toUpperCase();
-                opciones.body = form.enctype === 'multipart/form-data' ? datos : new URLSearchParams(datos);
-            }
-            pedir(tab, destino.href, opciones);
-        });
+                if (!pane || (form.target && form.target !== '_self')) {
+                    return;
+                }
 
-        // Cambia de pestaña sin depender del JS de Bootstrap (sirve en Bootstrap 4 y 5)
+                e.preventDefault();
+
+                var tab = document.getElementById(
+                    pane.getAttribute('aria-labelledby')
+                );
+
+                var base = new URL(
+                    pane.dataset.urlActual || tab.dataset.url,
+                    location.href
+                );
+
+                var destino = new URL(
+                    form.getAttribute('action') || base.href,
+                    base
+                );
+
+                var datos = new FormData(form, e.submitter);
+                var opciones = {};
+
+                if (form.method === 'get') {
+                    destino.search = new URLSearchParams(datos).toString();
+                } else {
+                    opciones.method = form.method.toUpperCase();
+
+                    opciones.body =
+                        form.enctype === 'multipart/form-data'
+                            ? datos
+                            : new URLSearchParams(datos);
+                }
+
+                pedir(tab, destino.href, opciones);
+            });
+
+        // Cambia de pestaña sin depender del JS de Bootstrap.
         function mostrar(tab) {
             tabs.forEach(function (t) {
                 var activa = (t === tab);
+
                 t.classList.toggle('active', activa);
-                t.setAttribute('aria-selected', activa ? 'true' : 'false');
+
+                t.setAttribute(
+                    'aria-selected',
+                    activa ? 'true' : 'false'
+                );
+
                 paneDe(t).classList.toggle('active', activa);
             });
+
             cargar(tab);
         }
 
         tabs.forEach(function (tab) {
-            tab.addEventListener('click', function () { mostrar(tab); });
+            tab.addEventListener('click', function () {
+                mostrar(tab);
+            });
         });
 
         cargar(tabs[0]);

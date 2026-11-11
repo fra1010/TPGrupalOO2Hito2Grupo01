@@ -121,8 +121,6 @@ El rol de cada usuario sale de `UserRole`. Además, los empleados que son **caje
 
 Cada caso de uso se desarrolló en una rama propia, con el formato `CU<NombreDelCasoDeUso><Integrante>`, y se integró al proyecto mediante un Pull Request.
 
-### Denis Franco Emanuel Flores
-### Ivan Tolaba
 ### Diego Olmedo
 - [CUTraerEmpleadoUnidadVentaDiegoOlmedo](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/tree/CUTraerEmpleadoUnidadVentaDiegoOlmedo)
 - [CUCalcularHaberesDiegoOlmedo](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/tree/CUCalcularHaberesDiegoOlmedo)
@@ -132,7 +130,20 @@ Cada caso de uso se desarrolló en una rama propia, con el formato `CU<NombreDel
 - [CUSueldoEmpleadoMasimpresionPDFDiegoOlmedo](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/tree/CUSueldoEmpleadoMasimpresionPDFDiegoOlmedo)
 - [CUReporteRecaudacionDiegoOlmedo](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/tree/CUReporteRecaudacionDiegoOlmedo)
 
+### Denis Franco Emanuel Flores
+- [CUAltaEmpleadoConUsuarioDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/11)
+- [CUGestionPedidosDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/22)
+- [CUMejoraNavegacionDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/23)
+- [CURankingUnidadesDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/24)
+- [CUUnidadesMayorCanonDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/25)
+- [CUFiltrosEmpleadosDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/26)
+- [CUCalculoRentabilidadNeta](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/27)
+- [CUAltaPlatosDenisFlores](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/30)
 
+### Ivan Tolaba
+- [CUVerInformacionEmpleadoIvanTolaba](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/20)
+- [CUPlatoEstrellaIvanTolaba](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/28)
+- [CUCierreDeCajaPorDiaIvanTolaba](https://github.com/fra1010/TPGrupalOO2Hito2Grupo01/pull/29)
 
 ---
 

@@ -34,10 +34,12 @@ public class SecurityConfiguration {
 				.cors(AbstractHttpConfigurer::disable)
 				.authorizeHttpRequests(auth -> {
 					auth.requestMatchers("/",
-                            "/unidadVenta/formulariounidadventa",
-                            "/unidadVenta/crearunidadventa",
-                             "/css/*","/index", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
-							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**").permitAll();
+							"/unidadVenta/formulariounidadventa",
+							"/unidadVenta/crearunidadventa",
+							"/css/*","/index", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
+							"/vendor/jquery/*", "/vendor/bootstrap/js/*",
+							"/api/**",
+							"/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll();
 					auth.anyRequest().authenticated();
 				})
 				.formLogin(login -> {
@@ -74,4 +76,3 @@ public class SecurityConfiguration {
 		return new BCryptPasswordEncoder();
 	}
 }
-

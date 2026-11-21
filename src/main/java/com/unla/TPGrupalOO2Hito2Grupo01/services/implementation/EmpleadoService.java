@@ -4,7 +4,6 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,50 +74,6 @@ public class EmpleadoService implements IEmpleadoService {
     }
 
     @Override
-    public List<Empleado> filtrar(
-            Integer idUnidadVenta,
-            String apellido,
-            Boolean activo,
-            String tipoEmpleado) {
-
-        String apellidoFiltro =
-                (apellido == null || apellido.isBlank())
-                        ? null
-                        : apellido.trim();
-
-        String tipo =
-                (tipoEmpleado == null || tipoEmpleado.isBlank())
-                        ? null
-                        : tipoEmpleado.trim().toUpperCase(Locale.ROOT);
-
-        if (tipo != null
-                && !tipo.equals("CAJERO")
-                && !tipo.equals("COCINERO")) {
-
-            throw new IllegalArgumentException(
-                    "El tipo de empleado debe ser CAJERO o COCINERO."
-            );
-        }
-
-        List<Empleado> empleados = empleadoRepository.filtrar(
-                idUnidadVenta,
-                apellidoFiltro,
-                activo
-        );
-
-        if (tipo == null) {
-            return empleados;
-        }
-
-        // El tipo se filtra aca porque depende de la herencia (Cajero / Cocinero).
-        return empleados.stream()
-                .filter(e -> tipo.equals("CAJERO")
-                        ? e instanceof Cajero
-                        : e instanceof Cocinero)
-                .toList();
-    }
-
-    @Override
     @Transactional
     public Empleado insertOrUpdate(Empleado empleado) {
 
@@ -165,34 +120,6 @@ public class EmpleadoService implements IEmpleadoService {
             String email,
             String usernameResponsable) {
 
-        return darDeAlta(
-                empleado,
-                email,
-                () -> obtenerUnidadDelResponsable(usernameResponsable)
-        );
-    }
-
-    @Override
-    @Transactional
-    public Empleado darDeAltaEnUnidad(
-            Empleado empleado,
-            String email,
-            Integer idUnidadVenta) {
-
-        return darDeAlta(
-                empleado,
-                email,
-                () -> obtenerUnidadPorId(idUnidadVenta)
-        );
-    }
-
-    // Logica comun del alta. La unidad se resuelve recien despues de
-    // validar el ID y el email, igual que antes de agregar la API.
-    private Empleado darDeAlta(
-            Empleado empleado,
-            String email,
-            Supplier<UnidadVenta> proveedorUnidad) {
-
         if (empleado.getIdEmpleado() != null) {
             throw new IllegalArgumentException(
                     "El alta debe realizarse con un empleado sin ID."
@@ -201,7 +128,8 @@ public class EmpleadoService implements IEmpleadoService {
 
         String emailNormalizado = normalizarEmail(email);
 
-        UnidadVenta unidad = proveedorUnidad.get();
+        UnidadVenta unidad =
+                obtenerUnidadDelResponsable(usernameResponsable);
 
         // El alta nunca reactiva empleados existentes.
         // Se rechaza el DNI tanto si está activo como si está inactivo.
@@ -352,22 +280,6 @@ public class EmpleadoService implements IEmpleadoService {
         }
 
         return unidad;
-    }
-
-    private UnidadVenta obtenerUnidadPorId(Integer idUnidadVenta) {
-
-        if (idUnidadVenta == null) {
-            throw new IllegalArgumentException(
-                    "Debe indicar la unidad de venta."
-            );
-        }
-
-        return unidadVentaRepository
-                .findById(idUnidadVenta)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No existe la unidad de venta con id: "
-                                + idUnidadVenta
-                ));
     }
 
     private void asignarAUnidad(

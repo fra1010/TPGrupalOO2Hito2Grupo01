@@ -27,14 +27,6 @@ public interface IEmpleadoService {
 			String usernameResponsable
 	);
 
-	// Alta indicando la unidad de venta directamente (usado por la API REST,
-	// donde no hay un responsable logueado).
-	Empleado darDeAltaEnUnidad(
-			Empleado empleado,
-			String email,
-			Integer idUnidadVenta
-	);
-
 	Empleado cambiarEstadoEmpleado(
 			Integer idEmpleado,
 			boolean activo,
@@ -42,12 +34,4 @@ public interface IEmpleadoService {
 	);
 
 	Empleado traerPorUsername(String username);
-
-	// Filtros opcionales: cualquier parametro null (o vacio) no se aplica.
-	List<Empleado> filtrar(
-			Integer idUnidadVenta,
-			String apellido,
-			Boolean activo,
-			String tipoEmpleado
-	);
 }

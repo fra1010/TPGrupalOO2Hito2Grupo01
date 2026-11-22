@@ -37,7 +37,11 @@ public class SecurityConfiguration {
                             "/unidadVenta/formulariounidadventa",
                             "/unidadVenta/crearunidadventa",
                              "/css/*","/index", "/imgs/*", "/js/*", "/vendor/bootstrap/css/*",
-							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**").permitAll();
+							"/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**",
+							"/api/pedidos/**",
+							"/swagger-ui/**",
+							"/swagger-ui.html",
+							"/v3/api-docs/**").permitAll();
 					auth.anyRequest().authenticated();
 				})
 				.formLogin(login -> {

@@ -1,0 +1,79 @@
+
+/* ==================================
+   EPICENTRO GOURMET - SWAGGER UI
+   ================================== */
+
+/* Fondo general */
+body {
+    background-color: #f3f5f8;
+}
+
+/* Encabezado principal */
+.swagger-ui .topbar {
+    background-color: #263747;
+    padding: 12px 0;
+}
+
+.swagger-ui .topbar-wrapper img {
+    display: none;
+}
+
+.swagger-ui .topbar-wrapper .link::after {
+    content: "EPICENTRO GOURMET";
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: bold;
+}
+
+/* Título y descripción */
+.swagger-ui .info .title {
+    color: #263747;
+    font-weight: 700;
+}
+
+.swagger-ui .info p {
+    color: #586575;
+}
+
+/* Botón Try it out */
+.swagger-ui .btn.try-out__btn {
+    border-color: #c28d3e;
+    color: #a87529;
+}
+
+/* Botón Execute */
+.swagger-ui .btn.execute {
+    background-color: #263747;
+    border-color: #263747;
+}
+
+.swagger-ui .btn.execute:hover {
+    background-color: #344d63;
+}
+
+/* Métodos HTTP */
+.swagger-ui .opblock.opblock-post {
+    border-color: #c28d3e;
+    background: rgba(194, 141, 62, 0.06);
+}
+
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+    background-color: #b78335;
+}
+
+/* Tarjetas de operaciones */
+.swagger-ui .opblock {
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* Modelos y respuestas */
+.swagger-ui section.models {
+    border-color: #cbd3dc;
+}
+
+/* Botones de autorización */
+.swagger-ui .btn.authorize {
+    border-color: #b78335;
+    color: #a87529;
+}

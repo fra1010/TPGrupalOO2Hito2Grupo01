@@ -1,4 +1,5 @@
 
+
 package com.unla.TPGrupalOO2Hito2Grupo01.configuration;
 
 import io.swagger.v3.oas.models.OpenAPI;
@@ -18,9 +19,10 @@ public class SwaggerConfig {
                         .title("Epicentro Gourmet | API REST")
                         .version("1.0.0")
                         .description(
-                                "API REST del sistema de gestión de festivales gastronómicos. "
-                                        + "Permite registrar pedidos y acceder a las operaciones "
-                                        + "expuestas por el sistema."
+                                "API REST del sistema Epicentro Gourmet. "
+                                        + "Permite gestionar las operaciones del sistema "
+                                        + "de festivales gastronómicos, incluyendo el "
+                                        + "registro de pedidos."
                         )
                         .contact(new Contact()
                                 .name("Grupo 01 - OO2")

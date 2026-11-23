@@ -1,4 +1,5 @@
 
+
 /* ==================================
    EPICENTRO GOURMET - SWAGGER UI
    ================================== */
@@ -51,7 +52,7 @@ body {
     background-color: #344d63;
 }
 
-/* Métodos HTTP */
+/* Operaciones POST */
 .swagger-ui .opblock.opblock-post {
     border-color: #c28d3e;
     background: rgba(194, 141, 62, 0.06);
@@ -65,6 +66,69 @@ body {
 .swagger-ui .opblock {
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* ==================================
+   RESULTADO EXITOSO - HTTP 2XX
+   ================================== */
+
+.swagger-ui .responses-wrapper .response-col_status {
+    font-weight: bold;
+}
+
+/* Respuesta exitosa */
+.swagger-ui .responses-wrapper tr.response[data-code^="2"] {
+    background-color: #eaf7ee;
+    border-left: 4px solid #279653;
+}
+
+.swagger-ui .responses-wrapper tr.response[data-code^="2"] .response-col_status {
+    color: #218447;
+    font-weight: bold;
+}
+
+/* ==================================
+   ERRORES - HTTP 4XX Y 5XX
+   ================================== */
+
+/* Errores de solicitud y servidor */
+.swagger-ui .responses-wrapper tr.response[data-code^="4"],
+.swagger-ui .responses-wrapper tr.response[data-code^="5"] {
+    background-color: #fff0f0;
+    border-left: 4px solid #d64545;
+}
+
+.swagger-ui .responses-wrapper tr.response[data-code^="4"] .response-col_status,
+.swagger-ui .responses-wrapper tr.response[data-code^="5"] .response-col_status {
+    color: #c62828;
+    font-weight: bold;
+}
+
+/* Errores de autenticación y permisos */
+.swagger-ui .responses-wrapper tr.response[data-code="401"],
+.swagger-ui .responses-wrapper tr.response[data-code="403"] {
+    background-color: #fff5e6;
+    border-left: 4px solid #d99025;
+}
+
+.swagger-ui .responses-wrapper tr.response[data-code="401"] .response-col_status,
+.swagger-ui .responses-wrapper tr.response[data-code="403"] .response-col_status {
+    color: #a9680b;
+    font-weight: bold;
+}
+
+/* ==================================
+   RESPUESTA REAL DEL SERVIDOR
+   ================================== */
+
+/* Código HTTP de la respuesta ejecutada */
+.swagger-ui .responses-wrapper .response-undocumented {
+    border-radius: 5px;
+}
+
+/* Bloques JSON */
+.swagger-ui .highlight-code {
+    border-radius: 6px;
 }
 
 /* Modelos y respuestas */

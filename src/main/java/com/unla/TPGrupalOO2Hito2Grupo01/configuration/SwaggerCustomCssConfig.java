@@ -21,7 +21,6 @@ import org.springframework.web.servlet.resource.ResourceTransformerChain;
 import org.springframework.web.servlet.resource.TransformedResource;
 import org.springdoc.core.providers.ObjectMapperProvider;
 
-
 @Configuration
 public class SwaggerCustomCssConfig {
 

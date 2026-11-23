@@ -41,42 +41,7 @@ public class PedidoApiController {
         this.unidadVentaRepository = unidadVentaRepository;
     }
 
-    @PostMapping
-    @Operation(
-            summary = "Registrar un nuevo pedido",
-            description = "Crea un pedido reutilizando PedidoService.registrarPedido y aplicando las reglas del caso de uso " +
-                    "(fecha actual dentro del festival, ítems válidos sin platos repetidos, platos activos de la unidad del cajero y subtotal precio de venta por cantidad)."
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Pedido registrado correctamente",
-                    content = @Content(schema = @Schema(implementation = PedidoRespuestaDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Datos inválidos o regla de negocio incumplida"
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Acceso denegado: se requiere autoridad CAJERO"
-            )
-    })
-    public ResponseEntity<?> postPedido(
-            @Valid @RequestBody PedidoDTO pedidoDTO,
-            Authentication authentication) {
-        try {
-            UnidadVenta unidad = obtenerUnidad(authentication);
-            pedidoDTO.setIdUnidadVenta(unidad.getIdUnidadVenta());
-
-            Pedido pedidoGuardado = pedidoService.registrarPedido(pedidoDTO, unidad);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new PedidoRespuestaDTO(pedidoGuardado));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", ex.getMessage()));
-        }
-    }
+    // -------------------------- metodo API  GET Pedido ------------------------
 
     @GetMapping
     @Operation(
@@ -158,3 +123,5 @@ public class PedidoApiController {
         return unidad;
     }
 }
+
+

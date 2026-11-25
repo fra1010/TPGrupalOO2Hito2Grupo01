@@ -40,9 +40,11 @@ public interface IPedidoService {
             Integer idUnidadVenta
     );
 
-    void eliminarPedido(
+    Pedido actualizarPedido(
             Integer idPedido,
-            Integer idUnidadVenta
+            PedidoDTO pedidoDTO,
+            UnidadVenta unidadVenta
     );
+
 
 }

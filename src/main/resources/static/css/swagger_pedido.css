@@ -274,3 +274,17 @@ body {
 .swagger-ui .opblock-body {
     color: #586575;
 }
+
+/* ==================================
+   OPERACIONES PUT
+   ================================== */
+
+.swagger-ui .opblock.opblock-put {
+    border-color: #8da99b;
+    background: rgba(98, 151, 122, 0.07);
+    border-radius: 8px;
+}
+
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+    background-color: #628f79;
+}

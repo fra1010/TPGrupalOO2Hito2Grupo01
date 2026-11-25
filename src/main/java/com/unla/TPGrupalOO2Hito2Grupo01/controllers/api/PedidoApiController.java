@@ -42,28 +42,31 @@ public class PedidoApiController {
         this.unidadVentaService = unidadVentaService;
     }
 
-    // -------------------------API DELETE ELIMINAR PEDIDO-------------------------------
+    // -----------------------METODO PUT PEDIDO (EDITAR PEDIDO)-------------------------------
 
-    @DeleteMapping("/{idPedido}")
-    @Operation(summary = "Eliminar pedido")
+    @PutMapping("/{idPedido}")
+    @Operation(summary = "Modificar pedido")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "204",
-                    description = "Pedido eliminado correctamente"
+                    responseCode = "200",
+                    description = "Pedido modificado correctamente"
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Pedido inválido o inexistente",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    value = "{\"error\": \"Mensaje de error\"}"
-                            )
-                    )
+                    description = "Datos inválidos"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Pedido no encontrado"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acceso denegado"
             )
     })
-    public ResponseEntity<?> deletePedido(
+    public ResponseEntity<?> putPedido(
             @PathVariable Integer idPedido,
+            @Valid @RequestBody PedidoDTO pedidoDTO,
             Authentication authentication) {
 
         try {
@@ -71,18 +74,26 @@ public class PedidoApiController {
             UnidadVenta unidad = unidadVentaService
                     .findByCajeroUsername(authentication.getName());
 
-            pedidoService.eliminarPedido(
-                    idPedido,
+            pedidoDTO.setIdUnidadVenta(
                     unidad.getIdUnidadVenta()
             );
 
-            return ResponseEntity.noContent().build();
+            Pedido pedidoActualizado = pedidoService.actualizarPedido(
+                    idPedido,
+                    pedidoDTO,
+                    unidad
+            );
+
+            return ResponseEntity.ok(
+                    new PedidoRespuestaDTO(pedidoActualizado)
+            );
 
         } catch (IllegalArgumentException ex) {
 
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
+            return ResponseEntity.badRequest()
                     .body(Map.of("error", ex.getMessage()));
         }
     }
+
+
 }

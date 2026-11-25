@@ -87,6 +87,21 @@ body {
 }
 
 /* ==================================
+   OPERACIONES DELETE
+   ================================== */
+
+.swagger-ui .opblock.opblock-delete {
+    border-color: #bd7777;
+    background: rgba(189, 119, 119, 0.07);
+    border-radius: 8px;
+}
+
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+    background-color: #a35454;
+}
+
+
+/* ==================================
    SEPARACION Y ESTILO DE OPERACIONES
    ================================== */
 

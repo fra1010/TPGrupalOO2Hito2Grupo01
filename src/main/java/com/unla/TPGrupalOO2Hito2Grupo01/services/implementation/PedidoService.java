@@ -297,4 +297,37 @@ public class PedidoService implements IPedidoService {
             }
         }
     }
+
+    @Override
+    @Transactional
+    public void eliminarPedido(
+            Integer idPedido,
+            Integer idUnidadVenta) {
+
+        if (idPedido == null || idPedido <= 0) {
+            throw new IllegalArgumentException(
+                    "El número de pedido no es válido"
+            );
+        }
+
+        if (idUnidadVenta == null) {
+            throw new IllegalArgumentException(
+                    "La unidad de venta no es válida"
+            );
+        }
+
+        Pedido pedido = pedidoRepository
+                .findByIdPedidoAndUnidadVentaIdUnidadVenta(
+                        idPedido,
+                        idUnidadVenta
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "El pedido no existe o no pertenece a esta unidad de venta"
+                        )
+                );
+
+        pedidoRepository.delete(pedido);
+    }
+
 }

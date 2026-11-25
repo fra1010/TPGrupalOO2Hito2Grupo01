@@ -42,61 +42,44 @@ public class PedidoApiController {
         this.unidadVentaService = unidadVentaService;
     }
 
-    @PostMapping
-    @Operation(summary = "Registrar pedido")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            required = true,
-            content = @Content(
-                    schema = @Schema(implementation = PedidoDTO.class),
-                    examples = @ExampleObject(value = """
-                            {
-                              "idUnidadVenta": 1,
-                              "items": [
-                                {
-                                  "idPlato": 1,
-                                  "cantidad": 10
-                                }
-                              ]
-                            }
-                            """)
-            )
-    )
+    // -------------------------API DELETE ELIMINAR PEDIDO-------------------------------
+
+    @DeleteMapping("/{idPedido}")
+    @Operation(summary = "Eliminar pedido")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "201",
-                    description = "Pedido registrado correctamente",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = PedidoRespuestaDTO.class)
-                    )
+                    responseCode = "204",
+                    description = "Pedido eliminado correctamente"
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Datos inválidos o pedido incorrecto",
+                    description = "Pedido inválido o inexistente",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"error\": \"Mensaje de error\"}")
+                            examples = @ExampleObject(
+                                    value = "{\"error\": \"Mensaje de error\"}"
+                            )
                     )
             )
     })
-    public ResponseEntity<?> postPedido(
-            @Valid @RequestBody PedidoDTO pedidoDTO,
+    public ResponseEntity<?> deletePedido(
+            @PathVariable Integer idPedido,
             Authentication authentication) {
 
         try {
+
             UnidadVenta unidad = unidadVentaService
                     .findByCajeroUsername(authentication.getName());
 
-            pedidoDTO.setIdUnidadVenta(unidad.getIdUnidadVenta());
+            pedidoService.eliminarPedido(
+                    idPedido,
+                    unidad.getIdUnidadVenta()
+            );
 
-            Pedido pedidoGuardado =
-                    pedidoService.registrarPedido(pedidoDTO, unidad);
-
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new PedidoRespuestaDTO(pedidoGuardado));
+            return ResponseEntity.noContent().build();
 
         } catch (IllegalArgumentException ex) {
+
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", ex.getMessage()));

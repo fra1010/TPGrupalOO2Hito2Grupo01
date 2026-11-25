@@ -1,5 +1,3 @@
-
-
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers.api;
 
 import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PedidoDTO;
@@ -69,26 +67,16 @@ public class PedidoApiController {
                     description = "Pedido registrado correctamente",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    implementation = PedidoRespuestaDTO.class
-                            )
+                            schema = @Schema(implementation = PedidoRespuestaDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Datos inválidos o pedido incorrecto"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Usuario no autenticado"
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Acceso denegado: se requiere el rol CAJERO"
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Error interno del servidor"
+                    description = "Datos inválidos o pedido incorrecto",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"error\": \"Mensaje de error\"}")
+                    )
             )
     })
     public ResponseEntity<?> postPedido(

@@ -1,5 +1,3 @@
-
-
 /* ==================================
    EPICENTRO GOURMET - SWAGGER UI
    ================================== */
@@ -121,12 +119,50 @@ body {
    RESPUESTA REAL DEL SERVIDOR
    ================================== */
 
-/* Código HTTP de la respuesta ejecutada */
+/* Contenedor destacado del resultado ejecutado */
+.swagger-ui .responses-inner > div:has(.live-responses-table) {
+    background-color: #ffffff;
+    border: 2px solid #c28d3e;
+    border-radius: 8px;
+    padding: 0 20px 20px 20px;
+    margin-top: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(38, 55, 71, 0.12);
+    overflow: hidden;
+}
+
+/* Encabezado superior del resultado */
+.swagger-ui .responses-inner > div:has(.live-responses-table)::before {
+    content: "RESULTADO DE TU CONSULTA";
+    display: block;
+    background-color: #263747;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 12px 20px;
+    margin: 0 -20px 15px -20px;
+    border-bottom: 3px solid #c28d3e;
+}
+
+/* Código HTTP de la respuesta ejecutada más grande */
+.swagger-ui .live-responses-table .response-col_status {
+    font-size: 22px !important;
+    font-weight: 800;
+    color: #263747;
+}
+
 .swagger-ui .responses-wrapper .response-undocumented {
     border-radius: 5px;
 }
 
-/* Bloques JSON */
+/* Bloques JSON más legibles */
+.swagger-ui .live-responses-table .highlight-code pre.microlight {
+    font-size: 14px !important;
+    padding: 16px !important;
+    border-radius: 6px;
+}
+
 .swagger-ui .highlight-code {
     border-radius: 6px;
 }
@@ -140,4 +176,11 @@ body {
 .swagger-ui .btn.authorize {
     border-color: #b78335;
     color: #a87529;
+}
+
+/* Oculta la tabla de ejemplos estáticos (Responses) cuando ya se ejecutó una consulta */
+.swagger-ui .responses-inner:has(.live-responses-table) .responses-table:not(.live-responses-table),
+.swagger-ui .responses-inner:has(.live-responses-table) > h4,
+.swagger-ui .responses-inner:has(.live-responses-table) > .responses-header {
+    display: none !important;
 }

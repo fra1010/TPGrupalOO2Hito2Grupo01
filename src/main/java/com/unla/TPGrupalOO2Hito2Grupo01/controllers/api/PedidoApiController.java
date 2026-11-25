@@ -42,64 +42,58 @@ public class PedidoApiController {
         this.unidadVentaService = unidadVentaService;
     }
 
-    @PostMapping
-    @Operation(summary = "Registrar pedido")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            required = true,
-            content = @Content(
-                    schema = @Schema(implementation = PedidoDTO.class),
-                    examples = @ExampleObject(value = """
-                            {
-                              "idUnidadVenta": 1,
-                              "items": [
-                                {
-                                  "idPlato": 1,
-                                  "cantidad": 10
-                                }
-                              ]
-                            }
-                            """)
-            )
-    )
+    // -----------------------METODO PUT PEDIDO (EDITAR PEDIDO)-------------------------------
+
+    @PutMapping("/{idPedido}")
+    @Operation(summary = "Modificar pedido")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "201",
-                    description = "Pedido registrado correctamente",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = PedidoRespuestaDTO.class)
-                    )
+                    responseCode = "200",
+                    description = "Pedido modificado correctamente"
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Datos inválidos o pedido incorrecto",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"error\": \"Mensaje de error\"}")
-                    )
+                    description = "Datos inválidos"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Pedido no encontrado"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acceso denegado"
             )
     })
-    public ResponseEntity<?> postPedido(
+    public ResponseEntity<?> putPedido(
+            @PathVariable Integer idPedido,
             @Valid @RequestBody PedidoDTO pedidoDTO,
             Authentication authentication) {
 
         try {
+
             UnidadVenta unidad = unidadVentaService
                     .findByCajeroUsername(authentication.getName());
 
-            pedidoDTO.setIdUnidadVenta(unidad.getIdUnidadVenta());
+            pedidoDTO.setIdUnidadVenta(
+                    unidad.getIdUnidadVenta()
+            );
 
-            Pedido pedidoGuardado =
-                    pedidoService.registrarPedido(pedidoDTO, unidad);
+            Pedido pedidoActualizado = pedidoService.actualizarPedido(
+                    idPedido,
+                    pedidoDTO,
+                    unidad
+            );
 
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new PedidoRespuestaDTO(pedidoGuardado));
+            return ResponseEntity.ok(
+                    new PedidoRespuestaDTO(pedidoActualizado)
+            );
 
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
+
+            return ResponseEntity.badRequest()
                     .body(Map.of("error", ex.getMessage()));
         }
     }
+
+
 }

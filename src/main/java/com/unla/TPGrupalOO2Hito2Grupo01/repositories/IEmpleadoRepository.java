@@ -21,4 +21,21 @@ public interface IEmpleadoRepository extends JpaRepository<Empleado, Integer>
     // para verificar si ya exitia ese empleado
     Optional<Empleado> findByDni(long dni);
 
+
+    @Query("""
+        SELECT e
+        FROM Empleado e
+        LEFT JOIN e.unidadVenta u
+        WHERE (:idUnidadVenta IS NULL OR u.idUnidadVenta = :idUnidadVenta)
+          AND (:apellido IS NULL
+               OR LOWER(e.apellido) LIKE LOWER(CONCAT('%', :apellido, '%')))
+          AND (:activo IS NULL OR e.activo = :activo)
+        ORDER BY e.apellido, e.nombre
+        """)
+    List<Empleado> filtrar(
+            @Param("idUnidadVenta") Integer idUnidadVenta,
+            @Param("apellido") String apellido,
+            @Param("activo") Boolean activo
+    );
+
 }

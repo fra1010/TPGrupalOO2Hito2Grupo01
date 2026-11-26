@@ -1,8 +1,6 @@
+
 package com.unla.TPGrupalOO2Hito2Grupo01.controllers.api;
 
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PedidoDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.dtos.PedidoRespuestaDTO;
-import com.unla.TPGrupalOO2Hito2Grupo01.entities.Pedido;
 import com.unla.TPGrupalOO2Hito2Grupo01.entities.UnidadVenta;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IPedidoService;
 import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
@@ -10,12 +8,9 @@ import com.unla.TPGrupalOO2Hito2Grupo01.services.IUnidadVenta;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,71 +24,56 @@ import java.util.Map;
 @RequestMapping("/api/pedidos")
 @PreAuthorize("hasAuthority('CAJERO')")
 @Tag(name = "Pedidos API", description = "Gestión de pedidos")
-public class PedidoApiController {
-
+public class PedidoApiController
+{
     private final IPedidoService pedidoService;
     private final IUnidadVenta unidadVentaService;
 
-    public PedidoApiController(
-            IPedidoService pedidoService,
-            IUnidadVenta unidadVentaService) {
-
+    public PedidoApiController(IPedidoService pedidoService, IUnidadVenta unidadVentaService)
+    {
         this.pedidoService = pedidoService;
         this.unidadVentaService = unidadVentaService;
     }
 
-    // -----------------------METODO PUT PEDIDO (EDITAR PEDIDO)-------------------------------
+    // -----------------------METODO DELETE PEDIDO (ELIMINAR PEDIDO)-------------------------------
 
-    @PutMapping("/{idPedido}")
-    @Operation(summary = "Modificar pedido")
+    @DeleteMapping("/{idPedido}")
+    @Operation(summary = "Eliminar pedido")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
-                    description = "Pedido modificado correctamente"
+                    responseCode = "204",
+                    description = "Pedido eliminado correctamente. La operacion no devuelve contenido."
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Datos inválidos"
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Pedido no encontrado"
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Acceso denegado"
+                    description = "No se pudo eliminar el pedido porque los datos son invalidos o el pedido no existe.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "{\"error\": \"Mensaje de error\"}"
+                            )
+                    )
             )
     })
-    public ResponseEntity<?> putPedido(
-            @PathVariable Integer idPedido,
-            @Valid @RequestBody PedidoDTO pedidoDTO,
-            Authentication authentication) {
 
-        try {
+    public ResponseEntity<?> deletePedido(@PathVariable Integer idPedido, Authentication authentication)
+    {
+        ResponseEntity<?> respuesta;
 
-            UnidadVenta unidad = unidadVentaService
-                    .findByCajeroUsername(authentication.getName());
+        try
+        {
+            UnidadVenta unidad = unidadVentaService.findByCajeroUsername(authentication.getName());
+            pedidoService.eliminarPedido(idPedido, unidad.getIdUnidadVenta());
 
-            pedidoDTO.setIdUnidadVenta(
-                    unidad.getIdUnidadVenta()
-            );
+            respuesta = ResponseEntity.noContent().build();
 
-            Pedido pedidoActualizado = pedidoService.actualizarPedido(
-                    idPedido,
-                    pedidoDTO,
-                    unidad
-            );
-
-            return ResponseEntity.ok(
-                    new PedidoRespuestaDTO(pedidoActualizado)
-            );
-
-        } catch (IllegalArgumentException ex) {
-
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", ex.getMessage()));
         }
-    }
+        catch (IllegalArgumentException ex)
+        {
+            respuesta = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+        }
 
+        return respuesta;
+    }
 
 }

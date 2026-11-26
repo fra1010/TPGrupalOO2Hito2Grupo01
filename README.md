@@ -405,3 +405,32 @@ Para generar el hash BCrypt de otra contraseña se puede ejecutar la clase `Test
 ```
 
 Actualmente hay un único test (`contextLoads`) que verifica que el contexto de Spring arranca. Como levanta toda la aplicación, requiere tener definidas las variables de entorno de base de datos y correo.
+
+Hito 3 - API REST
+PedidoApiController
+
+Responsable: Iván Pablo Tolaba
+
+Se desarrolló el controlador REST PedidoApiController, ubicado en el paquete controllers.api, para gestionar los pedidos del sistema.
+
+Ruta base: /api/pedidos
+
+Endpoints implementados:
+
+Método	Endpoint	Descripción
+GET	/api/pedidos	Consulta pedidos filtrando por fecha, número de pedido y/o ID del plato.
+POST	/api/pedidos	Registra un nuevo pedido con sus platos y cantidades.
+PUT	/api/pedidos/{idPedido}	Modifica un pedido existente.
+DELETE	/api/pedidos/{idPedido}	Elimina un pedido existente.
+
+Documentación: Se utilizó Swagger/OpenAPI para documentar y probar los endpoints mediante Swagger UI.
+
+Seguridad: Requiere autenticación y el rol CAJERO.
+
+Commits
+
+Responsable: Iván Pablo Tolaba
+
+Commit 1
+Commit 2
+

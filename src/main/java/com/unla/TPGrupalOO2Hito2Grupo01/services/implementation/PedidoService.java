@@ -297,4 +297,131 @@ public class PedidoService implements IPedidoService {
             }
         }
     }
+
+    @Override
+    @Transactional
+    public Pedido actualizarPedido(
+            Integer idPedido,
+            PedidoDTO pedidoDTO,
+            UnidadVenta unidadVenta) {
+
+        if (idPedido == null) {
+            throw new IllegalArgumentException(
+                    "El número de pedido es obligatorio"
+            );
+        }
+
+        if (pedidoDTO == null ||
+                pedidoDTO.getItems() == null ||
+                pedidoDTO.getItems().isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "El pedido debe contener al menos un plato"
+            );
+        }
+
+        if (unidadVenta == null ||
+                unidadVenta.getIdUnidadVenta() == null) {
+
+            throw new IllegalArgumentException(
+                    "La unidad de venta no es válida"
+            );
+        }
+
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "El pedido no existe"
+                        )
+                );
+
+        if (pedido.getUnidadVenta() == null ||
+                !pedido.getUnidadVenta()
+                        .getIdUnidadVenta()
+                        .equals(unidadVenta.getIdUnidadVenta())) {
+
+            throw new IllegalArgumentException(
+                    "El pedido no pertenece a la unidad de venta autorizada"
+            );
+        }
+
+        Set<Integer> platosAgregados = new HashSet<>();
+        Set<ItemPedido> nuevosItems = new HashSet<>();
+
+        for (ItemPedidoDTO itemDTO : pedidoDTO.getItems()) {
+
+            if (itemDTO == null ||
+                    itemDTO.getIdPlato() == null ||
+                    itemDTO.getCantidad() == null ||
+                    itemDTO.getCantidad() <= 0) {
+
+                throw new IllegalArgumentException(
+                        "Los datos del ítem no son válidos"
+                );
+            }
+
+            if (!platosAgregados.add(itemDTO.getIdPlato())) {
+
+                throw new IllegalArgumentException(
+                        "No se puede agregar dos veces el mismo plato"
+                );
+            }
+
+            Plato plato = platoRepository.findById(
+                    itemDTO.getIdPlato()
+            ).orElseThrow(() ->
+                    new IllegalArgumentException(
+                            "El plato no existe"
+                    )
+            );
+
+            if (!plato.isActivo()) {
+
+                throw new IllegalArgumentException(
+                        "El plato no está activo"
+                );
+            }
+
+            if (plato.getUnidadVenta() == null ||
+                    !plato.getUnidadVenta()
+                            .getIdUnidadVenta()
+                            .equals(unidadVenta.getIdUnidadVenta())) {
+
+                throw new IllegalArgumentException(
+                        "El plato no pertenece a la unidad de venta"
+                );
+            }
+
+            if (plato.getPrecioDeVenta() == null) {
+
+                throw new IllegalArgumentException(
+                        "El plato no tiene un precio de venta válido"
+                );
+            }
+
+            ItemPedido item = new ItemPedido();
+
+            item.setPlato(plato);
+            item.setCantidad(itemDTO.getCantidad());
+            item.setPedido(pedido);
+
+            item.setTotalItem(
+                    plato.getPrecioDeVenta()
+                            .multiply(
+                                    BigDecimal.valueOf(
+                                            itemDTO.getCantidad()
+                                    )
+                            )
+            );
+
+            nuevosItems.add(item);
+        }
+
+        pedido.getItemsPedido().clear();
+        pedido.getItemsPedido().addAll(nuevosItems);
+
+        validarPedido(pedido);
+
+        return pedidoRepository.save(pedido);
+    }
 }

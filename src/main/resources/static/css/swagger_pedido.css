@@ -1,0 +1,290 @@
+
+/* ==================================
+   EPICENTRO GOURMET - SWAGGER UI
+   ================================== */
+
+/* Fondo general */
+body {
+    background-color: #f3f5f8;
+}
+
+/* Encabezado principal */
+.swagger-ui .topbar {
+    background-color: #263747;
+    padding: 12px 0;
+}
+
+.swagger-ui .topbar-wrapper img {
+    display: none;
+}
+
+/* Elimina el texto junto al logo de Swagger */
+.swagger-ui .topbar-wrapper .link::after {
+    content: none;
+}
+
+/* ==================================
+   TITULO Y DESCRIPCION
+   ================================== */
+
+.swagger-ui .info .title {
+    color: #263747;
+    font-weight: 700;
+}
+
+.swagger-ui .info p {
+    color: #586575;
+}
+
+/* ==================================
+   BOTONES
+   ================================== */
+
+/* Try it out */
+.swagger-ui .btn.try-out__btn {
+    border-color: #b8a078;
+    color: #8c744b;
+    border-radius: 5px;
+}
+
+/* Execute */
+.swagger-ui .btn.execute {
+    background-color: #263747;
+    border-color: #263747;
+    border-radius: 5px;
+}
+
+.swagger-ui .btn.execute:hover {
+    background-color: #344d63;
+}
+
+/* ==================================
+   OPERACIONES POST
+   ================================== */
+
+.swagger-ui .opblock.opblock-post {
+    border-color: #c5ae82;
+    background: rgba(197, 174, 130, 0.07);
+    border-radius: 8px;
+}
+
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+    background-color: #a88d5d;
+}
+
+/* ==================================
+   OPERACIONES GET
+   ================================== */
+
+.swagger-ui .opblock.opblock-get {
+    border-color: #9aabb9;
+    background: rgba(38, 55, 71, 0.035);
+    border-radius: 8px;
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background-color: #40566b;
+}
+
+/* ==================================
+   OPERACIONES DELETE
+   ================================== */
+
+.swagger-ui .opblock.opblock-delete {
+    border-color: #bd7777;
+    background: rgba(189, 119, 119, 0.07);
+    border-radius: 8px;
+}
+
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+    background-color: #a35454;
+}
+
+
+/* ==================================
+   SEPARACION Y ESTILO DE OPERACIONES
+   ================================== */
+
+/* Tarjetas de operaciones */
+.swagger-ui .opblock {
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(38, 55, 71, 0.06);
+    margin-bottom: 18px;
+    overflow: hidden;
+}
+
+/* Resumen de cada operación */
+.swagger-ui .opblock .opblock-summary {
+    padding: 5px;
+}
+
+/* ==================================
+   RESULTADO EXITOSO - HTTP 2XX
+   ================================== */
+
+.swagger-ui .responses-wrapper .response-col_status {
+    font-weight: bold;
+}
+
+/* Respuesta exitosa */
+.swagger-ui .responses-wrapper tr.response[data-code^="2"] {
+    background-color: #edf5f0;
+    border-left: 4px solid #62977a;
+}
+
+.swagger-ui .responses-wrapper tr.response[data-code^="2"] .response-col_status {
+    color: #41765a;
+    font-weight: bold;
+}
+
+/* ==================================
+   ERRORES - HTTP 4XX Y 5XX
+   ================================== */
+
+/* Errores de solicitud y servidor */
+.swagger-ui .responses-wrapper tr.response[data-code^="4"],
+.swagger-ui .responses-wrapper tr.response[data-code^="5"] {
+    background-color: #f9eeee;
+    border-left: 4px solid #bd7777;
+}
+
+.swagger-ui .responses-wrapper tr.response[data-code^="4"] .response-col_status,
+.swagger-ui .responses-wrapper tr.response[data-code^="5"] .response-col_status {
+    color: #a35454;
+    font-weight: bold;
+}
+
+/* Errores de autenticación y permisos */
+.swagger-ui .responses-wrapper tr.response[data-code="401"],
+.swagger-ui .responses-wrapper tr.response[data-code="403"] {
+    background-color: #f8f2e8;
+    border-left: 4px solid #b99a66;
+}
+
+.swagger-ui .responses-wrapper tr.response[data-code="401"] .response-col_status,
+.swagger-ui .responses-wrapper tr.response[data-code="403"] .response-col_status {
+    color: #8c744b;
+    font-weight: bold;
+}
+
+/* ==================================
+   RESPUESTA REAL DEL SERVIDOR
+   ================================== */
+
+/* Contenedor destacado del resultado ejecutado */
+.swagger-ui .responses-inner > div:has(.live-responses-table) {
+    background-color: #ffffff;
+    border: 1px solid #c5ae82;
+    border-radius: 8px;
+    padding: 0 20px 20px 20px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(38, 55, 71, 0.08);
+    overflow: hidden;
+}
+
+/* Encabezado superior del resultado */
+.swagger-ui .responses-inner > div:has(.live-responses-table)::before {
+    content: "RESULTADO DE TU CONSULTA";
+    display: block;
+    background-color: #263747;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 12px 20px;
+    margin: 0 -20px 15px -20px;
+    border-bottom: 2px solid #b8a078;
+}
+
+/* Subtítulo Server response */
+.swagger-ui .responses-inner > div:has(.live-responses-table) > h4 {
+    color: #586575;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+}
+
+/* Código HTTP de la respuesta ejecutada */
+.swagger-ui .live-responses-table .response-col_status {
+    font-size: 24px !important;
+    font-weight: 800;
+    color: #263747;
+    vertical-align: top;
+    padding-top: 12px;
+}
+
+.swagger-ui .responses-wrapper .response-undocumented {
+    border-radius: 5px;
+}
+
+/* Bloques JSON más legibles */
+.swagger-ui .live-responses-table .highlight-code pre.microlight {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    padding: 16px !important;
+    border-radius: 6px;
+}
+
+.swagger-ui .highlight-code {
+    border-radius: 6px;
+}
+
+/* Oculta todo lo que está debajo de la respuesta real */
+.swagger-ui .responses-inner > div:has(.live-responses-table) ~ * {
+    display: none !important;
+}
+
+/* ==================================
+   MODELOS Y RESPUESTAS
+   ================================== */
+
+.swagger-ui section.models {
+    border-color: #cbd3dc;
+    border-radius: 8px;
+}
+
+/* ==================================
+   BOTONES DE AUTORIZACION
+   ================================== */
+
+.swagger-ui .btn.authorize {
+    border-color: #b8a078;
+    color: #8c744b;
+    border-radius: 5px;
+}
+
+.swagger-ui .btn.authorize:hover {
+    background-color: #f5f1e9;
+}
+
+/* ==================================
+   CONTROLES GENERALES
+   ================================== */
+
+.swagger-ui input,
+.swagger-ui select,
+.swagger-ui textarea {
+    border-radius: 5px;
+}
+
+.swagger-ui .opblock-description-wrapper,
+.swagger-ui .opblock-external-docs-wrapper,
+.swagger-ui .opblock-body {
+    color: #586575;
+}
+
+/* ==================================
+   OPERACIONES PUT
+   ================================== */
+
+.swagger-ui .opblock.opblock-put {
+    border-color: #8da99b;
+    background: rgba(98, 151, 122, 0.07);
+    border-radius: 8px;
+}
+
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+    background-color: #628f79;
+}

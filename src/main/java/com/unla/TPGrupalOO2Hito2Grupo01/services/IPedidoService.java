@@ -39,4 +39,12 @@ public interface IPedidoService {
             Integer numeroPedido,
             Integer idUnidadVenta
     );
+
+    Pedido actualizarPedido(
+            Integer idPedido,
+            PedidoDTO pedidoDTO,
+            UnidadVenta unidadVenta
+    );
+
+
 }

@@ -46,5 +46,7 @@ public interface IPedidoService {
             UnidadVenta unidadVenta
     );
 
+    void eliminarPedido(Integer idPedido, Integer idUnidadVenta);
+
 
 }

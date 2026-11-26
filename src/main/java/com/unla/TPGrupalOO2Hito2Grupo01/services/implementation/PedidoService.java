@@ -424,4 +424,25 @@ public class PedidoService implements IPedidoService {
 
         return pedidoRepository.save(pedido);
     }
+
+    @Override
+    @Transactional
+    public void eliminarPedido(Integer idPedido, Integer idUnidadVenta) {
+
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("El pedido no existe")
+                );
+
+        if (pedido.getUnidadVenta() == null ||
+                !pedido.getUnidadVenta().getIdUnidadVenta().equals(idUnidadVenta)) {
+
+            throw new IllegalArgumentException(
+                    "El pedido no pertenece a la unidad de venta autorizada"
+            );
+        }
+
+        pedidoRepository.delete(pedido);
+    }
+
 }

@@ -34,10 +34,8 @@ public class PedidoApiController {
     private final IPedidoService pedidoService;
     private final IUnidadVenta unidadVentaService;
 
-    public PedidoApiController(
-            IPedidoService pedidoService,
-            IUnidadVenta unidadVentaService) {
-
+    public PedidoApiController(IPedidoService pedidoService, IUnidadVenta unidadVentaService)
+    {
         this.pedidoService = pedidoService;
         this.unidadVentaService = unidadVentaService;
     }
@@ -79,27 +77,27 @@ public class PedidoApiController {
                     )
             )
     })
-    public ResponseEntity<?> postPedido(
-            @Valid @RequestBody PedidoDTO pedidoDTO,
-            Authentication authentication) {
 
-        try {
-            UnidadVenta unidad = unidadVentaService
-                    .findByCajeroUsername(authentication.getName());
+    public ResponseEntity<?> postPedido(@Valid @RequestBody PedidoDTO pedidoDTO, Authentication authentication)
+    {
+        ResponseEntity<?> respuesta;
+
+        try
+        {
+            UnidadVenta unidad = unidadVentaService.findByCajeroUsername(authentication.getName());
 
             pedidoDTO.setIdUnidadVenta(unidad.getIdUnidadVenta());
 
-            Pedido pedidoGuardado =
-                    pedidoService.registrarPedido(pedidoDTO, unidad);
+            Pedido pedidoGuardado = pedidoService.registrarPedido(pedidoDTO, unidad);
 
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new PedidoRespuestaDTO(pedidoGuardado));
+            respuesta = ResponseEntity.status(HttpStatus.CREATED).body(new PedidoRespuestaDTO(pedidoGuardado));
 
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", ex.getMessage()));
         }
+        catch (IllegalArgumentException ex)
+        {
+            respuesta = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+        }
+
+        return respuesta;
     }
 }

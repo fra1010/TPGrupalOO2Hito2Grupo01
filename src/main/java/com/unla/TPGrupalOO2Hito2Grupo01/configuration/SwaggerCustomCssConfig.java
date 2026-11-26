@@ -22,38 +22,35 @@ import org.springframework.web.servlet.resource.TransformedResource;
 import org.springdoc.core.providers.ObjectMapperProvider;
 
 @Configuration
-public class SwaggerCustomCssConfig {
-
+public class SwaggerCustomCssConfig
+{
     @Bean
     public SwaggerIndexTransformer swaggerIndexTransformer(
             SwaggerUiConfigProperties swaggerUiConfig,
             SwaggerUiOAuthProperties swaggerUiOAuth,
             SwaggerUiConfigParameters configParameters,
             SwaggerWelcomeCommon swaggerWelcome,
-            ObjectMapperProvider objectMapperProvider) {
+            ObjectMapperProvider objectMapperProvider)
+    {
 
         return new SwaggerIndexPageTransformer(
                 swaggerUiConfig,
                 swaggerUiOAuth,
                 configParameters,
                 swaggerWelcome,
-                objectMapperProvider) {
+                objectMapperProvider)
+        {
 
             @Override
-            public Resource transform(
-                    HttpServletRequest request,
-                    Resource resource,
-                    ResourceTransformerChain transformer)
-                    throws IOException {
+            public Resource transform(HttpServletRequest request, Resource resource, ResourceTransformerChain transformer)
+                    throws IOException
+            {
 
-                Resource transformed = super.transform(
-                        request, resource, transformer);
+                Resource transformed = super.transform(request, resource, transformer);
 
-                if (resource.toString().contains("index.html")) {
-
-                    String html = StreamUtils.copyToString(
-                            transformed.getInputStream(),
-                            StandardCharsets.UTF_8);
+                if (resource.toString().contains("index.html"))
+                {
+                    String html = StreamUtils.copyToString(transformed.getInputStream(), StandardCharsets.UTF_8);
 
                     html = html.replace(
                             "</head>",
@@ -61,9 +58,7 @@ public class SwaggerCustomCssConfig {
                                     "href=\"/css/swagger_pedido.css\">" +
                                     "</head>");
 
-                    return new TransformedResource(
-                            transformed,
-                            html.getBytes(StandardCharsets.UTF_8));
+                    return new TransformedResource(transformed, html.getBytes(StandardCharsets.UTF_8));
                 }
 
                 return transformed;
